@@ -6,12 +6,25 @@ assembler in ``glycoquant.profiles`` concatenates these into a
 per-cell DataFrame.
 """
 
+from glycoquant.features.actin import ActinParams, extract_actin_features
+from glycoquant.features.focal_adhesions import (
+    FocalAdhesionParams,
+    extract_fa_features,
+)
 from glycoquant.features.glycocalyx import (
     GlycocalyxParams,
     extract_glycocalyx_features,
 )
+from glycoquant.features.morphology import extract_morphology_features
+from glycoquant.features.yap import extract_yap_features
 
 __all__ = [
+    "ActinParams",
+    "FocalAdhesionParams",
     "GlycocalyxParams",
+    "extract_actin_features",
+    "extract_fa_features",
     "extract_glycocalyx_features",
+    "extract_morphology_features",
+    "extract_yap_features",
 ]
