@@ -22,7 +22,7 @@
 
   [project.optional-dependencies]
   dev = ["pytest", "ruff", "pre-commit"]
-  notebooks = [
+  scripts = [
     "torch",
     "transformers",
     "geneformer",
@@ -30,10 +30,9 @@
     "scanpy",
     "cellxgene-census",
     "requests",
-    "jupyter",
   ]
   ```
-  **Rationale:** `torch`/`transformers`/`geneformer` are only needed for the offline Colab prior generation notebook. The Streamlit runtime must NOT import them. A PI cloning the repo for the demo runs `pip install -e ".[dev]"` and gets a minimal, fast install.
+  **Rationale:** `torch` / `transformers` / `geneformer` / `anndata` / `scanpy` are only needed by the one-time setup scripts in `scripts/` (Geneformer prior generation on Colab, STRING pathway prior generation, DINOv2 fine-tuning). The Streamlit runtime must NOT import them except where explicitly allowed (e.g., `torch` is already pulled by `cellpose` as a runtime dep — that is accepted). A reviewer cloning the repo for the demo runs `pip install -e ".[dev]"` and gets a minimal, fast install; only a developer regenerating priors or fine-tuning runs `pip install -e ".[scripts]"`.
 - [ ] Create full directory structure from ARCHITECTURE.md
 - [ ] Create `configs/default.yaml` with all parameters (segmentation thresholds, feature extraction params, gene panels)
 - [ ] Create `glycoquant/app/main.py` — Streamlit skeleton with 3 tabs ("Image Analysis", "Perturbation Prioritization", "Experiment Designer"), each showing placeholder text. Tab 2 must NOT import `torch` or `transformers` — the runtime path is pure JSON + UI.
@@ -57,17 +56,25 @@
 - [ ] `glycoquant/segmentation/cellpose_wrapper.py`:
   ```python
   class CellSegmenter:
-      def __init__(self, model_type: str = "cyto3", gpu: bool = False):
-          """Wraps Cellpose for cell + nucleus segmentation."""
-      
+      def __init__(self, model_type: str = "cpsam", gpu: bool = False):
+          """Wraps Cellpose-SAM (cellpose>=4.0) for cell + nucleus segmentation.
+
+          ``model_type`` is retained for API symmetry but in cellpose 4.x
+          only 'cpsam' is available as a pretrained model.
+          """
+
       def segment_cells(self, image: np.ndarray, diameter: float | None = None) -> np.ndarray:
           """Returns labeled mask (0=background, 1..N=cell IDs)."""
-      
+
       def segment_nuclei(self, dapi: np.ndarray, diameter: float | None = None) -> np.ndarray:
           """Returns labeled nuclear mask."""
-      
+
       def segment_both(self, image: np.ndarray, dapi: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-          """Returns (cell_mask, nuclear_mask) with matched labels."""
+          """Returns (cell_mask, nuclear_mask) with matched labels: nucleus ID N
+          is contained within cell ID N. Nuclei not contained in any cell are
+          dropped; cells without a detected nucleus have no entry in the
+          nuclear mask for their ID.
+          """
   ```
 - [ ] `tests/test_segmentation.py`:
   - Test on synthetic image: should find correct number of cells (±1)
@@ -280,7 +287,9 @@ Tab 2 is a **hypothesis-ranking** tool, not a mechanistic predictor. No model kn
 
 ### 6.0 Offline prior generation (run BEFORE starting Phase 6 code, in parallel with Phase 5)
 
-#### `notebooks/generate_geneformer_priors.ipynb` — run on Google Colab (GPU runtime)
+These are **one-time Python scripts**, not notebooks. They produce committed data artifacts in `data/priors/` which the running Streamlit app loads at startup. Developers run them once (or when priors need regeneration); end users never run them. The app has **no dependency** on the scripts at runtime.
+
+#### `scripts/generate_geneformer_priors.py` — run on Google Colab (GPU runtime)
 - [ ] Load `ctheodoris/Geneformer` V2 from HuggingFace (`transformers` + `geneformer` package)
 - [ ] Load a reference fibroblast scRNA-seq dataset (Tabula Sapiens fibroblast subset via `cellxgene-census`, ~5–10k cells is enough)
 - [ ] Rank-value tokenize with the pretrained Geneformer tokenizer
@@ -312,9 +321,9 @@ Tab 2 is a **hypothesis-ranking** tool, not a mechanistic predictor. No model kn
   ```
 - [ ] **Fallback ladder if Geneformer V2 tokenization fails on Colab:**
   1. Try Geneformer V1 (smaller, older tokenizer — often more stable)
-  2. If V1 also fails: ship Tab 2 with **pathway prior only**, banner at top explains Geneformer column is unavailable in this build and points to the notebook for regeneration. Scientifically still defensible.
+  2. If V1 also fails: ship Tab 2 with **pathway prior only**, banner at top explains Geneformer column is unavailable in this build and points to `scripts/generate_geneformer_priors.py` for regeneration. Scientifically still defensible.
 
-#### `notebooks/generate_pathway_priors.ipynb` — runs locally, no GPU
+#### `scripts/generate_pathway_priors.py` — runs locally, no GPU, no network at app runtime
 - [ ] Query STRING v12 REST API (`https://string-db.org/api/json/network`) for the full network restricted to: 22 glycocalyx genes + 15 mechano genes + their 1-hop neighborhood, species = 9606 (human), confidence threshold = 0.7
 - [ ] Build a weighted `networkx.Graph` with edge weight = `−log(confidence)` (so high confidence = short distance)
 - [ ] For each (glycocalyx_gene *g*, mechano_gene *m*) pair:
@@ -400,9 +409,10 @@ Tab 2 is a **hypothesis-ranking** tool, not a mechanistic predictor. No model kn
       source_gene: str,
       target_genes: list[str],
   ) -> tuple[float, dict[str, dict]]:
-      """Core scoring function. Used by generate_pathway_priors.ipynb.
+      """Core scoring function. Used by scripts/generate_pathway_priors.py.
       Returns (median_inverse_score, per_target_details_dict).
-      Kept in the package (not only in the notebook) so it is unit-testable.
+      Lives in the installable package (not only in the script) so it is
+      unit-testable via pytest and callable from any backend module.
       """
   ```
 
@@ -430,15 +440,15 @@ Tab 2 is a **hypothesis-ranking** tool, not a mechanistic predictor. No model kn
 - [ ] Commit sequence:
   1. `feat: add prior loader and pathway scoring module`
   2. `feat: implement dual-prior prioritization tab with divergence column`
-  3. `docs: add offline Geneformer and pathway prior generation notebooks`
+  3. `feat: add offline Geneformer and pathway prior generation scripts`
 - [ ] Merge to main, tag `v0.2.0`
 
 ### What this phase explicitly does NOT include
 - No `GeneformerPredictor` class with runtime model loading
 - No HuggingFace download at app startup
-- No `transformers` / `torch` import in the Streamlit runtime path (can remain a dev dependency for the notebooks, but `tab_prioritization.py` must not import them)
+- No `transformers` import anywhere in `glycoquant/app/` or `glycoquant/predictor/prior_loader.py`. `torch` is allowed only transitively via `cellpose` in the segmentation path. `transformers` lives only in `scripts/` and in the `[scripts]` extras group.
 - No GPU requirement
-- No network calls in the Streamlit app — all STRING queries happen offline in the notebook
+- No network calls in the Streamlit app — all STRING queries happen offline in `scripts/generate_pathway_priors.py`
 
 ---
 
@@ -485,49 +495,48 @@ Tab 2 is a **hypothesis-ranking** tool, not a mechanistic predictor. No model kn
 
 ---
 
-## Phase 8: Polish + README + Demo
+## Phase 8: Polish + README + Bundled demo assets
 **Branch:** `feat/polish`
-**Gate:** README is compelling, demo notebook runs end-to-end in <5 min, all tests green, app launches clean
+**Gate:** README is compelling, bundled demo images in `data/demo/` let the user hit "Run Analysis" in Tab 1 on first launch and see results in <30 s, all tests green, app launches clean, CI passes.
+
+**Architectural note:** There is no demo notebook. The Streamlit app IS the demo. Anything a reviewer would want to see — image analysis, perturbation prioritization, experiment recommendation — must be reachable by clicking through the app with the bundled assets.
 
 - [ ] `README.md`:
   - Project title + one-line description
-  - Architecture diagram (Mermaid or ASCII)
-  - Screenshot of app (take actual screenshot from running app)
-  - Installation: `pip install -e .` then `streamlit run glycoquant/app/main.py`
-  - Quick start: 3-step guide
-  - Biological context: 2 paragraphs linking to Labouesse/Tibbitt work
-  - Feature list with examples
-  - Roadmap: morphological perturbation atlas, COBRA flux model, polymer-brush PINN
-  - References: Paszek 2014, Dupont 2011, Möckl 2019, Bray 2016
+  - Architecture diagram (Mermaid) showing app ↔ library ↔ scripts ↔ data layout
+  - 3 screenshots of the running app: Tab 1 with segmentation overlay + feature table, Tab 2 with dual-prior divergence highlighted, Tab 3 with GP recommendation
+  - Installation: `pip install -e ".[dev]"` then `streamlit run glycoquant/app/main.py`
+  - Quick start: "launch the app, go to Tab 1, click 'Load demo image', click 'Run Analysis'". Three steps, all inside the app.
+  - Reproducibility section: how to regenerate `data/priors/*.json` via `python scripts/generate_pathway_priors.py` and (on Colab) `scripts/generate_geneformer_priors.py`. Documents the prior provenance.
+  - Biological context: 2 paragraphs linking to Labouesse / Tibbitt work and Paszek 2014
+  - Scientific framing paragraph for Tab 2 (hypothesis ranking, not mechanistic prediction)
+  - Roadmap: morphological perturbation atlas, COBRA-HBP flux model, polymer-brush PINN, DINOv2 deep features (Phase 5.5), OpenPhenom benchmark
+  - References: Paszek 2014, Dupont 2011, Möckl 2019, Bray 2016, Chandrasekaran 2024 JUMP-CP, Theodoris 2023 Geneformer, Gruver 2024 IterPert, Kraus 2024 Phenom-2, Oquab 2024 DINOv2
   - License: MIT
   - Author: Valentin Uzan
 
-- [ ] `notebooks/demo.ipynb`:
-  - Load demo images (synthetic via `skimage.draw` or a small public dataset)
-  - Run segmentation → feature extraction → profile assembly → per-cell CSV
-  - Show radial profile + correlation heatmap
-  - Load pre-computed priors from `data/priors/*.json` (NOT re-run Geneformer)
-  - Render the dual-prior ranking table + divergence column for the 22 glycocalyx genes
-  - Show pathway drill-down for one high-divergence gene (SDC1 or EXT1)
-  - Run GP active learning on synthetic perturbation results with pathway cold-start
-  - Total runtime: <5 min on laptop, zero GPU, zero network
-  - **Separate notebook (not part of `demo.ipynb`):** `generate_geneformer_priors.ipynb` documents how the Geneformer JSON was produced; link it from the README so the pipeline is fully reproducible without being part of the demo path.
+- [ ] `data/demo/`: bundle 2–3 small synthetic multi-channel images (generated with `skimage.draw`, committed as PNG or TIFF, <1 MB total) so Tab 1 has a "Load demo image" button that works out of the box with no uploads required.
 
-- [ ] CI: `.github/workflows/ci.yml` — run pytest + ruff on every PR
-- [ ] Clean git history, ensure every PR is squash-merged
+- [ ] `glycoquant/app/tab_imaging.py` gains a "Load demo image" button wired to `data/demo/` files, so the reviewer's first click produces a result.
+
+- [ ] CI: `.github/workflows/ci.yml` — runs `pytest tests/ -v` and `ruff check glycoquant/ scripts/` on every PR, pinned to Python 3.11 with `pip install -e ".[dev]"`. Does NOT run the scripts (they need Colab/network).
+
+- [ ] Clean git history, every phase is squash-merged to main with a clear commit
 - [ ] Final tag: `v1.0.0`
-- [ ] Commit: `docs: add README, demo notebook, CI workflow`
+- [ ] Commit: `docs: README, bundled demo assets, CI workflow`
 - [ ] Merge to main
 
 ---
 
 ## Explicit non-goals
-- No model training anywhere in the repo (Geneformer is used offline, inference-only, on Colab)
-- No Geneformer loading at Streamlit runtime — all priors pre-computed as JSON
-- No `torch`/`transformers` import in `glycoquant/app/` or `glycoquant/predictor/prior_loader.py`
-- No network calls in the Streamlit app (STRING queries happen offline in the notebook)
+- **No demo notebook.** The Streamlit app is the demo. Anything a reviewer would want to see must be reachable by clicking through the running app.
+- **No ad-hoc notebook directory as a first-class deliverable.** `scripts/` is the only place one-time setup code lives, and it consists of proper Python modules runnable via `python scripts/<name>.py`.
+- No model training anywhere in the app runtime (Geneformer is used offline, inference-only, via `scripts/generate_geneformer_priors.py` on Colab)
+- No Geneformer loading at Streamlit runtime — all priors pre-computed as JSON in `data/priors/`
+- No `transformers` import in `glycoquant/app/` or `glycoquant/predictor/prior_loader.py`. `torch` is allowed only transitively via `cellpose`.
+- No network calls in the Streamlit app (STRING queries happen offline in `scripts/generate_pathway_priors.py`)
 - No scRNA-seq data processing in the app (conditional on future experiments in the PhD itself)
-- No GPU requirement for the demo
-- No JEPA/foundation model training
-- No cross-modal alignment (future work, PhD year 2–3, not application scope)
+- No GPU requirement for the running app
+- No JEPA / foundation model training
+- No cross-modal alignment at pixel level (future work, PhD year 2–3, not application scope)
 - No live mechanistic predictions framed as ground truth — Tab 2 is explicit hypothesis-ranking

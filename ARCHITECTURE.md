@@ -20,7 +20,7 @@ Built as a PhD application deliverable by Valentin Uzan (github.com/VUzan-bio).
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ Upload: DAPI / WGA-lectin / YAP / Paxillin / Actin │    │
 │  │         ↓                                            │    │
-│  │ Cellpose (cyto3) → cell + nucleus masks              │    │
+│  │ Cellpose-SAM (cpsam) → cell + nucleus masks          │    │
 │  │         ↓                                            │    │
 │  │ Feature extraction per cell:                         │    │
 │  │   • Glycocalyx: radial profile, heterogeneity,      │    │
@@ -71,7 +71,7 @@ Built as a PhD application deliverable by Valentin Uzan (github.com/VUzan-bio).
 ### Runtime (required for `streamlit run`)
 - Python 3.10+
 - Streamlit (web UI)
-- Cellpose (cell segmentation — `cellpose>=3.0`, `cyto3` model)
+- Cellpose-SAM (cell segmentation — `cellpose>=4.0`, `cpsam` model, the only pretrained model shipped in v4)
 - scikit-image (feature extraction: `regionprops`, `structure_tensor`)
 - numpy, pandas, scipy
 - plotly (interactive plots in Streamlit)
@@ -79,16 +79,18 @@ Built as a PhD application deliverable by Valentin Uzan (github.com/VUzan-bio).
 - scikit-learn (Gaussian process for Tab 3 active learning)
 - pyyaml (config loading)
 
-### Notebook-only (offline prior generation, NOT required at runtime)
-- transformers, torch — only for `notebooks/generate_geneformer_priors.ipynb` on Colab GPU
+### Scripts-only (offline data/model preparation, NOT required at runtime)
+- transformers — only for `scripts/generate_geneformer_priors.py` on Colab GPU
 - geneformer (HuggingFace `ctheodoris/Geneformer`)
 - anndata, scanpy, cellxgene-census — for loading the reference fibroblast dataset
-- requests — for STRING REST API queries in `generate_pathway_priors.ipynb`
+- requests — for STRING REST API queries in `scripts/generate_pathway_priors.py`
 
 ### Dev
 - pytest, ruff, pre-commit
 
-Torch/transformers live in an optional extras group (`pip install -e ".[notebooks]"`) so the base install for a PI cloning the repo is minimal.
+`transformers` and the data-loading stack live in an optional extras group (`pip install -e ".[scripts]"`) so the base install for a reviewer cloning the repo is minimal: `pip install -e ".[dev]"` is enough to run the app and the tests. `torch` is already pulled by `cellpose` as a runtime dep and stays in the base install.
+
+**Architectural rule:** there is no `notebooks/` directory. The Streamlit app is the single user-facing surface. One-time setup code (prior generation, model fine-tuning) lives in `scripts/` as proper Python modules. Ad-hoc exploration is not a first-class deliverable.
 
 ## Project Structure
 ```
@@ -146,16 +148,18 @@ glycoquant/
 │   ├── test_profiles.py
 │   ├── test_predictor.py
 │   └── test_active_learning.py
-├── notebooks/
-│   ├── demo.ipynb                    # End-to-end walkthrough
-│   ├── generate_geneformer_priors.ipynb  # Offline: Colab/GPU, runs Geneformer V2 in silico perturbation over 22 glycocalyx genes × 15 mechano genes, writes data/priors/geneformer_ranks.json
-│   └── generate_pathway_priors.ipynb     # Offline: queries STRING v12 REST API, computes median inverse shortest-path score, writes data/priors/pathway_ranks.json
+├── scripts/                             # one-time setup, run by dev only (not part of runtime)
+│   ├── generate_geneformer_priors.py    # Colab/GPU, writes data/priors/geneformer_ranks.json
+│   ├── generate_pathway_priors.py       # STRING v12 REST, writes data/priors/pathway_ranks.json + pathway_evidence.json
+│   └── finetune_dinov2_hpa.py           # Phase 5.5, writes data/models/dinov2_glycocalyx_head.pt
 ├── data/
-│   ├── demo/                         # Small demo images for testing
-│   └── priors/
-│       ├── geneformer_ranks.json     # Pre-computed transcriptomic prior (committed)
-│       ├── pathway_ranks.json        # Pre-computed STRING/Reactome prior (committed)
-│       └── pathway_evidence.json     # Per (glycocalyx_gene, mechano_gene) pair: top STRING edges + PubMed refs for drill-down UI
+│   ├── demo/                            # Bundled sample images for the app's "Load demo image" button
+│   ├── priors/
+│   │   ├── geneformer_ranks.json        # Pre-computed transcriptomic prior (committed)
+│   │   ├── pathway_ranks.json           # Pre-computed STRING/Reactome prior (committed)
+│   │   └── pathway_evidence.json        # Per (glycocalyx_gene, mechano_gene) pair: top STRING edges + PubMed refs for drill-down UI
+│   └── models/
+│       └── dinov2_glycocalyx_head.pt    # Phase 5.5 fine-tuned linear probe head (committed, ~few MB)
 └── results/
     └── .gitkeep
 ```
@@ -180,8 +184,9 @@ pytest tests/ -v
 # Launch platform
 streamlit run glycoquant/app/main.py
 
-# Run demo notebook
-jupyter notebook notebooks/demo.ipynb
+# Regenerate priors (dev only, not needed to run the app)
+python scripts/generate_pathway_priors.py     # local, ~2 min
+python scripts/generate_geneformer_priors.py  # Colab GPU only
 ```
 
 ## Code Style
@@ -193,14 +198,14 @@ jupyter notebook notebooks/demo.ipynb
 - Config via YAML — no hardcoded parameters
 
 ## Critical Design Decisions
-- IMPORTANT: Cellpose (`cyto3` model) handles all segmentation. Do NOT reimplement. Standard `cellpose>=3.0`, not Cellpose-SAM — `cyto3` ships in the base package with zero extra dependencies.
+- IMPORTANT: Cellpose-SAM (`cpsam` model, cellpose>=4.0) handles all segmentation. Do NOT reimplement. `cpsam` is the only pretrained model shipped in cellpose 4.x — `cyto3` and earlier model names were removed. The `segment_anything` dependency is already pulled by `cellpose>=4.0`; no extra install step. First invocation downloads weights (~300 MB) to `~/.cellpose/models/`; subsequent calls are cached and offline.
 - IMPORTANT: Feature extraction uses scikit-image only. No deep learning beyond Cellpose.
-- IMPORTANT: **Tab 2 uses PRE-COMPUTED priors, no runtime inference.** Both rankings (Geneformer + pathway) are generated offline by the two notebooks in `notebooks/generate_*_priors.ipynb` and committed as JSON files in `data/priors/`. The Streamlit app loads these JSONs at startup via `prior_loader.py` and renders them. This guarantees: (a) instant tab load, (b) zero Windows/tokenizer/CUDA pain at demo time, (c) full reproducibility (regenerate by re-running the notebooks), (d) no GPU requirement for the app.
+- IMPORTANT: **Tab 2 uses PRE-COMPUTED priors, no runtime inference.** Both rankings (Geneformer + pathway) are generated offline by `scripts/generate_geneformer_priors.py` and `scripts/generate_pathway_priors.py` and committed as JSON files in `data/priors/`. The Streamlit app loads these JSONs at startup via `prior_loader.py` and renders them. This guarantees: (a) instant tab load, (b) zero Windows/tokenizer/CUDA pain at demo time, (c) full reproducibility (regenerate by re-running the scripts), (d) no GPU requirement for the app.
 - IMPORTANT: **Geneformer V2 runs on Colab GPU, once, offline.** Use `ctheodoris/Geneformer` from HuggingFace, rank-value tokenization on a reference fibroblast scRNA-seq dataset (e.g., Tabula Sapiens fibroblast subset), in silico delete each of the 22 glycocalyx genes, measure cosine shift in the embedding of each of the 15 mechano genes, rank. Cache results as `geneformer_ranks.json`. If Geneformer tokenization fails on Colab, fall back to Geneformer V1. If both fail, Tab 2 ships with pathway prior only + a banner explaining the absence — still scientifically defensible.
 - IMPORTANT: **Pathway score method is fixed and defensible.** For each glycocalyx gene *g* and each mechano gene *m*, shortest weighted path in STRING v12 (human, confidence ≥ 0.7, edge weight = −log(confidence)). Aggregate across the 15 mechano genes using **median inverse path length** (robust to a single strong link pulling the score). Every ranking is traceable to a specific STRING edge + Reactome pathway + PubMed reference, surfaced in the Tab 2 drill-down UI. No black box.
 - IMPORTANT: **The divergence column is the novel contribution.** When Geneformer rank and pathway rank disagree strongly for a gene, that gene is flagged as a high-information experiment: the transcriptomic co-regulation signal diverges from the known PPI topology, and the wet-lab result will discriminate between the two priors. This framing is what makes the tab scientifically interesting rather than a generic heatmap.
 - IMPORTANT: The Streamlit app must work on a laptop without GPU, offline (no network calls at runtime). All priors are local JSON.
-- IMPORTANT: All visualizations use Plotly for interactivity in Streamlit (matplotlib is fine for notebook/export).
+- IMPORTANT: All visualizations use Plotly and live in `glycoquant/viz/` as pure functions that return `plotly.graph_objects.Figure`. The app imports these; the library does not import Streamlit. This keeps `glycoquant/viz/` unit-testable without Streamlit installed.
 - IMPORTANT: Generate synthetic test images in `conftest.py` with known ground truth (`skimage.draw`) so tests don't depend on external data downloads.
 
 ## Gene Panels

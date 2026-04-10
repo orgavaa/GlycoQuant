@@ -7,12 +7,15 @@ app:
   layout: "wide"
 
 segmentation:
-  model_type: "cyto3"
+  # Cellpose 4.x only ships 'cpsam' (Cellpose-SAM). Earlier model names
+  # (cyto3, cyto2, nuclei) are not available in v4.
+  model_type: "cpsam"
   gpu: false
-  cell_diameter: null  # null = auto-detect
-  nuclear_diameter: null
+  cell_diameter: null     # null = auto-detect from image
+  nuclear_diameter: null  # null = auto-detect
   flow_threshold: 0.4
   cellprob_threshold: 0.0
+  min_size: 15            # discard mask components smaller than this (px)
 
 features:
   glycocalyx:
@@ -44,8 +47,8 @@ profiles:
 
 predictor:
   # Tab 2 uses PRE-COMPUTED priors only. No runtime model loading.
-  # Regenerate via notebooks/generate_geneformer_priors.ipynb and
-  # notebooks/generate_pathway_priors.ipynb.
+  # Regenerate via scripts/generate_geneformer_priors.py and
+  # scripts/generate_pathway_priors.py.
   priors:
     geneformer_path: "data/priors/geneformer_ranks.json"
     pathway_path: "data/priors/pathway_ranks.json"
@@ -61,7 +64,7 @@ predictor:
     aggregation: "median_inverse_shortest_path"
 
   geneformer_offline:
-    # Parameters consumed ONLY by notebooks/generate_geneformer_priors.ipynb
+    # Parameters consumed ONLY by scripts/generate_geneformer_priors.py
     model: "ctheodoris/Geneformer"
     version: "V2"
     reference_dataset: "tabula_sapiens_fibroblast"
