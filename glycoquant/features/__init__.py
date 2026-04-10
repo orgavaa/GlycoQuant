@@ -14,6 +14,7 @@ from glycoquant.features.deep_embedding import (
 )
 from glycoquant.features.focal_adhesions import (
     FocalAdhesionParams,
+    detect_focal_adhesions,
     extract_fa_features,
 )
 from glycoquant.features.glycocalyx import (
@@ -30,6 +31,7 @@ __all__ = [
     "FocalAdhesionParams",
     "GlycocalyxParams",
     "build_cell_crop",
+    "detect_focal_adhesions",
     "extract_actin_features",
     "extract_fa_features",
     "extract_glycocalyx_features",

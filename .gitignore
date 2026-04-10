@@ -38,8 +38,8 @@ Thumbs.db
 # GlycoQuant
 results/*
 !results/.gitkeep
-data/demo/*
-!data/demo/.gitkeep
+# Bundled demo TIFFs committed for Tab 1's "Load demo image" button.
+# Regenerate via `python scripts/generate_demo_images.py`.
 # data/priors/*.json is COMMITTED — Tab 2 depends on it
 
 # Streamlit

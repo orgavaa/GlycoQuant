@@ -7,6 +7,8 @@ from typing import Any
 import streamlit as st
 import yaml
 
+from glycoquant.app import tab_imaging
+
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "default.yaml"
 
 
@@ -56,7 +58,7 @@ def main() -> None:
         "Labouesse group · ETH Zurich · Tibbitt Macromolecular Engineering Lab"
     )
 
-    tab_imaging, tab_prioritization, tab_experiment = st.tabs(
+    tab_imaging_container, tab_prioritization, tab_experiment = st.tabs(
         [
             "Image Analysis",
             "Perturbation Prioritization",
@@ -64,12 +66,8 @@ def main() -> None:
         ]
     )
 
-    with tab_imaging:
-        st.header("Image Analysis")
-        st.info(
-            "Phase 0 scaffold. The segmentation + feature-extraction "
-            "pipeline is implemented in Phase 5 (branch: feat/app-imaging)."
-        )
+    with tab_imaging_container:
+        tab_imaging.render(config)
 
     with tab_prioritization:
         st.header("Perturbation Prioritization")

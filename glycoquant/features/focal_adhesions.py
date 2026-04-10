@@ -34,13 +34,21 @@ class FocalAdhesionParams:
     peripheral_distance_px: int = 20
 
 
-def extract_fa_features(
+def detect_focal_adhesions(
     paxillin_channel: np.ndarray,
     cell_mask: np.ndarray,
     cell_id: int,
     params: FocalAdhesionParams | None = None,
-) -> dict[str, float]:
-    """Extract focal adhesion morphometrics for a single cell.
+) -> list:
+    """Detect focal adhesions inside a single cell and return per-FA regionprops.
+
+    Thresholds the paxillin signal restricted to ``cell_mask == cell_id``,
+    runs 8-connectivity ``label``, wraps into ``regionprops``, and filters
+    by ``params.min_area_px..max_area_px``. The returned list is the
+    single source of truth for FA detection in GlycoQuant — it is
+    consumed both by ``extract_fa_features`` (which aggregates scalars)
+    and by ``glycoquant.viz.overlay`` (which rasterises per-FA contours
+    for the Tab 1 overlay).
 
     Parameters
     ----------
@@ -51,18 +59,14 @@ def extract_fa_features(
     cell_id : int
         Which cell to profile.
     params : FocalAdhesionParams, optional
-        Detection parameters; defaults from the dataclass.
 
     Returns
     -------
-    dict[str, float]
-        Keys:
-        - fa_count                  : number of focal adhesions
-        - fa_mean_area              : mean FA area (px)
-        - fa_total_area             : total FA area (px)
-        - fa_mean_elongation        : mean major_axis / minor_axis
-        - fa_mean_distance_to_edge  : mean distance of FA centroids to cell edge (px)
-        - fa_peripheral_fraction    : fraction of FAs within ``peripheral_distance_px`` of edge
+    list
+        List of ``skimage.measure._regionprops.RegionProperties`` instances,
+        one per detected focal adhesion surviving the area filter. Empty
+        list if no cell, no signal above threshold, or no components
+        survive filtering.
 
     Raises
     ------
@@ -70,7 +74,9 @@ def extract_fa_features(
         On non-2D input or shape mismatch.
     """
     if paxillin_channel.ndim != 2:
-        raise ValueError(f"paxillin_channel must be 2D, got shape {paxillin_channel.shape}")
+        raise ValueError(
+            f"paxillin_channel must be 2D, got shape {paxillin_channel.shape}"
+        )
     if cell_mask.ndim != 2:
         raise ValueError(f"cell_mask must be 2D, got shape {cell_mask.shape}")
     if paxillin_channel.shape != cell_mask.shape:
@@ -81,7 +87,7 @@ def extract_fa_features(
     p = params or FocalAdhesionParams()
     this_cell = cell_mask == cell_id
     if not this_cell.any():
-        return _zero_features()
+        return []
 
     # Threshold paxillin signal, restricted to the cell mask
     cell_values = paxillin_channel[this_cell]
@@ -89,16 +95,43 @@ def extract_fa_features(
     bright = (paxillin_channel > threshold) & this_cell
 
     if not bright.any():
-        return _zero_features()
+        return []
 
     labeled = label(bright, connectivity=2)
     regions = [
         r for r in regionprops(labeled) if p.min_area_px <= r.area <= p.max_area_px
     ]
+    return regions
 
+
+def extract_fa_features(
+    paxillin_channel: np.ndarray,
+    cell_mask: np.ndarray,
+    cell_id: int,
+    params: FocalAdhesionParams | None = None,
+) -> dict[str, float]:
+    """Aggregate focal-adhesion morphometrics into scalar features for a cell.
+
+    Thin wrapper over :func:`detect_focal_adhesions` that computes the
+    summary statistics consumed by the per-cell feature table.
+
+    Returns
+    -------
+    dict[str, float]
+        Keys:
+        - fa_count                  : number of focal adhesions
+        - fa_mean_area              : mean FA area (px)
+        - fa_total_area             : total FA area (px)
+        - fa_mean_elongation        : mean axis_major / axis_minor
+        - fa_mean_distance_to_edge  : mean distance of FA centroids to cell edge (px)
+        - fa_peripheral_fraction    : fraction of FAs within ``peripheral_distance_px`` of edge
+    """
+    regions = detect_focal_adhesions(paxillin_channel, cell_mask, cell_id, params)
     if not regions:
         return _zero_features()
 
+    p = params or FocalAdhesionParams()
+    this_cell = cell_mask == cell_id
     # Distance transform: each pixel inside the cell → distance to nearest
     # non-cell pixel (i.e., distance to the cell edge)
     distance_to_edge = distance_transform_edt(this_cell)

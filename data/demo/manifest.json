@@ -1,0 +1,19 @@
+{
+  "channel_order": [
+    "dapi",
+    "glycocalyx",
+    "yap",
+    "paxillin",
+    "actin"
+  ],
+  "image_size": [
+    512,
+    512
+  ],
+  "conditions": [
+    "control",
+    "siSDC1",
+    "heparinase"
+  ],
+  "cell_count": 5
+}

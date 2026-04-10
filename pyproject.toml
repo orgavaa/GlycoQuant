@@ -24,6 +24,7 @@ dependencies = [
     "pillow>=10.0",
     "umap-learn>=0.5",
     "requests>=2.30",
+    "tifffile>=2024.0",
 ]
 
 [project.optional-dependencies]
