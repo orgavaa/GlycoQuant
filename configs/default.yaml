@@ -1,0 +1,147 @@
+# GlycoQuant Configuration
+# ========================
+
+app:
+  title: "GlycoQuant — Glycocalyx Mechanotransduction Analysis"
+  page_icon: "🔬"
+  layout: "wide"
+
+segmentation:
+  model_type: "cyto3"
+  gpu: false
+  cell_diameter: null  # null = auto-detect
+  nuclear_diameter: null
+  flow_threshold: 0.4
+  cellprob_threshold: 0.0
+
+features:
+  glycocalyx:
+    pericellular_ring_width_px: 10  # dilation width for ring ROI
+    n_radial_bins: 20
+    coverage_threshold_method: "otsu"  # "otsu", "percentile", or "fixed"
+    coverage_threshold_percentile: 75
+    coverage_threshold_fixed: 50.0
+
+  yap:
+    # No specific parameters — uses nuclear + cell masks directly
+
+  focal_adhesions:
+    threshold_method: "otsu"  # "otsu" or "adaptive"
+    min_area_px: 5
+    max_area_px: 500
+    peripheral_distance_px: 20  # distance from cell edge to define "peripheral"
+
+  actin:
+    structure_tensor_sigma: 2.0  # Gaussian sigma for structure tensor
+    cortical_ring_width_px: 10
+
+  morphology:
+    # No specific parameters — uses regionprops directly
+
+profiles:
+  output_format: "csv"  # "csv" or "parquet"
+  include_radial_profile: false  # radial profile is a list, set true to flatten into columns
+
+predictor:
+  # Tab 2 uses PRE-COMPUTED priors only. No runtime model loading.
+  # Regenerate via notebooks/generate_geneformer_priors.ipynb and
+  # notebooks/generate_pathway_priors.ipynb.
+  priors:
+    geneformer_path: "data/priors/geneformer_ranks.json"
+    pathway_path: "data/priors/pathway_ranks.json"
+    pathway_evidence_path: "data/priors/pathway_evidence.json"
+    pathway_only_fallback: true  # if geneformer_path missing, render pathway-only with banner
+
+  pathway_scoring:
+    # Method pinned for scientific defensibility
+    string_version: "v12.0"
+    string_confidence_threshold: 0.7
+    string_species: 9606  # human
+    edge_weight: "neg_log_confidence"
+    aggregation: "median_inverse_shortest_path"
+
+  geneformer_offline:
+    # Parameters consumed ONLY by notebooks/generate_geneformer_priors.ipynb
+    model: "ctheodoris/Geneformer"
+    version: "V2"
+    reference_dataset: "tabula_sapiens_fibroblast"
+    n_cells: 5000
+    aggregation: "median_cosine_shift"
+    fallback_to_v1: true
+
+  glycocalyx_genes:
+    - SDC1
+    - SDC2
+    - SDC3
+    - SDC4
+    - GPC1
+    - GPC3
+    - GPC4
+    - GPC6
+    - EXT1
+    - EXT2
+    - NDST1
+    - NDST2
+    - HPSE
+    - GFPT1
+    - GFPT2
+    - OGT
+    - MGAT5
+    - B4GALT1
+    - HAS1
+    - HAS2
+    - HAS3
+    - CD44
+
+  mechano_signature:
+    # YAP/TAZ axis
+    - YAP1
+    - WWTR1
+    - CTGF
+    - CYR61
+    - ANKRD1
+    # Rho/ROCK axis
+    - RHOA
+    - ROCK1
+    - ROCK2
+    - MYL9
+    # Integrin/FA axis
+    - ITGB1
+    - PTK2
+    - VCL
+    - PXN
+    - TLN1
+    # Mechanosensor
+    - PIEZO1
+
+  metabolic_inhibitors:
+    "2-DG":
+      target: "HK2"
+      pathway: "glycolysis"
+    "DON":
+      target: "GFPT1"
+      pathway: "hexosamine biosynthesis"
+    "tunicamycin":
+      target: "DPAGT1"
+      pathway: "N-glycosylation"
+    "benzyl-GalNAc":
+      target: "GALNT family"
+      pathway: "O-glycosylation"
+    "PUGNAc":
+      target: "OGA"
+      pathway: "O-GlcNAc cycling"
+
+active_learning:
+  kernel: "matern"
+  kernel_nu: 2.5
+  n_recommendations: 3
+  mode: "exploration"  # "exploration" (max uncertainty) or "exploitation" (max predicted effect)
+
+visualization:
+  colormap: "RdBu_r"
+  figure_width: 800
+  figure_height: 600
+  radial_profile_color: "#2E75B6"
+  overlay_alpha: 0.3
+
+seed: 42
