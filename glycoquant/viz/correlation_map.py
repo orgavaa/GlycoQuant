@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
+from glycoquant.app.styles import get_plotly_layout_template
+
 
 def plot_correlation_map(
     df: pd.DataFrame,
@@ -46,17 +48,33 @@ def plot_correlation_map(
             z=corr,
             x=labels,
             y=labels,
-            colorscale="RdBu_r",
+            colorscale=[
+                [0.0, "#FF6B6B"],  # error red (strong negative)
+                [0.5, "#141829"],  # bg surface (zero)
+                [1.0, "#00E0B8"],  # brand teal (strong positive)
+            ],
             zmin=-1.0,
             zmax=1.0,
-            colorbar={"title": method.capitalize()[:1] + " corr"},
+            colorbar={
+                "title": {
+                    "text": method.capitalize()[:1] + " corr",
+                    "font": {"color": "#8B92A8", "size": 10},
+                },
+                "tickfont": {"color": "#8B92A8", "size": 9},
+                "outlinecolor": "#1F2437",
+                "outlinewidth": 1,
+            },
         )
     )
-    fig.update_layout(
-        title=title,
-        template="plotly_white",
-        xaxis={"tickangle": 45, "tickfont": {"size": 9}},
-        yaxis={"tickfont": {"size": 9}},
-        margin={"b": 120, "l": 120},
+    layout = get_plotly_layout_template()
+    layout.update(
+        {
+            "title": title,
+            "xaxis": {"tickangle": 45, "tickfont": {"size": 9, "color": "#8B92A8"}},
+            "yaxis": {"tickfont": {"size": 9, "color": "#8B92A8"}},
+            "margin": {"b": 120, "l": 120, "r": 40, "t": 50},
+            "height": 500,
+        }
     )
+    fig.update_layout(**layout)
     return fig

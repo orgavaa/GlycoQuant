@@ -4,6 +4,8 @@ from __future__ import annotations
 import numpy as np
 import plotly.graph_objects as go
 
+from glycoquant.app.styles import PALETTE, get_plotly_layout_template
+
 
 def plot_radial_profile(
     profiles: np.ndarray,
@@ -54,7 +56,7 @@ def plot_radial_profile(
             mode="lines",
             line={"width": 0},
             fill="tonexty",
-            fillcolor="rgba(46, 117, 182, 0.2)",
+            fillcolor="rgba(0, 224, 184, 0.15)",
             showlegend=False,
             hoverinfo="skip",
             name="lower",
@@ -65,16 +67,20 @@ def plot_radial_profile(
             x=x,
             y=mean,
             mode="lines+markers",
-            line={"color": "#2E75B6", "width": 2},
-            marker={"size": 6},
+            line={"color": PALETTE.accent_brand, "width": 2.5},
+            marker={"size": 7, "color": PALETTE.accent_brand, "line": {"color": PALETTE.bg_deep, "width": 1}},
             name=f"Mean (n={n_cells})",
         )
     )
-    fig.update_layout(
-        title=title,
-        xaxis_title="Radial bin (center → pericellular edge)",
-        yaxis_title="Intensity",
-        template="plotly_white",
-        showlegend=True,
+    layout = get_plotly_layout_template()
+    layout.update(
+        {
+            "title": title,
+            "xaxis_title": "Radial bin (center → pericellular edge)",
+            "yaxis_title": "Intensity",
+            "showlegend": True,
+            "height": 400,
+        }
     )
+    fig.update_layout(**layout)
     return fig

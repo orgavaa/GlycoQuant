@@ -219,8 +219,8 @@ def build_overlay_figure(
             scale_y,
             scale_x,
             name="Cells",
-            line_color="#2E75B6",
-            fill_color="rgba(46, 117, 182, 0.12)",
+            line_color="#00E0B8",  # techbio brand teal
+            fill_color="rgba(0, 224, 184, 0.10)",
             hover_cache=hover_cache,
             filter_cell_ids=filter_cell_ids,
             selected_cell_id=selected_cell_id,
@@ -233,8 +233,8 @@ def build_overlay_figure(
             scale_y,
             scale_x,
             name="Nuclei",
-            line_color="#6A5ACD",
-            fill_color="rgba(106, 90, 205, 0.18)",
+            line_color="#9B6DFF",  # violet accent for nuclei
+            fill_color="rgba(155, 109, 255, 0.15)",
             hover_cache=None,
         )
 
@@ -247,15 +247,27 @@ def build_overlay_figure(
     if toggles.get("actin_orientation", False):
         _add_orientation_arrows(fig, cell_mask, features_df, scale_y, scale_x)
 
-    fig.update_layout(
-        template="plotly_white",
-        xaxis={"visible": False, "range": [0, w]},
-        yaxis={"visible": False, "range": [h, 0], "scaleanchor": "x"},
-        margin={"l": 0, "r": 0, "t": 10, "b": 10},
-        height=600,
-        showlegend=True,
-        legend={"orientation": "h", "yanchor": "top", "y": -0.05},
+    from glycoquant.app.styles import PALETTE, get_plotly_layout_template
+
+    layout = get_plotly_layout_template()
+    layout.update(
+        {
+            "xaxis": {"visible": False, "range": [0, w]},
+            "yaxis": {"visible": False, "range": [h, 0], "scaleanchor": "x"},
+            "margin": {"l": 0, "r": 0, "t": 8, "b": 8},
+            "height": 600,
+            "showlegend": True,
+            "legend": {
+                "orientation": "h",
+                "yanchor": "top",
+                "y": -0.02,
+                "bgcolor": "rgba(0,0,0,0)",
+                "font": {"color": PALETTE.text_secondary, "size": 10},
+            },
+            "plot_bgcolor": PALETTE.bg_deep,
+        }
     )
+    fig.update_layout(**layout)
     return fig
 
 
@@ -542,44 +554,72 @@ def _load_uploaded_image(uploaded_file: Any, mapping: dict[str, int]) -> None:
 
 def render(config: dict[str, Any] | None = None) -> None:  # noqa: ARG001
     """Render Tab 1. Called from main.py inside its tab container."""
+    from glycoquant.app.styles import (
+        render_badge,
+        render_sidebar_section_title,
+    )
+
     _init_session_state()
     # Clear any stale selection source at the start of every rerun
     st.session_state["selection_source"] = None
 
+    # ------------------------------------------------------------------
+    # Sidebar
+    # ------------------------------------------------------------------
     with st.sidebar:
-        st.header("Tab 1 — Image Analysis")
-        st.markdown("**Load an image**")
+        render_sidebar_section_title("1 · Load image")
         demo = st.selectbox(
-            "Demo image",
+            "Demo dataset",
             [""] + list(DEMO_CONDITIONS),
             key="demo_selector",
+            help="Bundled synthetic conditions for out-of-the-box testing.",
         )
-        if demo and st.button("Load demo image", use_container_width=True):
+        if demo and st.button(
+            "Load demo", type="primary", use_container_width=True
+        ):
             _load_demo_image(demo)
             st.rerun()
 
         uploaded = st.file_uploader(
-            "Or upload TIFF / PNG", type=["tif", "tiff", "png"], key="upload"
+            "Or upload TIFF / PNG",
+            type=["tif", "tiff", "png"],
+            key="upload",
+            label_visibility="visible",
         )
         if uploaded is not None:
             mapping = {name: i for i, name in enumerate(CANONICAL_CHANNELS)}
-            if st.button("Load uploaded image", use_container_width=True):
+            if st.button("Load uploaded", use_container_width=True):
                 _load_uploaded_image(uploaded, mapping)
                 st.rerun()
 
-        st.markdown("---")
-        st.markdown("**Analysis parameters**")
-        st.session_state["cell_diameter"] = st.number_input(
-            "Cell diameter (px)", value=float(st.session_state["cell_diameter"]), min_value=10.0, max_value=300.0
+        render_sidebar_section_title("2 · Analysis parameters")
+        st.session_state["cell_diameter"] = float(
+            st.number_input(
+                "Cell diameter (px)",
+                value=int(st.session_state["cell_diameter"]),
+                min_value=10,
+                max_value=300,
+                step=5,
+                format="%d",
+                help="Expected average cell diameter in pixels. Cellpose "
+                "uses this as a prior for segmentation scale.",
+            )
         )
         st.session_state["include_deep_features"] = st.checkbox(
             "Include DINOv2 deep features",
             value=st.session_state["include_deep_features"],
-            help="Adds 768-dim learned embeddings and a UMAP view. Slower.",
+            help="Adds 768-dim learned embeddings and a UMAP view. Slower on CPU.",
         )
 
-        if st.session_state["image_loaded"] and st.button(
-            "Run Analysis", type="primary", use_container_width=True
+        render_sidebar_section_title("3 · Run")
+        run_disabled = not st.session_state["image_loaded"]
+        if st.button(
+            "▶  Run Analysis",
+            type="primary",
+            use_container_width=True,
+            disabled=run_disabled,
+            help="Segments cells, extracts 26 interpretable features, and "
+            "optionally computes DINOv2 embeddings.",
         ):
             result = run_pipeline(
                 st.session_state["image_hash"],
@@ -590,19 +630,29 @@ def render(config: dict[str, Any] | None = None) -> None:  # noqa: ARG001
             st.session_state["pipeline_result"] = result
             st.rerun()
 
+        # Pipeline status badge
+        render_sidebar_section_title("Pipeline status")
+        if st.session_state.get("pipeline_result") is not None:
+            status_html = render_badge("Analysis ready", "ready")
+        elif st.session_state["image_loaded"]:
+            status_html = render_badge("Image loaded · click Run", "idle")
+        else:
+            status_html = render_badge("Awaiting input", "idle")
+        st.markdown(status_html, unsafe_allow_html=True)
+
+    # ------------------------------------------------------------------
+    # Main panel routing
+    # ------------------------------------------------------------------
     if not st.session_state["image_loaded"]:
-        st.info(
-            "Load a demo image or upload a multi-channel TIFF to get started. "
-            "The app expects five channels in the order DAPI / WGA-lectin / YAP / paxillin / actin."
-        )
+        _render_empty_state()
         return
 
     result: PipelineResult | None = st.session_state.get("pipeline_result")
     if result is None:
-        st.info("Image loaded. Click **Run Analysis** in the sidebar.")
-        _render_raw_preview(st.session_state["channels"])
+        _render_loaded_but_not_run(st.session_state["channels"])
         return
 
+    _render_hero_metrics(result)
     _render_overlay_toggles()
     left, right = st.columns([1, 1], gap="large")
     with left:
@@ -611,26 +661,140 @@ def render(config: dict[str, Any] | None = None) -> None:  # noqa: ARG001
         _render_right_panel(result)
 
 
-def _render_raw_preview(channels: dict[str, np.ndarray]) -> None:
-    """Light-weight preview of the loaded channels before Run Analysis."""
-    st.subheader("Loaded image")
+def _render_empty_state() -> None:
+    """Landing panel shown before any image is loaded."""
+    st.markdown(
+        """
+        <div style="
+            background: #141829;
+            border: 1px solid #1F2437;
+            border-radius: 12px;
+            padding: 32px 40px;
+            margin: 24px 0;
+            text-align: left;
+        ">
+            <div style="
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: #8B92A8;
+                font-weight: 600;
+                margin-bottom: 8px;
+            ">Getting started</div>
+            <div style="
+                font-size: 1.2rem;
+                color: #E8EBF5;
+                font-weight: 600;
+                margin-bottom: 6px;
+            ">Load an image to begin analysis</div>
+            <div style="
+                color: #8B92A8;
+                font-size: 0.88rem;
+                line-height: 1.55;
+                max-width: 720px;
+            ">
+                Use the sidebar to select one of the bundled demo conditions
+                (<span style="font-family:'JetBrains Mono',monospace;color:#E8EBF5;">control</span>,
+                <span style="font-family:'JetBrains Mono',monospace;color:#E8EBF5;">siSDC1</span>,
+                <span style="font-family:'JetBrains Mono',monospace;color:#E8EBF5;">heparinase</span>)
+                or upload your own 5-channel fluorescence TIFF. Expected channel
+                order: <b style="color:#E8EBF5;">DAPI · WGA-lectin · YAP · paxillin · phalloidin</b>.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_loaded_but_not_run(channels: dict[str, np.ndarray]) -> None:
+    """Preview panel shown after image load, before Run Analysis."""
+    from glycoquant.app.styles import PALETTE, get_plotly_layout_template
+
+    st.markdown(
+        f"""
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: {PALETTE.bg_surface};
+            border: 1px solid {PALETTE.border_subtle};
+            border-left: 3px solid {PALETTE.accent_primary};
+            border-radius: 8px;
+            margin: 8px 0 16px 0;
+        ">
+            <div style="
+                width: 6px; height: 6px; border-radius: 50%;
+                background: {PALETTE.accent_primary};
+                box-shadow: 0 0 8px {PALETTE.accent_primary};
+            "></div>
+            <div style="color: {PALETTE.text_primary}; font-size: 0.88rem; font-weight: 500;">
+                Image loaded. Click <b>Run Analysis</b> in the sidebar to start the pipeline.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    from glycoquant.app.styles import render_section_header
+
+    render_section_header("Loaded image", meta="preview · pre-segmentation")
+
     preview = downsample_for_display(channels[_segmentation_channel(channels)])
-    fig = go.Figure(go.Heatmap(z=preview, colorscale="gray", showscale=False))
+    fig = go.Figure(
+        go.Heatmap(z=preview, colorscale="gray", showscale=False, hoverinfo="skip")
+    )
     fig.update_layout(
-        template="plotly_white",
+        **get_plotly_layout_template(),
         xaxis={"visible": False},
-        yaxis={"visible": False, "scaleanchor": "x"},
+        yaxis={"visible": False, "scaleanchor": "x", "autorange": "reversed"},
         height=500,
+        margin={"l": 0, "r": 0, "t": 10, "b": 0},
     )
     st.plotly_chart(fig, use_container_width=True)
 
 
+def _render_hero_metrics(result: PipelineResult) -> None:
+    """Metric card row: key per-image statistics above the image panel."""
+    from glycoquant.app.styles import render_metric_cards
+
+    df = result.features_df
+    n_cells = len(df)
+
+    def _mean_safe(col: str) -> float | None:
+        if col in df.columns and df[col].notna().any():
+            return float(df[col].mean())
+        return None
+
+    yap_nc = _mean_safe("yap_nc_ratio")
+    fa_count = _mean_safe("fa_count")
+    coherence = _mean_safe("actin_stress_fiber_coherence")
+    glyco_ratio = _mean_safe("glycocalyx_pericellular_ratio")
+
+    def _fmt(v: float | None, decimals: int = 2) -> str:
+        return f"{v:.{decimals}f}" if v is not None else "—"
+
+    metrics = [
+        {"label": "Cells detected", "value": str(n_cells), "unit": "n"},
+        {"label": "YAP N/C (mean)", "value": _fmt(yap_nc)},
+        {"label": "Focal adhesions", "value": _fmt(fa_count, 1), "unit": "/ cell"},
+        {"label": "Actin coherence", "value": _fmt(coherence)},
+        {"label": "Glycocalyx ratio", "value": _fmt(glyco_ratio)},
+    ]
+    render_metric_cards(metrics)
+
+
 def _render_overlay_toggles() -> None:
-    st.markdown("**Overlays**")
+    from glycoquant.app.styles import render_section_header
+
+    render_section_header(
+        "Visual overlays",
+        meta="click to highlight features rendered in place on the image",
+    )
     cols = st.columns(5)
     toggles = st.session_state["overlay_toggles"]
     labels = [
-        ("cells", "Cells"),
+        ("cells", "Cell outlines"),
         ("nuclei", "Nuclei"),
         ("focal_adhesions", "Focal adhesions"),
         ("glycocalyx_ring", "Glycocalyx ring"),
@@ -642,6 +806,8 @@ def _render_overlay_toggles() -> None:
 
 
 def _render_image_panel(result: PipelineResult) -> None:
+    from glycoquant.app.styles import render_section_header
+
     filter_cell_ids = _compute_filter_cell_ids(result.features_df)
     paxillin = result.channels.get("paxillin")
     fig = build_overlay_figure(
@@ -655,12 +821,15 @@ def _render_image_panel(result: PipelineResult) -> None:
         filter_cell_ids=filter_cell_ids,
     )
 
-    banner = ""
     n_cells = len(result.features_df)
+    meta = f"{n_cells} cells · click a cell to cross-highlight"
+    render_section_header("Segmented image", meta=meta)
+
     if n_cells > MAX_CELLS_FOR_OVERLAY:
-        banner = f"⚠ {n_cells} cells — showing centroids only for performance."
-    if banner:
-        st.warning(banner)
+        st.warning(
+            f"⚠ {n_cells} cells exceed the overlay rendering budget of "
+            f"{MAX_CELLS_FOR_OVERLAY}; centroid fallback engaged."
+        )
 
     event = st.plotly_chart(
         fig,

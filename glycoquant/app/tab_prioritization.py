@@ -116,6 +116,8 @@ def build_drill_down_heatmap(
     mechano_genes: list[str],
 ) -> go.Figure:
     """2-row heatmap (Geneformer vs pathway) of per-mechano-gene scores for one gene."""
+    from glycoquant.app.styles import get_plotly_layout_template
+
     gf_row = (
         [geneformer.rankings[gene].per_mechano.get(m, 0.0) for m in mechano_genes]
         if gene in geneformer.rankings
@@ -131,17 +133,31 @@ def build_drill_down_heatmap(
             z=[gf_row, pw_row],
             x=mechano_genes,
             y=["Geneformer", "Pathway"],
-            colorscale="Viridis",
-            colorbar={"title": "Score"},
-            hovertemplate="Prior: %{y}<br>Target: %{x}<br>Score: %{z:.3f}<extra></extra>",
+            colorscale=[
+                [0.0, "#141829"],
+                [0.5, "#4F8FFF"],
+                [1.0, "#00E0B8"],
+            ],
+            colorbar={
+                "title": {"text": "Score", "font": {"color": "#8B92A8", "size": 10}},
+                "tickfont": {"color": "#8B92A8", "size": 9},
+                "outlinecolor": "#1F2437",
+                "outlinewidth": 1,
+            },
+            hovertemplate="<b>%{y}</b><br>%{x}: %{z:.3f}<extra></extra>",
         )
     )
-    fig.update_layout(
-        title=f"Per-mechano-gene scores for {gene}",
-        template="plotly_white",
-        height=220,
-        margin={"l": 80, "r": 20, "t": 40, "b": 60},
+    layout = get_plotly_layout_template()
+    layout.update(
+        {
+            "title": f"Per-mechano-gene scores · {gene}",
+            "height": 240,
+            "margin": {"l": 90, "r": 30, "t": 45, "b": 70},
+            "xaxis": {"tickangle": 45, "tickfont": {"size": 9, "color": "#8B92A8"}},
+            "yaxis": {"tickfont": {"size": 11, "color": "#E8EBF5"}},
+        }
     )
+    fig.update_layout(**layout)
     return fig
 
 
@@ -180,7 +196,10 @@ def build_pathway_evidence_lines(
 
 def render(config: dict[str, Any] | None = None) -> None:  # noqa: ARG001
     """Render Tab 2. Called from main.py inside its tab container."""
-    st.header("Perturbation Prioritization")
+    from glycoquant.app.styles import (
+        render_metric_cards,
+        render_section_header,
+    )
 
     # Hard gate: fail fast if the config drifted from the expected panel sizes
     try:
@@ -201,6 +220,32 @@ def render(config: dict[str, Any] | None = None) -> None:  # noqa: ARG001
         return
 
     df = build_ranking_dataframe(geneformer, pathway)
+
+    # Hero: top-3 glycocalyx genes by pathway rank
+    render_section_header(
+        "Top candidates", meta="ranked by pathway proximity to mechano signature"
+    )
+    top3 = df.sort_values(by="pathway_rank", ascending=True, na_position="last").head(3)
+    metrics = []
+    for _, row in top3.iterrows():
+        score = row.get("pathway_score")
+        metrics.append(
+            {
+                "label": f"Rank #{int(row['pathway_rank'])} · Pathway",
+                "value": str(row["gene"]),
+                "unit": f"s={score:.3f}" if score is not None and not pd.isna(score) else "",
+            }
+        )
+    # Pad to 4 cards with a summary metric
+    metrics.append(
+        {
+            "label": "Panel size",
+            "value": f"{len(df)}",
+            "unit": "genes ranked",
+        }
+    )
+    render_metric_cards(metrics)
+
     display_df = format_ranking_table(df, geneformer.available)
 
     _render_ranking_table(display_df)
@@ -223,7 +268,12 @@ def _render_disclaimer_banner(
 
 
 def _render_ranking_table(display_df: pd.DataFrame) -> None:
-    st.markdown("### Ranked glycocalyx perturbations")
+    from glycoquant.app.styles import render_section_header
+
+    render_section_header(
+        "Ranked perturbations",
+        meta=f"{len(display_df)} genes · sortable · full table",
+    )
     st.dataframe(
         display_df,
         use_container_width=True,
@@ -263,7 +313,12 @@ def _render_drill_down_section(
     pathway: PriorTable,
     evidence: dict[str, Any],
 ) -> None:
-    st.markdown("### Per-gene drill-down")
+    from glycoquant.app.styles import render_section_header
+
+    render_section_header(
+        "Per-gene drill-down",
+        meta="click a gene → see its per-mechano-target scores + STRING shortest path",
+    )
     gene = st.selectbox(
         "Select a glycocalyx gene",
         sorted(df["gene"].tolist()),
@@ -289,7 +344,12 @@ def _render_drill_down_section(
 
 
 def _render_metabolic_inhibitor_panel(df: pd.DataFrame) -> None:
-    st.markdown("### Metabolic inhibitors")
+    from glycoquant.app.styles import render_section_header
+
+    render_section_header(
+        "Metabolic inhibitors",
+        meta="drug → primary target gene → position in the ranked panel",
+    )
     st.caption(
         "How the 5 metabolic inhibitors in `default.yaml` map onto the "
         "ranked glycocalyx panel via their primary target genes."

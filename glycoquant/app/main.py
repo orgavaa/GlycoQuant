@@ -8,8 +8,10 @@ import streamlit as st
 import yaml
 
 from glycoquant.app import tab_imaging, tab_prioritization
+from glycoquant.app.styles import inject_global_styles, render_app_header
 
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "default.yaml"
+APP_VERSION = "v0.2.0"
 
 
 def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
@@ -42,21 +44,19 @@ def main() -> None:
     loading.
 
     Tab 3 — Experiment Designer: Gaussian-process active learning for
-    next-experiment recommendation (Phase 7).
+    next-experiment recommendation (deferred).
     """
     config = load_config()
-    app_cfg = config["app"]
 
     st.set_page_config(
-        page_title=app_cfg["title"],
-        page_icon=app_cfg["page_icon"],
-        layout=app_cfg["layout"],
+        page_title="GlycoQuant",
+        page_icon="◈",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
 
-    st.title(app_cfg["title"])
-    st.caption(
-        "Labouesse group · ETH Zurich · Tibbitt Macromolecular Engineering Lab"
-    )
+    inject_global_styles()
+    render_app_header(version=APP_VERSION, institution="ETH Zürich · D-MAVT")
 
     tab_imaging_container, tab_prioritization_container, tab_experiment = st.tabs(
         [
@@ -73,10 +73,11 @@ def main() -> None:
         tab_prioritization.render(config)
 
     with tab_experiment:
-        st.header("Experiment Designer")
         st.info(
-            "Phase 0 scaffold. GP-based active learning for experiment "
-            "recommendation arrives in Phase 7 (branch: feat/app-experiment)."
+            "Experiment Designer — Gaussian-process active learning for "
+            "next-experiment recommendation. Deferred for the initial "
+            "release; see the roadmap in the README for the planned "
+            "design."
         )
 
 
