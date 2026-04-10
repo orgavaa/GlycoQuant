@@ -7,7 +7,7 @@ from typing import Any
 import streamlit as st
 import yaml
 
-from glycoquant.app import tab_imaging
+from glycoquant.app import tab_imaging, tab_prioritization
 
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "default.yaml"
 
@@ -58,7 +58,7 @@ def main() -> None:
         "Labouesse group · ETH Zurich · Tibbitt Macromolecular Engineering Lab"
     )
 
-    tab_imaging_container, tab_prioritization, tab_experiment = st.tabs(
+    tab_imaging_container, tab_prioritization_container, tab_experiment = st.tabs(
         [
             "Image Analysis",
             "Perturbation Prioritization",
@@ -69,14 +69,8 @@ def main() -> None:
     with tab_imaging_container:
         tab_imaging.render(config)
 
-    with tab_prioritization:
-        st.header("Perturbation Prioritization")
-        st.info(
-            "Phase 0 scaffold. The dual-prior ranking table (Geneformer + "
-            "STRING pathway) with divergence column arrives in Phase 6 "
-            "(branch: feat/app-prioritization). Runtime loads pre-computed "
-            "JSONs from data/priors/ — no torch/transformers import here."
-        )
+    with tab_prioritization_container:
+        tab_prioritization.render(config)
 
     with tab_experiment:
         st.header("Experiment Designer")
