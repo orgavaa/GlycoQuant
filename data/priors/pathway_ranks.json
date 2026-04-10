@@ -1,0 +1,3135 @@
+{
+  "metadata": {
+    "source": "STRING v12",
+    "confidence_threshold": 0.7,
+    "species": 9606,
+    "aggregation": "median_inverse_shortest_path",
+    "generated_utc": "2026-04-10T18:31:29.071106+00:00",
+    "n_glycocalyx_genes": 22,
+    "n_mechano_genes": 15,
+    "n_graph_nodes": 34,
+    "n_graph_edges": 75
+  },
+  "genes": {
+    "SDC1": {
+      "rank": 5,
+      "score": 0.9136047935274465,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.3606494930393319,
+          "inverse": 0.7349431320231221,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.4056468589700677,
+          "inverse": 0.7114162377403316,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.5155420126632226,
+          "inverse": 0.6598299431123826,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.09256318249979865,
+          "inverse": 0.9152788745013237,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.09356368283338219,
+          "inverse": 0.9144414867628357,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.09456518517047173,
+          "inverse": 0.9136047935274465,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.14170405816131718,
+          "inverse": 0.8758837221008677,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.07741802433199521,
+          "inverse": 0.9281448587422743,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.07541702366482814,
+          "inverse": 0.9298718338976814,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.07741802433199521,
+          "inverse": 0.9281448587422743,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.07641752399841167,
+          "inverse": 0.9290075437321434,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.07641752399841167,
+          "inverse": 0.9290075437321434,
+          "path": [
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "SDC2": {
+      "rank": 3,
+      "score": 0.9230048559113092,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.34950222663232233,
+          "inverse": 0.7410139681617985,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.3944995925630581,
+          "inverse": 0.7171031137858012,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.5043947462562131,
+          "inverse": 0.6647191519968857,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.08141591609278914,
+          "inverse": 0.9247135954989926,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.08241641642637268,
+          "inverse": 0.9238588632104521,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.08341791876346222,
+          "inverse": 0.9230048559113092,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.13055679175430768,
+          "inverse": 0.8845199173482297,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.0662707579249857,
+          "inverse": 0.9378480958683029,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.06426975725781862,
+          "inverse": 0.9396114031996784,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.0662707579249857,
+          "inverse": 0.9378480958683029,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.06527025759140216,
+          "inverse": 0.938728921486103,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.06527025759140216,
+          "inverse": 0.938728921486103,
+          "path": [
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "SDC3": {
+      "rank": 7,
+      "score": 0.8082235208448462,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.5033657952409271,
+          "inverse": 0.6651741067713608,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.5483631611716628,
+          "inverse": 0.6458433170441031,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.6582583148648178,
+          "inverse": 0.6030423553651957,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.23527948470139382,
+          "inverse": 0.8095333990281006,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.23627998503497735,
+          "inverse": 0.8088782574375396,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.2372814873720669,
+          "inverse": 0.8082235208448462,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.28442036036291235,
+          "inverse": 0.7785613112808727,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.22013432653359039,
+          "inverse": 0.8195818921356032,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.2181333258664233,
+          "inverse": 0.8209282011792335,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.22013432653359039,
+          "inverse": 0.8195818921356032,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.21913382620000685,
+          "inverse": 0.8202544942231333,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.21913382620000685,
+          "inverse": 0.8202544942231333,
+          "path": [
+            "SDC3",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "SDC4": {
+      "rank": 2,
+      "score": 0.9369537528874717,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.3333728447024387,
+          "inverse": 0.7499777755134681,
+          "path": [
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.37837021063317455,
+          "inverse": 0.7254944950824462,
+          "path": [
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.4882653643263295,
+          "inverse": 0.6719231824982065,
+          "path": [
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.0652865341629055,
+          "inverse": 0.9387145785953194,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.06628703449648904,
+          "inverse": 0.9378337798810521,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.06728853683357858,
+          "inverse": 0.9369537528874717,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.11442740982442402,
+          "inverse": 0.8973217916073584,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.05014137599510206,
+          "inverse": 0.9522527374491946,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.048140375327934984,
+          "inverse": 0.9540706794041083,
+          "path": [
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.05014137599510206,
+          "inverse": 0.9522527374491946,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.04914087566151852,
+          "inverse": 0.9531608415976228,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.04914087566151852,
+          "inverse": 0.9531608415976228,
+          "path": [
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "GPC1": {
+      "rank": 4,
+      "score": 0.9169624786474851,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.35664147164179305,
+          "inverse": 0.7371144262528041,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.40163883757252883,
+          "inverse": 0.7134505503085806,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.5115339912656838,
+          "inverse": 0.661579564719315,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.08855516110225983,
+          "inverse": 0.9186488987727642,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.08955566143584337,
+          "inverse": 0.9178053360598167,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.09055716377293291,
+          "inverse": 0.9169624786474851,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.13769603676377834,
+          "inverse": 0.8789693975242631,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.07341000293445639,
+          "inverse": 0.9316104724813721,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.07140900226728931,
+          "inverse": 0.9333503805585213,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.07341000293445639,
+          "inverse": 0.9316104724813721,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.07240950260087285,
+          "inverse": 0.932479614899662,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.07240950260087285,
+          "inverse": 0.932479614899662,
+          "path": [
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "GPC3": {
+      "rank": 11,
+      "score": 0.7668331827741155,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.5701488977479449,
+          "inverse": 0.6368822736711747,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6151462636786806,
+          "inverse": 0.6191389736570269,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7250414173718356,
+          "inverse": 0.5796962263801972,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.3020625872084116,
+          "inverse": 0.7680122367573544,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.3030630875419951,
+          "inverse": 0.7674225519551232,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.3040645898790847,
+          "inverse": 0.7668331827741155,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.3512034628699301,
+          "inverse": 0.7400809925960515,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.28691742904060813,
+          "inverse": 0.7770506307817246,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.2849164283734411,
+          "inverse": 0.7782607319184851,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.28691742904060813,
+          "inverse": 0.7770506307817246,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.2859169287070246,
+          "inverse": 0.7776552105939604,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.2859169287070246,
+          "inverse": 0.7776552105939604,
+          "path": [
+            "GPC3",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "GPC4": {
+      "rank": 10,
+      "score": 0.7705053454108922,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.5639338373445105,
+          "inverse": 0.6394132386686863,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6089312032752463,
+          "inverse": 0.6215306148356959,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7188263569684012,
+          "inverse": 0.5817923351860632,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.29584752680497733,
+          "inverse": 0.7716957275564551,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.29684802713856084,
+          "inverse": 0.771100374965644,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.2978495294756504,
+          "inverse": 0.7705053454108922,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.3449884024664958,
+          "inverse": 0.7435008347775776,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.28070236863717385,
+          "inverse": 0.7808215433099605,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.27870136797000683,
+          "inverse": 0.7820434270650253,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.28070236863717385,
+          "inverse": 0.7808215433099605,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.27970186830359034,
+          "inverse": 0.7814320075390909,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.27970186830359034,
+          "inverse": 0.7814320075390909,
+          "path": [
+            "GPC4",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "GPC6": {
+      "rank": 12,
+      "score": 0.7500963019342255,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.599246459743711,
+          "inverse": 0.6252944903565746,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6442438256744468,
+          "inverse": 0.6081823050725541,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7541389793676019,
+          "inverse": 0.5700802569021741,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.33116014920417786,
+          "inverse": 0.751224411726749,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.33216064953776137,
+          "inverse": 0.7506602153028497,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.33316215187485093,
+          "inverse": 0.7500963019342255,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.38030102486569634,
+          "inverse": 0.7244796475444915,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.31601499103637437,
+          "inverse": 0.7598697634990392,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.31401399036920735,
+          "inverse": 0.7610269048345697,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.31601499103637437,
+          "inverse": 0.7598697634990392,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.31501449070279086,
+          "inverse": 0.7604478939738254,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.31501449070279086,
+          "inverse": 0.7604478939738254,
+          "path": [
+            "GPC6",
+            "SDC2",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "EXT1": {
+      "rank": 14,
+      "score": 0.7354321985093784,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.6258289614574095,
+          "inverse": 0.6150708492138004,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6708263273881453,
+          "inverse": 0.5985062502356012,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7807214810813004,
+          "inverse": 0.5615701335802239,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.3577426509178763,
+          "inverse": 0.7365165993157605,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.35874315125145984,
+          "inverse": 0.7359742708391632,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.3597446535885494,
+          "inverse": 0.7354321985093784,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.4068835265793948,
+          "inverse": 0.7107908942763265,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.34259749275007284,
+          "inverse": 0.7448248677656006,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.3405964920829058,
+          "inverse": 0.7459366079992379,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.34259749275007284,
+          "inverse": 0.7448248677656006,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.34159699241648933,
+          "inverse": 0.7453803233404663,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.34159699241648933,
+          "inverse": 0.7453803233404663,
+          "path": [
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "EXT2": {
+      "rank": 15,
+      "score": 0.7348914652517101,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.6268294617909931,
+          "inverse": 0.6146925805604048,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6718268277217289,
+          "inverse": 0.5981480757565923,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7817219814148839,
+          "inverse": 0.561254791954629,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.35874315125145984,
+          "inverse": 0.7359742708391632,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.35974365158504334,
+          "inverse": 0.7354327404539136,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.3607451539221329,
+          "inverse": 0.7348914652517101,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.4078840269129783,
+          "inverse": 0.7102857770129459,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.34359799308365635,
+          "inverse": 0.7442702394225272,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.34159699241648933,
+          "inverse": 0.7453803233404663,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.34359799308365635,
+          "inverse": 0.7442702394225272,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.34259749275007284,
+          "inverse": 0.7448248677656006,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.34259749275007284,
+          "inverse": 0.7448248677656006,
+          "path": [
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "NDST1": {
+      "rank": 16,
+      "score": 0.7060861058733187,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.6823421717212519,
+          "inverse": 0.594409399472446,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.7273395376519877,
+          "inverse": 0.5789249757805712,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.8372346913451427,
+          "inverse": 0.5442962756531904,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.4142558611817187,
+          "inverse": 0.7070856324147907,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.4152563615153022,
+          "inverse": 0.7065857657967416,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.4162578638523918,
+          "inverse": 0.7060861058733187,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.4633967368432372,
+          "inverse": 0.6833416904817948,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.3991107030139152,
+          "inverse": 0.7147397256313136,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.3971097023467482,
+          "inverse": 0.7157634066389228,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.3991107030139152,
+          "inverse": 0.7147397256313136,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.3981102026803317,
+          "inverse": 0.7152511998574144,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.3981102026803317,
+          "inverse": 0.7152511998574144,
+          "path": [
+            "NDST1",
+            "EXT2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "NDST2": {
+      "rank": 17,
+      "score": 0.6104496729351757,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.9042209870020979,
+          "inverse": 0.5251491328085538,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.9492183529328336,
+          "inverse": 0.5130261566106125,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 1.0591135066259887,
+          "inverse": 0.4856458843973952,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.6361346764625647,
+          "inverse": 0.611196629706589,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.6371351767961483,
+          "inverse": 0.6108231098894269,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.6381366791332378,
+          "inverse": 0.6104496729351757,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.6852755521240833,
+          "inverse": 0.5933747740775226,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.6209895182947613,
+          "inverse": 0.6169071352490755,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.6189885176275942,
+          "inverse": 0.6176696061225703,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.6209895182947613,
+          "inverse": 0.6169071352490755,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.6199890179611778,
+          "inverse": 0.6172881352359665,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.6199890179611778,
+          "inverse": 0.6172881352359665,
+          "path": [
+            "NDST2",
+            "EXT1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "HPSE": {
+      "rank": 6,
+      "score": 0.8783355331060583,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.4046013805685147,
+          "inverse": 0.7119457618610971,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.44959874649925047,
+          "inverse": 0.6898460711386364,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.5594939001924055,
+          "inverse": 0.6412336719474332,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.13651507002898147,
+          "inverse": 0.879882745395096,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.137515570362565,
+          "inverse": 0.8791088456760779,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.13851707269965455,
+          "inverse": 0.8783355331060583,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.18565594569049998,
+          "inverse": 0.8434149920427565,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.12136991186117804,
+          "inverse": 0.8917663916452547,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.11936891119401097,
+          "inverse": 0.8933605266322053,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.12136991186117804,
+          "inverse": 0.8917663916452547,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.1203694115275945,
+          "inverse": 0.8925627473500246,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.1203694115275945,
+          "inverse": 0.8925627473500246,
+          "path": [
+            "HPSE",
+            "SDC1",
+            "GPC1",
+            "SDC4",
+            "PTK2",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "GFPT1": {
+      "rank": 18,
+      "score": 0.0,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "WWTR1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "RHOA": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "MYL9": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ITGB1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PTK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "VCL": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PXN": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "TLN1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "GFPT2": {
+      "rank": 19,
+      "score": 0.0,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "WWTR1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "RHOA": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "MYL9": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ITGB1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PTK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "VCL": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PXN": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "TLN1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "OGT": {
+      "rank": 20,
+      "score": 0.0,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "WWTR1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "RHOA": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "MYL9": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ITGB1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PTK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "VCL": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PXN": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "TLN1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "MGAT5": {
+      "rank": 21,
+      "score": 0.0,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "WWTR1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "RHOA": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "MYL9": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ITGB1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PTK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "VCL": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PXN": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "TLN1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "B4GALT1": {
+      "rank": 22,
+      "score": 0.0,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "WWTR1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "RHOA": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ROCK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "MYL9": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ITGB1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PTK2": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "VCL": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PXN": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "TLN1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "HAS1": {
+      "rank": 13,
+      "score": 0.747259628479864,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.654217870895152,
+          "inverse": 0.6045152924498796,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6992152368258878,
+          "inverse": 0.5885069638782119,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.8091103905190429,
+          "inverse": 0.5527578666512964,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.33622096815177155,
+          "inverse": 0.7483792155897506,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.33722146848535506,
+          "inverse": 0.7478192831683153,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.3382229708224446,
+          "inverse": 0.747259628479864,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.38536184381329003,
+          "inverse": 0.7218330752111962,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.317073808649634,
+          "inverse": 0.7592588915159412,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.31907480931680104,
+          "inverse": 0.758107116394663,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.31907480931680104,
+          "inverse": 0.758107116394663,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.31907480931680104,
+          "inverse": 0.758107116394663,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.31807430898321754,
+          "inverse": 0.7586825668208458,
+          "path": [
+            "HAS1",
+            "CD44",
+            "ITGB1",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "HAS2": {
+      "rank": 8,
+      "score": 0.7891306820238417,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.5832121338968351,
+          "inverse": 0.6316272965510015,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6282094998275709,
+          "inverse": 0.6141715793366278,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7381046535207259,
+          "inverse": 0.5753393490860219,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.26521523115345463,
+          "inverse": 0.7903793563157893,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.26621573148703814,
+          "inverse": 0.789754838084032,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.2672172338241277,
+          "inverse": 0.7891306820238417,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.3143561068149731,
+          "inverse": 0.7608288155812356,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.24606807165131706,
+          "inverse": 0.8025243746714237,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.24806907231848413,
+          "inverse": 0.8012377056522545,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.24806907231848413,
+          "inverse": 0.8012377056522545,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.24806907231848413,
+          "inverse": 0.8012377056522545,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.2470685719849006,
+          "inverse": 0.8018805240263146,
+          "path": [
+            "HAS2",
+            "CD44",
+            "ITGB1",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "HAS3": {
+      "rank": 9,
+      "score": 0.7807787352667541,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.5967674862502096,
+          "inverse": 0.6262652569087334,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.6417648521809454,
+          "inverse": 0.609100626482279,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.7516600058741003,
+          "inverse": 0.570887042374977,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.27877058350682904,
+          "inverse": 0.7820010976931107,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.27977108384041255,
+          "inverse": 0.781389744327666,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.2807725861775021,
+          "inverse": 0.7807787352667541,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.3279114591683475,
+          "inverse": 0.7530622565952447,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.2596234240046915,
+          "inverse": 0.7938880628471668,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.26162442467185854,
+          "inverse": 0.7926289158995115,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.26162442467185854,
+          "inverse": 0.7926289158995115,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.26162442467185854,
+          "inverse": 0.7926289158995115,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.260623924338275,
+          "inverse": 0.7932579897092772,
+          "path": [
+            "HAS3",
+            "CD44",
+            "ITGB1",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    },
+    "CD44": {
+      "rank": 1,
+      "score": 0.9388780531948511,
+      "per_mechano_gene": {
+        "YAP1": {
+          "distance": 0.38109594977470085,
+          "inverse": 0.7240626548525688,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1"
+          ]
+        },
+        "WWTR1": {
+          "distance": 0.4260933157054366,
+          "inverse": 0.701216385342453,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "YAP1",
+            "WWTR1"
+          ]
+        },
+        "CTGF": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "CYR61": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        },
+        "ANKRD1": {
+          "distance": 0.5359884693985917,
+          "inverse": 0.6510465540093181,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "CCN2",
+            "ANKRD1"
+          ]
+        },
+        "RHOA": {
+          "distance": 0.06309904703132042,
+          "inverse": 0.9406461258642617,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA"
+          ]
+        },
+        "ROCK1": {
+          "distance": 0.06409954736490396,
+          "inverse": 0.9397617003750846,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1"
+          ]
+        },
+        "ROCK2": {
+          "distance": 0.0651010497019935,
+          "inverse": 0.9388780531948511,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK2"
+          ]
+        },
+        "MYL9": {
+          "distance": 0.11223992269283894,
+          "inverse": 0.8990865905792201,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2",
+            "RHOA",
+            "ROCK1",
+            "MYL9"
+          ]
+        },
+        "ITGB1": {
+          "distance": 0.04395188752918283,
+          "inverse": 0.9578985506379917,
+          "path": [
+            "CD44",
+            "ITGB1"
+          ]
+        },
+        "PTK2": {
+          "distance": 0.045952888196349906,
+          "inverse": 0.9560660057303426,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PTK2"
+          ]
+        },
+        "VCL": {
+          "distance": 0.045952888196349906,
+          "inverse": 0.9560660057303426,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "VCL"
+          ]
+        },
+        "PXN": {
+          "distance": 0.045952888196349906,
+          "inverse": 0.9560660057303426,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1",
+            "PXN"
+          ]
+        },
+        "TLN1": {
+          "distance": 0.04495238786276637,
+          "inverse": 0.9569814008897504,
+          "path": [
+            "CD44",
+            "ITGB1",
+            "TLN1"
+          ]
+        },
+        "PIEZO1": {
+          "distance": null,
+          "inverse": 0.0,
+          "path": []
+        }
+      }
+    }
+  }
+}

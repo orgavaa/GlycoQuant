@@ -1,0 +1,7888 @@
+{
+  "SDC1": {
+    "YAP1": {
+      "distance": 0.3606494930393319,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.4056468589700677,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.5155420126632226,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.09256318249979865,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.09356368283338219,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.09456518517047173,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.14170405816131718,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.07741802433199521,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.07541702366482814,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.07741802433199521,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.07641752399841167,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.07641752399841167,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "SDC2": {
+    "YAP1": {
+      "distance": 0.34950222663232233,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.3944995925630581,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.5043947462562131,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.08141591609278914,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.08241641642637268,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.08341791876346222,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.13055679175430768,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.0662707579249857,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.06426975725781862,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.0662707579249857,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.06527025759140216,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.06527025759140216,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "SDC3": {
+    "YAP1": {
+      "distance": 0.5033657952409271,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.5483631611716628,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.6582583148648178,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.23527948470139382,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.23627998503497735,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.2372814873720669,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.28442036036291235,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.22013432653359039,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.2181333258664233,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.22013432653359039,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.21913382620000685,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.21913382620000685,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "SDC4": {
+    "YAP1": {
+      "distance": 0.3333728447024387,
+      "path": [
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.37837021063317455,
+      "path": [
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.4882653643263295,
+      "path": [
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.0652865341629055,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.06628703449648904,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.06728853683357858,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.11442740982442402,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.05014137599510206,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.048140375327934984,
+      "path": [
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.05014137599510206,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.04914087566151852,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.04914087566151852,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "GPC1": {
+    "YAP1": {
+      "distance": 0.35664147164179305,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.40163883757252883,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.5115339912656838,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.08855516110225983,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.08955566143584337,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.09055716377293291,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.13769603676377834,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.07341000293445639,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.07140900226728931,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.07341000293445639,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.07240950260087285,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.07240950260087285,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "GPC3": {
+    "YAP1": {
+      "distance": 0.5701488977479449,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6151462636786806,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7250414173718356,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.3020625872084116,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.3030630875419951,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.3040645898790847,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.3512034628699301,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.28691742904060813,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.2849164283734411,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.28691742904060813,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.2859169287070246,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.2859169287070246,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "GPC4": {
+    "YAP1": {
+      "distance": 0.5639338373445105,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6089312032752463,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7188263569684012,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.29584752680497733,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.29684802713856084,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.2978495294756504,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.3449884024664958,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.28070236863717385,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.27870136797000683,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.28070236863717385,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.27970186830359034,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.27970186830359034,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "GPC6": {
+    "YAP1": {
+      "distance": 0.599246459743711,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6442438256744468,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7541389793676019,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.33116014920417786,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.33216064953776137,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.33316215187485093,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.38030102486569634,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.31601499103637437,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.31401399036920735,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.31601499103637437,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.31501449070279086,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.31501449070279086,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "EXT1": {
+    "YAP1": {
+      "distance": 0.6258289614574095,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6708263273881453,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7807214810813004,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.3577426509178763,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.35874315125145984,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.3597446535885494,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.4068835265793948,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.34259749275007284,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.3405964920829058,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.34259749275007284,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.34159699241648933,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.34159699241648933,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "EXT2": {
+    "YAP1": {
+      "distance": 0.6268294617909931,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6718268277217289,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7817219814148839,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.35874315125145984,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.35974365158504334,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.3607451539221329,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.4078840269129783,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.34359799308365635,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.34159699241648933,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.34359799308365635,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.34259749275007284,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.34259749275007284,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "NDST1": {
+    "YAP1": {
+      "distance": 0.6823421717212519,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.7273395376519877,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.8372346913451427,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.4142558611817187,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.4152563615153022,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.4162578638523918,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.4633967368432372,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.3991107030139152,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.3971097023467482,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.3991107030139152,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.3981102026803317,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.3981102026803317,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "NDST2": {
+    "YAP1": {
+      "distance": 0.9042209870020979,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.9492183529328336,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 1.0591135066259887,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.6361346764625647,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.6371351767961483,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.6381366791332378,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.6852755521240833,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.6209895182947613,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.6189885176275942,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.6209895182947613,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.6199890179611778,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.6199890179611778,
+      "path": [
+        "NDST2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "EXT1",
+          "confidence": 0.757
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "HPSE": {
+    "YAP1": {
+      "distance": 0.4046013805685147,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.44959874649925047,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.5594939001924055,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "CCN2",
+          "confidence": 0.797
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.13651507002898147,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.137515570362565,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.13851707269965455,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.18565594569049998,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.12136991186117804,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "ITGB1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.11936891119401097,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.12136991186117804,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        },
+        {
+          "from": "PXN",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.1203694115275945,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.1203694115275945,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "GFPT1": {
+    "YAP1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "WWTR1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "RHOA": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "MYL9": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ITGB1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PTK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "VCL": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PXN": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "TLN1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "GFPT2": {
+    "YAP1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "WWTR1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "RHOA": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "MYL9": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ITGB1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PTK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "VCL": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PXN": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "TLN1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "OGT": {
+    "YAP1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "WWTR1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "RHOA": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "MYL9": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ITGB1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PTK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "VCL": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PXN": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "TLN1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "MGAT5": {
+    "YAP1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "WWTR1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "RHOA": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "MYL9": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ITGB1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PTK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "VCL": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PXN": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "TLN1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "B4GALT1": {
+    "YAP1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "WWTR1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "RHOA": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ROCK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "MYL9": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ITGB1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PTK2": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "VCL": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PXN": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "TLN1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "HAS1": {
+    "YAP1": {
+      "distance": 0.654217870895152,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6992152368258878,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.8091103905190429,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.33622096815177155,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.33722146848535506,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.3382229708224446,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.38536184381329003,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.317073808649634,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.31907480931680104,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.31907480931680104,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.31907480931680104,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.31807430898321754,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "HAS2": {
+    "YAP1": {
+      "distance": 0.5832121338968351,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6282094998275709,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7381046535207259,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.26521523115345463,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.26621573148703814,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.2672172338241277,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.3143561068149731,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.24606807165131706,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.24806907231848413,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.24806907231848413,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.24806907231848413,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.2470685719849006,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "HAS3": {
+    "YAP1": {
+      "distance": 0.5967674862502096,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.6417648521809454,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.7516600058741003,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.27877058350682904,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.27977108384041255,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.2807725861775021,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.3279114591683475,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.2596234240046915,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.26162442467185854,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.26162442467185854,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.26162442467185854,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.260623924338275,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  },
+  "CD44": {
+    "YAP1": {
+      "distance": 0.38109594977470085,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
+    },
+    "WWTR1": {
+      "distance": 0.4260933157054366,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
+    },
+    "CTGF": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "CYR61": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    },
+    "ANKRD1": {
+      "distance": 0.5359884693985917,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
+    },
+    "RHOA": {
+      "distance": 0.06309904703132042,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
+    },
+    "ROCK1": {
+      "distance": 0.06409954736490396,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "ROCK2": {
+      "distance": 0.0651010497019935,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
+    },
+    "MYL9": {
+      "distance": 0.11223992269283894,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
+    },
+    "ITGB1": {
+      "distance": 0.04395188752918283,
+      "path": [
+        "CD44",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        }
+      ]
+    },
+    "PTK2": {
+      "distance": 0.045952888196349906,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "VCL": {
+      "distance": 0.045952888196349906,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PXN": {
+      "distance": 0.045952888196349906,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "TLN1": {
+      "distance": 0.04495238786276637,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
+    },
+    "PIEZO1": {
+      "distance": null,
+      "path": [],
+      "path_edges": []
+    }
+  }
+}
