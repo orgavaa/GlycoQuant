@@ -20,6 +20,8 @@ import pandas as pd
 
 from glycoquant.features import (
     ActinParams,
+    DinoV2Embedder,
+    DinoV2Params,
     FocalAdhesionParams,
     GlycocalyxParams,
     extract_actin_features,
@@ -43,12 +45,27 @@ class AssemblerConfig:
     All fields default to each extractor's own defaults, which mirror
     ``configs/default.yaml``. Overriding a single field keeps the
     other extractors at their defaults.
+
+    Attributes
+    ----------
+    glycocalyx, focal_adhesions, actin : dataclass params
+        Per-extractor parameters.
+    include_radial_profile : bool
+        If True, expand the 20-bin radial profile into flat columns
+        ``glycocalyx_radial_profile_00..19`` in the output DataFrame.
+    include_deep_features : bool
+        If True, run the DINOv2 embedder and add 768 deep feature
+        columns named ``deep_000..deep_767`` to each row.
+    dinov2 : DinoV2Params
+        DINOv2 parameters (model name, crop size, channel assignment).
     """
 
     glycocalyx: GlycocalyxParams = None  # type: ignore[assignment]
     focal_adhesions: FocalAdhesionParams = None  # type: ignore[assignment]
     actin: ActinParams = None  # type: ignore[assignment]
+    dinov2: DinoV2Params = None  # type: ignore[assignment]
     include_radial_profile: bool = False
+    include_deep_features: bool = False
 
     def __post_init__(self) -> None:
         if self.glycocalyx is None:
@@ -57,6 +74,8 @@ class AssemblerConfig:
             object.__setattr__(self, "focal_adhesions", FocalAdhesionParams())
         if self.actin is None:
             object.__setattr__(self, "actin", ActinParams())
+        if self.dinov2 is None:
+            object.__setattr__(self, "dinov2", DinoV2Params())
 
 
 class ProfileAssembler:
@@ -77,9 +96,11 @@ class ProfileAssembler:
         self,
         config: AssemblerConfig | None = None,
         segmenter: CellSegmenter | None = None,
+        dinov2_embedder: DinoV2Embedder | None = None,
     ) -> None:
         self.config = config or AssemblerConfig()
         self._segmenter = segmenter
+        self._dinov2_embedder = dinov2_embedder
 
     def process_image(
         self,
@@ -140,7 +161,12 @@ class ProfileAssembler:
             rows.append(row)
 
         df = pd.DataFrame(rows).set_index("cell_id")
-        return self._finalize_radial_profile(df)
+        df = self._finalize_radial_profile(df)
+
+        if self.config.include_deep_features:
+            df = self._attach_deep_features(df, channels, cell_mask, cell_ids)
+
+        return df
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -202,6 +228,39 @@ class ProfileAssembler:
                 )
             )
         row.update(extract_morphology_features(cell_mask, cell_id))
+
+    def _attach_deep_features(
+        self,
+        df: pd.DataFrame,
+        channels: dict[str, np.ndarray],
+        cell_mask: np.ndarray,
+        cell_ids: list[int],
+    ) -> pd.DataFrame:
+        """Run DINOv2 on each cell crop and add ``deep_000..deep_767`` columns.
+
+        Uses ``self._dinov2_embedder`` if provided, otherwise constructs
+        a lazy default. Cells that DINOv2 skips (bbox extraction failure)
+        receive NaN rows so the DataFrame shape stays consistent with
+        the interpretable-feature rows.
+        """
+        if self._dinov2_embedder is None:
+            self._dinov2_embedder = DinoV2Embedder(params=self.config.dinov2)
+
+        used_ids, embeddings = self._dinov2_embedder.embed_image_with_masks(
+            channels, cell_mask
+        )
+        dim = embeddings.shape[1] if embeddings.size else self._dinov2_embedder.embedding_dim()
+        deep_cols = [f"deep_{i:03d}" for i in range(dim)]
+
+        # Build a DataFrame of deep features indexed by cell_id, then merge
+        deep_df = pd.DataFrame(
+            embeddings,
+            index=pd.Index(used_ids, name="cell_id"),
+            columns=deep_cols,
+        )
+        # Reindex so every cell in the interpretable DataFrame has a row
+        deep_df = deep_df.reindex(df.index)
+        return df.join(deep_df)
 
     def _finalize_radial_profile(self, df: pd.DataFrame) -> pd.DataFrame:
         """Drop or expand the list-typed radial-profile column."""

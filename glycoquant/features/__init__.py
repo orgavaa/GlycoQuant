@@ -7,6 +7,11 @@ per-cell DataFrame.
 """
 
 from glycoquant.features.actin import ActinParams, extract_actin_features
+from glycoquant.features.deep_embedding import (
+    DinoV2Embedder,
+    DinoV2Params,
+    build_cell_crop,
+)
 from glycoquant.features.focal_adhesions import (
     FocalAdhesionParams,
     extract_fa_features,
@@ -20,8 +25,11 @@ from glycoquant.features.yap import extract_yap_features
 
 __all__ = [
     "ActinParams",
+    "DinoV2Embedder",
+    "DinoV2Params",
     "FocalAdhesionParams",
     "GlycocalyxParams",
+    "build_cell_crop",
     "extract_actin_features",
     "extract_fa_features",
     "extract_glycocalyx_features",

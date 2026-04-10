@@ -228,3 +228,64 @@ def test_unknown_segmentation_channel_raises() -> None:
     assembler = ProfileAssembler()
     with pytest.raises(ValueError, match="segmentation_channel"):
         assembler.process_image(channels, segmentation_channel="nonexistent")
+
+
+# ---------------------------------------------------------------------------
+# Deep feature integration (uses a fake embedder to stay fast and offline)
+# ---------------------------------------------------------------------------
+
+
+class _FakeDinoV2Embedder:
+    """Lightweight test double with the same interface as DinoV2Embedder."""
+
+    def __init__(self, dim: int = 768) -> None:
+        self.dim = dim
+
+    def embedding_dim(self) -> int:
+        return self.dim
+
+    def embed_image_with_masks(
+        self,
+        channels: dict[str, np.ndarray],
+        cell_mask: np.ndarray,
+    ) -> tuple[list[int], np.ndarray]:
+        cell_ids = sorted(int(v) for v in np.unique(cell_mask).tolist() if v != 0)
+        rng = np.random.default_rng(42)
+        emb = rng.normal(size=(len(cell_ids), self.dim)).astype(np.float32)
+        return cell_ids, emb
+
+
+def test_include_deep_features_adds_768_columns(
+    full_channels: dict[str, np.ndarray],
+    cell_mask: np.ndarray,
+    nuclear_mask: np.ndarray,
+) -> None:
+    """With include_deep_features=True and a fake embedder, the DataFrame
+    gains exactly 768 ``deep_XXX`` columns and keeps all interpretable ones.
+    """
+    assembler = ProfileAssembler(
+        config=AssemblerConfig(include_deep_features=True),
+        dinov2_embedder=_FakeDinoV2Embedder(),
+    )
+    df = assembler.process_image(
+        full_channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
+    )
+    deep_cols = [c for c in df.columns if c.startswith("deep_")]
+    assert len(deep_cols) == 768
+    assert "yap_nc_ratio" in df.columns
+    assert "cell_area" in df.columns
+    # Deep columns should all be float, no NaNs (every cell embedded)
+    assert df[deep_cols].notna().all().all()
+
+
+def test_deep_features_off_by_default(
+    full_channels: dict[str, np.ndarray],
+    cell_mask: np.ndarray,
+    nuclear_mask: np.ndarray,
+) -> None:
+    assembler = ProfileAssembler()
+    df = assembler.process_image(
+        full_channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
+    )
+    deep_cols = [c for c in df.columns if c.startswith("deep_")]
+    assert deep_cols == []
