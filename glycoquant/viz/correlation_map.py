@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
-from glycoquant.app.styles import get_plotly_layout_template
+from glycoquant.theme import get_plotly_layout_template
 
 
 def plot_correlation_map(

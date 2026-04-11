@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import plotly.graph_objects as go
 
-from glycoquant.app.styles import PALETTE, get_plotly_layout_template
+from glycoquant.theme import PALETTE, get_plotly_layout_template
 
 
 def plot_radial_profile(
@@ -68,7 +68,7 @@ def plot_radial_profile(
             y=mean,
             mode="lines+markers",
             line={"color": PALETTE.accent_brand, "width": 2.5},
-            marker={"size": 7, "color": PALETTE.accent_brand, "line": {"color": PALETTE.bg_deep, "width": 1}},
+            marker={"size": 7, "color": PALETTE.accent_brand, "line": {"color": PALETTE.bg_base, "width": 1}},
             name=f"Mean (n={n_cells})",
         )
     )
