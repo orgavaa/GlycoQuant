@@ -12,7 +12,16 @@
       "Glob",
       "Grep",
       "Bash(.venv/Scripts/python.exe -m ruff check glycoquant/ backend/ tests/ scripts/)",
-      "Bash(.venv/Scripts/python.exe -m pytest tests/test_dynamic_ranking.py backend/tests/test_priors_contextual.py backend/tests/test_priors_geneformer.py backend/tests/test_api.py tests/test_features_glycocalyx.py tests/test_features_yap.py tests/test_features_fa.py tests/test_features_actin.py tests/test_features_morphology.py tests/test_profiles.py tests/test_preprocessing.py tests/test_features_nuclear_morphology.py -m \"not slow\" -q)"
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_dynamic_ranking.py backend/tests/test_priors_contextual.py backend/tests/test_priors_geneformer.py backend/tests/test_api.py tests/test_features_glycocalyx.py tests/test_features_yap.py tests/test_features_fa.py tests/test_features_actin.py tests/test_features_morphology.py tests/test_profiles.py tests/test_preprocessing.py tests/test_features_nuclear_morphology.py -m \"not slow\" -q)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_features_glycocalyx.py tests/test_features_fa.py tests/test_mechano_score.py tests/test_viz_glyco_mechano.py -x --tb=short)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/ backend/tests/ --tb=short -q --deselect tests/test_deep_embedding.py)",
+      "Bash(taskkill //F //PID 1924)",
+      "Bash(tasklist //FI \"PID eq 1924\")",
+      "Bash(taskkill //F //PID 29104)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_features_glycocalyx.py tests/test_features_fa.py tests/test_features_yap.py tests/test_features_actin.py tests/test_features_morphology.py tests/test_features_nuclear_morphology.py tests/test_mechano_score.py tests/test_viz_glyco_mechano.py tests/test_dynamic_ranking.py -q --tb=short)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_profiles.py tests/test_viz.py tests/test_viz_overlay.py tests/test_preprocessing.py tests/test_io.py tests/test_pathway_score.py tests/test_prior_loader.py tests/test_mechano_signature.py tests/test_active_learning.py backend/tests/ -q --tb=short)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(./node_modules/.bin/tsc -b)"
     ],
     "deny": [
       "Bash(rm -rf /)",

@@ -35,6 +35,10 @@ from glycoquant.preprocessing import (
     DEFAULT_BACKGROUND_RADIUS_PX,
     subtract_background,
 )
+from glycoquant.profiles.mechano_score import (
+    MechanoScoreSummary,
+    apply_population_post_processing,
+)
 from glycoquant.segmentation import CellSegmenter
 
 # Canonical channel names accepted by ``process_image``. The assembler
@@ -71,6 +75,18 @@ class AssemblerConfig:
     dinov2: DinoV2Params = None  # type: ignore[assignment]
     include_radial_profile: bool = False
     include_deep_features: bool = False
+    # Physical pixel size in microns. Surfaced as a first-class
+    # parameter (rather than a hardcoded constant inside each
+    # extractor) because µm-denominated thresholds — most importantly
+    # focal-adhesion maturation bins — are wrong on any image whose
+    # acquisition optics differ from the default. Demo manifests carry
+    # per-image overrides; the frontend exposes this in the sidebar.
+    pixel_size_um: float = 0.325
+    # Mechanotransduction composite score mode. ``"pca"`` fits PC1
+    # over the curated panel; ``"weighted_sum"`` is the transparent
+    # equal-weight fallback used automatically when fewer than 30
+    # cells are available.
+    mechano_score_mode: str = "pca"
     # Illumination / background correction applied to every intensity
     # channel before feature extraction (DAPI is skipped). Setting
     # ``background_radius_px=0`` disables the correction — useful for
@@ -81,7 +97,26 @@ class AssemblerConfig:
         if self.glycocalyx is None:
             object.__setattr__(self, "glycocalyx", GlycocalyxParams())
         if self.focal_adhesions is None:
-            object.__setattr__(self, "focal_adhesions", FocalAdhesionParams())
+            object.__setattr__(
+                self,
+                "focal_adhesions",
+                FocalAdhesionParams(pixel_size_um=self.pixel_size_um),
+            )
+        else:
+            # Propagate the assembler-level pixel size into the FA
+            # params unless the caller explicitly overrode it. This
+            # keeps the FA bins coherent with the rest of the
+            # pipeline when the user changes the sidebar value.
+            if self.focal_adhesions.pixel_size_um != self.pixel_size_um and (
+                self.focal_adhesions.pixel_size_um == 0.325
+            ):
+                from dataclasses import replace
+
+                object.__setattr__(
+                    self,
+                    "focal_adhesions",
+                    replace(self.focal_adhesions, pixel_size_um=self.pixel_size_um),
+                )
         if self.actin is None:
             object.__setattr__(self, "actin", ActinParams())
         if self.dinov2 is None:
@@ -111,6 +146,10 @@ class ProfileAssembler:
         self.config = config or AssemblerConfig()
         self._segmenter = segmenter
         self._dinov2_embedder = dinov2_embedder
+        # Last :class:`MechanoScoreSummary` produced by
+        # ``process_image``. The backend reads this after the call to
+        # populate ``JobResult.mechano_score_summary`` for the UI.
+        self.last_mechano_summary: MechanoScoreSummary | None = None
 
     def process_image(
         self,
@@ -181,6 +220,15 @@ class ProfileAssembler:
 
         df = pd.DataFrame(rows).set_index("cell_id")
         df = self._finalize_radial_profile(df)
+
+        # Population-level post-processing: Jones-2024 size correction
+        # for YAP and the composite mechanotransduction score. Both
+        # operate on the entire cell population (not per-cell), so
+        # they live outside the per-cell extraction loop.
+        df, summary = apply_population_post_processing(
+            df, mode=self.config.mechano_score_mode
+        )
+        self.last_mechano_summary = summary
 
         if self.config.include_deep_features:
             df = self._attach_deep_features(df, channels, cell_mask, cell_ids)

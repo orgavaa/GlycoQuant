@@ -20,6 +20,8 @@
       "cell_line": "U-2 OS (osteosarcoma)",
       "description": "Syndecan-1 immunofluorescence in U-2 OS cells. SDC1 is the primary heparan-sulfate proteoglycan target for glycocalyx perturbation studies.",
       "is_real_microscopy": true,
+      "pixel_size_um": 0.18,
+      "pixel_size_note": "Assumed: HPA confocal native ~0.08 µm/px (Leica SP5 60×) downsampled 1728→768 px (×2.25). Override in the sidebar if you have exact metadata.",
       "native_image_size": [
         1728,
         1728
@@ -73,6 +75,8 @@
       "cell_line": "U-251 MG (glioma)",
       "description": "CD44 immunofluorescence. CD44 is the top-ranked gene in the STRING pathway prior shown in Tab 2.",
       "is_real_microscopy": true,
+      "pixel_size_um": 0.18,
+      "pixel_size_note": "Assumed: HPA confocal native ~0.08 µm/px (Leica SP5 60×) downsampled 1728→768 px (×2.25). Override in the sidebar if you have exact metadata.",
       "native_image_size": [
         1728,
         1728
@@ -126,6 +130,8 @@
       "cell_line": "U-2 OS (osteosarcoma)",
       "description": "YAP1 immunofluorescence. YAP is the canonical mechanotransduction readout; Dupont et al. Nature 2011.",
       "is_real_microscopy": true,
+      "pixel_size_um": 0.21,
+      "pixel_size_note": "Assumed: HPA confocal native ~0.08 µm/px (Leica SP5 60×) downsampled 2048→768 px (×2.67). Override in the sidebar if you have exact metadata.",
       "native_image_size": [
         2048,
         2048

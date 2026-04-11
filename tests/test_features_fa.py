@@ -26,11 +26,21 @@ def test_returns_expected_keys(
     features = extract_fa_features(synthetic_paxillin_image, cell_mask, cell_id=1)
     assert set(features.keys()) == {
         "fa_count",
+        "fa_density_per_um2",
         "fa_mean_area",
         "fa_total_area",
+        "fa_mean_area_um2",
+        "fa_total_area_um2",
         "fa_mean_elongation",
         "fa_mean_distance_to_edge",
+        "fa_mean_distance_to_edge_um",
         "fa_peripheral_fraction",
+        "fa_mean_orientation_alignment",
+        "fa_nascent_count",
+        "fa_focal_complex_count",
+        "fa_mature_count",
+        "fa_fibrillar_count",
+        "fa_mature_fraction",
     }
 
 

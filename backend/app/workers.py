@@ -17,7 +17,13 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from backend.app.schemas import JobPhase, JobProgress, JobResult, JobStatus
+from backend.app.schemas import (
+    JobPhase,
+    JobProgress,
+    JobResult,
+    JobStatus,
+    MechanoScoreSummary as MechanoScoreSummarySchema,
+)
 
 
 @dataclass
@@ -114,6 +120,7 @@ def run_analysis_job(
     channels: dict[str, Any],  # dict[str, np.ndarray], kept generic to avoid top-level numpy import
     cell_diameter: int,
     include_deep_features: bool,
+    pixel_size_um: float = 0.325,
 ) -> None:
     """Run the full Tab 1 pipeline for one image in the background.
 
@@ -177,12 +184,16 @@ def run_analysis_job(
         if include_deep_features:
             embedder = _get_embedder()
         assembler = ProfileAssembler(
-            config=AssemblerConfig(include_deep_features=include_deep_features),
+            config=AssemblerConfig(
+                include_deep_features=include_deep_features,
+                pixel_size_um=pixel_size_um,
+            ),
             dinov2_embedder=embedder,
         )
         features_df = assembler.process_image(
             channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
         )
+        mechano_summary = assembler.last_mechano_summary
 
         if include_deep_features:
             store.update(job_id, phase="embedding", pct=75, message="Computing visual embeddings")
@@ -194,6 +205,8 @@ def run_analysis_job(
             nuclear_mask=nuclear_mask,
             features_df=features_df,
             include_deep_features=include_deep_features,
+            pixel_size_um=pixel_size_um,
+            mechano_summary=mechano_summary,
         )
         if channel_warnings:
             result.warnings = list(result.warnings) + channel_warnings
@@ -272,13 +285,20 @@ def _build_result_payload(
     nuclear_mask,  # noqa: ANN001
     features_df,  # noqa: ANN001
     include_deep_features: bool,
+    pixel_size_um: float = 0.325,
+    mechano_summary=None,  # noqa: ANN001 - MechanoScoreSummary | None
 ) -> JobResult:
     """Package masks + features + plotly figures into a JobResult."""
     import numpy as np
 
     from glycoquant.io import hash_image_bytes
     from glycoquant.profiles import AssemblerConfig, ProfileAssembler
-    from glycoquant.viz import plot_correlation_map, plot_radial_profile
+    from glycoquant.viz import (
+        plot_correlation_map,
+        plot_glyco_mechano_correlation,
+        plot_mechano_score_distribution,
+        plot_radial_profile,
+    )
 
     # Build an image_hash so the frontend can key caches
     base_channel = channels[_seg_channel(channels)]
@@ -290,20 +310,15 @@ def _build_result_payload(
             return float(features_df[col].mean())
         return None
 
-    hero_metrics = {
-        "cell_count": float(len(features_df)),
-        "mean_yap_nc": _mean_safe("yap_nc_ratio"),
-        "mean_fa_count": _mean_safe("fa_count"),
-        "mean_actin_coherence": _mean_safe("actin_stress_fiber_coherence"),
-        "mean_glycocalyx_ratio": _mean_safe("glycocalyx_pericellular_ratio"),
-    }
-
     # Segmentation figure: build via the same overlay logic, serialized to JSON
     seg_fig = _build_segmentation_figure(channels, cell_mask, nuclear_mask, features_df)
 
     # Radial profile figure: re-run the assembler with radial profile inclusion
     radial_assembler = ProfileAssembler(
-        config=AssemblerConfig(include_radial_profile=True)
+        config=AssemblerConfig(
+            include_radial_profile=True,
+            pixel_size_um=pixel_size_um,
+        )
     )
     df_with_profile = radial_assembler.process_image(
         channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
@@ -329,6 +344,48 @@ def _build_result_payload(
 
         corr_fig = go.Figure()
 
+    # Headline figure: rectangular glyco × mechano correlation matrix.
+    # Returns the bundle so we can populate the
+    # mechano_score_summary.top_correlation_* fields without re-walking.
+    glyco_mechano_fig, glyco_mechano_result = plot_glyco_mechano_correlation(
+        features_df
+    )
+    score_dist_fig = plot_mechano_score_distribution(features_df)
+
+    summary_payload: MechanoScoreSummarySchema | None = None
+    if mechano_summary is not None:
+        summary_payload = MechanoScoreSummarySchema(
+            mode=mechano_summary.mode,
+            n_cells_used=mechano_summary.n_cells_used,
+            n_features_used=mechano_summary.n_features_used,
+            pc1_variance_explained=mechano_summary.pc1_variance_explained,
+            loadings=mechano_summary.loadings,
+            mean=mechano_summary.mean if np.isfinite(mechano_summary.mean) else None,
+            std=mechano_summary.std if np.isfinite(mechano_summary.std) else None,
+            top_correlation_r=(
+                float(glyco_mechano_result.top_r)
+                if glyco_mechano_result.top_pair is not None
+                else None
+            ),
+            top_correlation_pair=glyco_mechano_result.top_pair,
+        )
+
+    hero_metrics = {
+        "cell_count": float(len(features_df)),
+        "mean_yap_nc": _mean_safe("yap_nc_ratio"),
+        "mean_yap_nc_size_corrected": _mean_safe("yap_nc_ratio_size_corrected"),
+        "mean_fa_count": _mean_safe("fa_count"),
+        "mean_fa_mature_fraction": _mean_safe("fa_mature_fraction"),
+        "mean_actin_coherence": _mean_safe("actin_stress_fiber_coherence"),
+        "mean_glycocalyx_ratio": _mean_safe("glycocalyx_pericellular_ratio"),
+        "mean_mechano_score": _mean_safe("mechano_score"),
+        "top_glyco_mechano_r": (
+            float(glyco_mechano_result.top_r)
+            if glyco_mechano_result.top_pair is not None
+            else None
+        ),
+    }
+
     return JobResult(
         image_hash=image_hash,
         cell_count=len(features_df),
@@ -336,6 +393,9 @@ def _build_result_payload(
         segmentation_figure_json=seg_fig.to_json(),
         radial_profile_figure_json=radial_fig.to_json(),
         correlation_figure_json=corr_fig.to_json(),
+        glyco_mechano_correlation_figure_json=glyco_mechano_fig.to_json(),
+        mechano_score_distribution_figure_json=score_dist_fig.to_json(),
+        mechano_score_summary=summary_payload,
         hero_metrics=hero_metrics,
         has_deep_features=include_deep_features,
     )

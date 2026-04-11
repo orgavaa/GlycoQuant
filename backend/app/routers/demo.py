@@ -61,6 +61,11 @@ async def list_demo_conditions() -> DemoListResponse:
         tiff = DEMO_DIR / f"{name}.tiff"
         if not tiff.is_file():
             continue
+        raw_pixel = ds.get("pixel_size_um")
+        try:
+            pixel_size_um = float(raw_pixel) if raw_pixel is not None else None
+        except (TypeError, ValueError):
+            pixel_size_um = None
         conditions.append(
             DemoCondition(
                 name=name,
@@ -74,6 +79,7 @@ async def list_demo_conditions() -> DemoListResponse:
                 cell_line=ds.get("cell_line", ""),
                 is_real_microscopy=bool(ds.get("is_real_microscopy", False)),
                 slot_sources=ds.get("slot_sources", {}),
+                pixel_size_um=pixel_size_um,
             )
         )
     return DemoListResponse(conditions=conditions)

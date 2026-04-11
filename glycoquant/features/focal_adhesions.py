@@ -26,6 +26,13 @@ class FocalAdhesionParams:
     """Parameters controlling focal adhesion detection and filtering.
 
     Defaults mirror ``configs/default.yaml → features.focal_adhesions``.
+
+    The ``pixel_size_um`` field controls the µm conversion used for
+    the maturation bins (Buskermolen 2018, Zaidel-Bar/Geiger). It
+    defaults to 0.325 (~20× confocal) but the assembler propagates
+    the experiment-wide value from :class:`AssemblerConfig` so
+    images acquired with different optics are classified correctly
+    rather than silently mis-binned.
     """
 
     threshold_method: str = "otsu"  # "otsu" | "fixed"
@@ -33,6 +40,13 @@ class FocalAdhesionParams:
     min_area_px: int = 5
     max_area_px: int = 500
     peripheral_distance_px: int = 20
+    pixel_size_um: float = 0.325
+    # Maturation bin edges in microns. Defaults match the
+    # Buskermolen 2018 / Zaidel-Bar nascent → focal-complex → mature
+    # → fibrillar taxonomy.
+    nascent_max_um: float = 0.5
+    focal_complex_max_um: float = 1.0
+    mature_max_um: float = 5.0
 
 
 def detect_focal_adhesions(
@@ -119,43 +133,106 @@ def extract_fa_features(
     Returns
     -------
     dict[str, float]
-        Keys:
-        - fa_count                  : number of focal adhesions
-        - fa_mean_area              : mean FA area (px)
-        - fa_total_area             : total FA area (px)
-        - fa_mean_elongation        : mean axis_major / axis_minor
-        - fa_mean_distance_to_edge  : mean distance of FA centroids to cell edge (px)
-        - fa_peripheral_fraction    : fraction of FAs within ``peripheral_distance_px`` of edge
+        Aggregate keys:
+        - fa_count                       : number of focal adhesions
+        - fa_density_per_um2             : count per cell area in µm²
+        - fa_mean_area                   : mean FA area (px)
+        - fa_total_area                  : total FA area (px)
+        - fa_mean_area_um2               : mean FA area (µm²)
+        - fa_total_area_um2              : total FA area (µm²)
+        - fa_mean_elongation             : mean axis_major / axis_minor
+        - fa_mean_distance_to_edge       : mean centroid → edge distance (px)
+        - fa_mean_distance_to_edge_um    : same in µm
+        - fa_peripheral_fraction         : fraction within ``peripheral_distance_px`` of edge
+        - fa_mean_orientation_alignment  : 1 − circular variance over 2θ of FA major-axis angles
+        Maturation bins (Buskermolen 2018, Zaidel-Bar):
+        - fa_nascent_count       : major axis < nascent_max_um
+        - fa_focal_complex_count : nascent_max_um ≤ axis < focal_complex_max_um
+        - fa_mature_count        : focal_complex_max_um ≤ axis < mature_max_um
+        - fa_fibrillar_count     : axis ≥ mature_max_um
+        - fa_mature_fraction     : (mature + fibrillar) / total
     """
     regions = detect_focal_adhesions(paxillin_channel, cell_mask, cell_id, params)
+    p = params or FocalAdhesionParams()
+
     if not regions:
-        # No FA detected is a genuine count of zero, but per-FA shape
-        # statistics (mean area, elongation, distances) have no
-        # sensible value — NaN, not 0.
         return _nan_features()
 
-    p = params or FocalAdhesionParams()
     this_cell = cell_mask == cell_id
-    # Distance transform: each pixel inside the cell → distance to nearest
-    # non-cell pixel (i.e., distance to the cell edge)
+    cell_area_px = float(this_cell.sum())
+    pixel_area_um2 = float(p.pixel_size_um) ** 2
+    cell_area_um2 = cell_area_px * pixel_area_um2
+
     distance_to_edge = distance_transform_edt(this_cell)
 
     areas = np.array([r.area for r in regions], dtype=np.float64)
+    major_axes_um = np.array(
+        [r.axis_major_length * p.pixel_size_um for r in regions], dtype=np.float64
+    )
     elongations = np.array([_elongation(r) for r in regions], dtype=np.float64)
     distances = np.array(
         [_centroid_distance(r, distance_to_edge) for r in regions], dtype=np.float64
     )
+    orientations = np.array([float(r.orientation) for r in regions], dtype=np.float64)
 
     peripheral_count = int(np.sum(distances <= p.peripheral_distance_px))
 
+    nascent_count = int(np.sum(major_axes_um < p.nascent_max_um))
+    focal_complex_count = int(
+        np.sum(
+            (major_axes_um >= p.nascent_max_um) & (major_axes_um < p.focal_complex_max_um)
+        )
+    )
+    mature_count = int(
+        np.sum(
+            (major_axes_um >= p.focal_complex_max_um) & (major_axes_um < p.mature_max_um)
+        )
+    )
+    fibrillar_count = int(np.sum(major_axes_um >= p.mature_max_um))
+    n_total = len(regions)
+    mature_fraction = (
+        float(mature_count + fibrillar_count) / n_total if n_total > 0 else math.nan
+    )
+
     return {
-        "fa_count": float(len(regions)),
+        "fa_count": float(n_total),
+        "fa_density_per_um2": (
+            float(n_total / cell_area_um2) if cell_area_um2 > 0 else math.nan
+        ),
         "fa_mean_area": float(np.nanmean(areas)),
         "fa_total_area": float(np.nansum(areas)),
+        "fa_mean_area_um2": float(np.nanmean(areas) * pixel_area_um2),
+        "fa_total_area_um2": float(np.nansum(areas) * pixel_area_um2),
         "fa_mean_elongation": float(np.nanmean(elongations)),
         "fa_mean_distance_to_edge": float(np.nanmean(distances)),
-        "fa_peripheral_fraction": peripheral_count / len(regions),
+        "fa_mean_distance_to_edge_um": float(np.nanmean(distances) * p.pixel_size_um),
+        "fa_peripheral_fraction": peripheral_count / n_total,
+        "fa_mean_orientation_alignment": _orientation_alignment(orientations),
+        "fa_nascent_count": float(nascent_count),
+        "fa_focal_complex_count": float(focal_complex_count),
+        "fa_mature_count": float(mature_count),
+        "fa_fibrillar_count": float(fibrillar_count),
+        "fa_mature_fraction": mature_fraction,
     }
+
+
+def _orientation_alignment(orientations: np.ndarray) -> float:
+    """Coherence of FA major-axis orientations within a cell.
+
+    Returns ``1 − circular variance`` computed on ``2θ`` so that
+    parallel adhesions pointing in opposite directions still count
+    as aligned (FA orientation is undirected). Values in [0, 1]:
+    1 = perfectly aligned, 0 = isotropic. NaN for fewer than 2 FAs
+    (alignment is undefined).
+    """
+    finite = orientations[np.isfinite(orientations)]
+    if finite.size < 2:
+        return math.nan
+    angles_2theta = 2.0 * finite
+    sin_mean = float(np.sin(angles_2theta).mean())
+    cos_mean = float(np.cos(angles_2theta).mean())
+    resultant_length = math.hypot(sin_mean, cos_mean)
+    return float(resultant_length)
 
 
 def _compute_threshold(values: np.ndarray, params: FocalAdhesionParams) -> float:
@@ -206,9 +283,19 @@ def _nan_features() -> dict[str, float]:
     nan = math.nan
     return {
         "fa_count": 0.0,
+        "fa_density_per_um2": 0.0,
         "fa_mean_area": nan,
         "fa_total_area": 0.0,
+        "fa_mean_area_um2": nan,
+        "fa_total_area_um2": 0.0,
         "fa_mean_elongation": nan,
         "fa_mean_distance_to_edge": nan,
+        "fa_mean_distance_to_edge_um": nan,
         "fa_peripheral_fraction": nan,
+        "fa_mean_orientation_alignment": nan,
+        "fa_nascent_count": 0.0,
+        "fa_focal_complex_count": 0.0,
+        "fa_mature_count": 0.0,
+        "fa_fibrillar_count": 0.0,
+        "fa_mature_fraction": nan,
     }

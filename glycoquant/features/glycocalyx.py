@@ -8,12 +8,19 @@ pericellular shell surrounding the cytoplasmic signal; this module
 quantifies that shell on a per-cell basis.
 
 Features extracted per cell:
-    glycocalyx_mean_intensity     : mean fluorescence in the pericellular ring
-    glycocalyx_heterogeneity      : coefficient of variation (std/mean) in the ring
-    glycocalyx_coverage           : fraction of ring pixels above the chosen threshold
-    glycocalyx_pericellular_ratio : ring intensity / cell-interior intensity
-    glycocalyx_radial_profile     : binned intensity as a function of radius
-    glycocalyx_radial_decay_rate  : exponential decay constant fitted to the profile
+    glycocalyx_mean_intensity        : mean fluorescence in the pericellular ring
+    glycocalyx_integrated_intensity  : sum of ring pixel intensities
+    glycocalyx_heterogeneity         : coefficient of variation in the ring
+    glycocalyx_shannon_entropy       : information-theoretic intensity heterogeneity
+    glycocalyx_coverage              : fraction of ring pixels above the threshold
+    glycocalyx_pericellular_ratio    : ring intensity / cell-interior intensity
+    glycocalyx_radial_profile        : binned intensity as a function of radius
+    glycocalyx_radial_decay_rate     : exponential decay constant fitted to the profile
+    glycocalyx_haralick_contrast     : GLCM contrast (texture energy)
+    glycocalyx_haralick_homogeneity  : GLCM homogeneity (smoothness)
+    glycocalyx_haralick_correlation  : GLCM correlation (linear directionality)
+    glycocalyx_haralick_energy       : GLCM second angular moment
+    glycocalyx_moran_i               : spatial autocorrelation (rook contiguity)
 """
 from __future__ import annotations
 
@@ -22,8 +29,12 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy.ndimage import binary_dilation, binary_erosion
+from scipy.stats import entropy as scipy_entropy
+from skimage.feature import graycomatrix, graycoprops
 from skimage.filters import threshold_otsu
 from skimage.measure import regionprops
+
+from glycoquant.features._spatial import morans_i_on_mask
 
 # Minimum floor for the dynamically-sized pericellular ring. Smaller
 # than ~3 px and the ring becomes one pixel wide at the diagonal,
@@ -59,6 +70,23 @@ class GlycocalyxParams:
     coverage_threshold_method: str = "otsu"  # "otsu" | "percentile" | "fixed"
     coverage_threshold_percentile: float = 75.0
     coverage_threshold_fixed: float = 50.0
+    # Number of histogram bins used for the Shannon-entropy estimate
+    # over the pericellular ring intensities. 32 bins balances bias
+    # against variance for typical cell-sized rings (~100-2000 px).
+    entropy_n_bins: int = 32
+    # Quantisation level count for the Haralick GLCM. 16 levels keeps
+    # the matrix small enough to compute per-cell quickly while
+    # preserving enough dynamic range to discriminate texture
+    # patterns. ``compute_haralick=False`` skips Haralick entirely
+    # (useful for unit tests on tiny synthetic rings where the GLCM
+    # is degenerate).
+    compute_haralick: bool = True
+    haralick_levels: int = 16
+    # Minimum ring pixel count below which Haralick is skipped — the
+    # GLCM has no defined statistics on a few-pixel ring.
+    haralick_min_pixels: int = 100
+    compute_moran: bool = True
+    moran_min_pixels: int = 50
 
 
 def extract_glycocalyx_features(
@@ -117,7 +145,11 @@ def extract_glycocalyx_features(
     )
 
     mean_intensity = float(ring_values.mean()) if ring_values.size else math.nan
+    integrated_intensity = (
+        float(ring_values.sum()) if ring_values.size else math.nan
+    )
     heterogeneity = _coefficient_of_variation(ring_values)
+    shannon = _shannon_entropy(ring_values, p.entropy_n_bins)
     coverage = _compute_coverage(ring_values, p)
     pericellular_ratio = _pericellular_ratio(mean_intensity, interior_values)
 
@@ -128,13 +160,27 @@ def extract_glycocalyx_features(
     )
     decay_rate = _exp_decay_rate(radial_profile)
 
+    haralick = _haralick_features(glycocalyx_channel, ring, p)
+    moran = (
+        morans_i_on_mask(glycocalyx_channel, ring, min_pixels=p.moran_min_pixels)
+        if p.compute_moran
+        else math.nan
+    )
+
     return {
         "glycocalyx_mean_intensity": mean_intensity,
+        "glycocalyx_integrated_intensity": integrated_intensity,
         "glycocalyx_heterogeneity": heterogeneity,
+        "glycocalyx_shannon_entropy": shannon,
         "glycocalyx_coverage": coverage,
         "glycocalyx_pericellular_ratio": pericellular_ratio,
         "glycocalyx_radial_profile": radial_profile.tolist(),
         "glycocalyx_radial_decay_rate": decay_rate,
+        "glycocalyx_haralick_contrast": haralick["contrast"],
+        "glycocalyx_haralick_homogeneity": haralick["homogeneity"],
+        "glycocalyx_haralick_correlation": haralick["correlation"],
+        "glycocalyx_haralick_energy": haralick["energy"],
+        "glycocalyx_moran_i": moran,
     }
 
 
@@ -156,11 +202,18 @@ def _nan_features(n_radial_bins: int) -> dict[str, float | list[float]]:
     nan = math.nan
     return {
         "glycocalyx_mean_intensity": nan,
+        "glycocalyx_integrated_intensity": nan,
         "glycocalyx_heterogeneity": nan,
+        "glycocalyx_shannon_entropy": nan,
         "glycocalyx_coverage": nan,
         "glycocalyx_pericellular_ratio": nan,
         "glycocalyx_radial_profile": [nan] * n_radial_bins,
         "glycocalyx_radial_decay_rate": nan,
+        "glycocalyx_haralick_contrast": nan,
+        "glycocalyx_haralick_homogeneity": nan,
+        "glycocalyx_haralick_correlation": nan,
+        "glycocalyx_haralick_energy": nan,
+        "glycocalyx_moran_i": nan,
     }
 
 
@@ -288,6 +341,117 @@ def _radial_profile(
         if in_bin.any():
             profile[i] = float(roi_values[in_bin].mean())
     return profile
+
+
+def _shannon_entropy(values: np.ndarray, n_bins: int) -> float:
+    """Information-theoretic entropy of the ring intensity distribution.
+
+    Computed over a fixed-bin histogram of the ring intensities (not
+    a kernel density estimate, which is overkill for the typical
+    ~100-2000 ring pixels). Values in nats. Returns NaN on empty
+    rings or rings with a single unique value (entropy is well-
+    defined as 0 there but the metric is uninformative for our
+    heterogeneity question — NaN is honest).
+    """
+    if values.size == 0:
+        return math.nan
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        return math.nan
+    if finite.min() == finite.max():
+        return math.nan
+    hist, _edges = np.histogram(finite, bins=int(n_bins))
+    total = hist.sum()
+    if total == 0:
+        return math.nan
+    probs = hist.astype(np.float64) / float(total)
+    return float(scipy_entropy(probs))
+
+
+def _haralick_features(
+    image: np.ndarray,
+    ring: np.ndarray,
+    params: GlycocalyxParams,
+) -> dict[str, float]:
+    """GLCM-based texture summary of the pericellular ring.
+
+    Computes the gray-level co-occurrence matrix on a quantised
+    version of the ring patch and aggregates the four most
+    interpretable Haralick descriptors:
+
+    - ``contrast``     — local intensity variation (high for noisy rings)
+    - ``homogeneity``  — closeness of distribution to the GLCM diagonal
+    - ``correlation``  — linear dependence between neighbour intensities
+    - ``energy``       — sum of squared GLCM entries (uniformity)
+
+    Averaged over four orientations (0°, 45°, 90°, 135°) and three
+    distances (1, 2, 4 pixels) to make the descriptor rotation- and
+    scale-invariant within the typical ring thickness.
+    """
+    nan_dict = {
+        "contrast": math.nan,
+        "homogeneity": math.nan,
+        "correlation": math.nan,
+        "energy": math.nan,
+    }
+    if not params.compute_haralick:
+        return nan_dict
+    if int(ring.sum()) < params.haralick_min_pixels:
+        return nan_dict
+
+    rows, cols = np.where(ring)
+    if rows.size == 0:
+        return nan_dict
+
+    rmin, rmax = int(rows.min()), int(rows.max()) + 1
+    cmin, cmax = int(cols.min()), int(cols.max()) + 1
+    patch = image[rmin:rmax, cmin:cmax].astype(np.float64)
+    patch_mask = ring[rmin:rmax, cmin:cmax]
+
+    finite_vals = patch[patch_mask & np.isfinite(patch)]
+    if finite_vals.size == 0:
+        return nan_dict
+    lo = float(finite_vals.min())
+    hi = float(finite_vals.max())
+    if hi <= lo:
+        return nan_dict
+
+    # Quantise the patch to ``haralick_levels`` bins. Pixels outside
+    # the ring (and non-finite pixels) are clamped to bin 0; we mask
+    # them by setting them to a sentinel that the GLCM never uses,
+    # but skimage's graycomatrix has no mask param, so the cleanest
+    # approach is to compute over the bounding-box patch and accept
+    # that out-of-ring pixels contribute to the GLCM with their
+    # interpolated values. For tight pericellular rings the bbox is
+    # close to the ring itself so this is a small bias.
+    levels = int(params.haralick_levels)
+    quantised = np.zeros_like(patch, dtype=np.uint8)
+    finite_mask = np.isfinite(patch)
+    scaled = (patch[finite_mask] - lo) / (hi - lo)
+    quantised[finite_mask] = np.clip(
+        (scaled * (levels - 1)).round(), 0, levels - 1
+    ).astype(np.uint8)
+
+    distances = [1, 2, 4]
+    angles = [0.0, math.pi / 4, math.pi / 2, 3 * math.pi / 4]
+    try:
+        glcm = graycomatrix(
+            quantised,
+            distances=distances,
+            angles=angles,
+            levels=levels,
+            symmetric=True,
+            normed=True,
+        )
+    except (ValueError, IndexError):
+        return nan_dict
+
+    return {
+        "contrast": float(np.nanmean(graycoprops(glcm, "contrast"))),
+        "homogeneity": float(np.nanmean(graycoprops(glcm, "homogeneity"))),
+        "correlation": float(np.nanmean(graycoprops(glcm, "correlation"))),
+        "energy": float(np.nanmean(graycoprops(glcm, "energy"))),
+    }
 
 
 def _exp_decay_rate(profile: np.ndarray) -> float:

@@ -8,12 +8,22 @@ interface HeroMetricsProps {
 
 export function HeroMetrics({ result }: HeroMetricsProps) {
   const m = result.hero_metrics;
+  // UI_SCIENCE_GUIDELINES §3 — exactly three hero metrics on Overview.
+  // Anything else belongs on Single Cell or Methods & QC.
   const metrics = [
-    { label: "Cells detected", value: String(result.cell_count), unit: "n" },
-    { label: "YAP N/C (mean)", value: fmt(m.mean_yap_nc, 2) },
-    { label: "Focal adhesions", value: fmt(m.mean_fa_count, 1), unit: "/ cell" },
-    { label: "Actin coherence", value: fmt(m.mean_actin_coherence, 3) },
-    { label: "Glycocalyx ratio", value: fmt(m.mean_glycocalyx_ratio, 2) },
+    {
+      label: "Cells analysed",
+      value: String(result.cell_count),
+      unit: "n",
+    },
+    {
+      label: "Mean mechano score",
+      value: fmt(m.mean_mechano_score, 2),
+    },
+    {
+      label: "Top glyco ↔ mechano |r|",
+      value: fmt(m.top_glyco_mechano_r, 2),
+    },
   ];
   return <MetricCardsRow metrics={metrics} />;
 }

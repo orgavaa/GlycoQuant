@@ -108,6 +108,7 @@ async def submit_analysis(
     demo_condition: str | None = Form(default=None),  # noqa: B008
     cell_diameter: int = Form(default=80),  # noqa: B008
     include_deep_features: bool = Form(default=False),  # noqa: B008
+    pixel_size_um: float | None = Form(default=None),  # noqa: B008
     upload: UploadFile | None = File(default=None),  # noqa: B008
 ) -> AnalyzeResponse:
     """Queue an analysis job and return its ``job_id`` immediately.
@@ -170,12 +171,27 @@ async def submit_analysis(
             detail=f"Channel split failed: {exc}",
         ) from exc
 
+    # Resolve pixel size: explicit form value > demo manifest entry >
+    # default. Demo manifests carry the per-image µm/px so bundled
+    # HPA datasets are classified with their actual acquisition
+    # optics rather than a hardcoded fallback.
+    resolved_pixel_size_um = pixel_size_um
+    if resolved_pixel_size_um is None and demo_condition is not None:
+        from backend.app.routers.demo import _find_dataset
+
+        dataset = _find_dataset(demo_condition)
+        if dataset and dataset.get("pixel_size_um") is not None:
+            resolved_pixel_size_um = float(dataset["pixel_size_um"])
+    if resolved_pixel_size_um is None:
+        resolved_pixel_size_um = 0.325
+
     store = get_job_store()
     job = store.create(
         meta={
             "demo_condition": demo_condition,
             "cell_diameter": cell_diameter,
             "include_deep_features": include_deep_features,
+            "pixel_size_um": resolved_pixel_size_um,
             "channel_warnings": channel_warnings,
         }
     )
@@ -186,6 +202,7 @@ async def submit_analysis(
         channels=channels,
         cell_diameter=cell_diameter,
         include_deep_features=include_deep_features,
+        pixel_size_um=resolved_pixel_size_um,
     )
 
     return AnalyzeResponse(

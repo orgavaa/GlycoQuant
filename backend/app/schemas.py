@@ -22,6 +22,19 @@ class AnalyzeRequest(BaseModel):
     )
     cell_diameter: int = Field(default=80, ge=10, le=300)
     include_deep_features: bool = Field(default=False)
+    pixel_size_um: float | None = Field(
+        default=None,
+        ge=0.05,
+        le=2.0,
+        description=(
+            "Physical pixel size in microns. Required for the FA "
+            "maturation classifier (Buskermolen 2018) to bin "
+            "adhesions in the correct biological size range. When "
+            "None the backend falls back to the demo manifest entry "
+            "for bundled images, or 0.325 µm/px (typical 20× confocal) "
+            "for uploads."
+        ),
+    )
 
 
 class AnalyzeResponse(BaseModel):
@@ -45,6 +58,39 @@ class CellFeature(BaseModel):
     features: dict[str, float]
 
 
+class MechanoScoreSummary(BaseModel):
+    """Diagnostics for the composite mechanotransduction score.
+
+    Surfaced next to the score-distribution histogram on Tab 1 so the
+    user can see how the score was computed (PCA vs. weighted-sum
+    fallback), how many cells contributed, the variance explained by
+    PC1, and the loadings — turning a single scalar into a defensible
+    measurement.
+    """
+
+    mode: Literal["pca", "weighted_sum"] = "pca"
+    n_cells_used: int = 0
+    n_features_used: int = 0
+    pc1_variance_explained: float = 0.0
+    loadings: dict[str, float] = Field(default_factory=dict)
+    mean: float | None = None
+    std: float | None = None
+    top_correlation_r: float | None = Field(
+        default=None,
+        description=(
+            "Strongest absolute Spearman correlation between any "
+            "glycocalyx feature and any mechanotransduction feature "
+            "in this image. Surfaced as a hero metric so the central "
+            "PhD novelty (single-cell glyco↔mechano coupling) is "
+            "front-and-centre."
+        ),
+    )
+    top_correlation_pair: tuple[str, str] | None = Field(
+        default=None,
+        description="(glycocalyx_feature, mechano_feature) for the top correlation.",
+    )
+
+
 class JobResult(BaseModel):
     """Final result payload attached to a complete job."""
 
@@ -62,11 +108,33 @@ class JobResult(BaseModel):
     correlation_figure_json: str = Field(
         description="Plotly figure JSON for the feature correlation heatmap."
     )
+    glyco_mechano_correlation_figure_json: str | None = Field(
+        default=None,
+        description=(
+            "Plotly figure JSON for the rectangular glycocalyx × "
+            "mechanotransduction correlation heatmap. This is the "
+            "headline Tab 1 deliverable — single-cell correlative "
+            "analysis between glycocalyx conformation and "
+            "mechanotransduction state, a measurement no published "
+            "study has reported (Paszek 2014, Möckl 2019, Barai "
+            "2024, Hamrangsekachaee 2025 all stop at population "
+            "comparisons)."
+        ),
+    )
+    mechano_score_distribution_figure_json: str | None = Field(
+        default=None,
+        description=(
+            "Plotly figure JSON for the per-cell composite "
+            "mechanotransduction score distribution (histogram + "
+            "mean line)."
+        ),
+    )
+    mechano_score_summary: MechanoScoreSummary | None = None
     hero_metrics: dict[str, float | None] = Field(
         description=(
             "Pre-aggregated per-image statistics for the metric-card row: "
             "cell_count, mean_yap_nc, mean_fa_count, mean_actin_coherence, "
-            "mean_glycocalyx_ratio."
+            "mean_glycocalyx_ratio, mean_mechano_score, top_glyco_mechano_r."
         )
     )
     has_deep_features: bool = False
@@ -102,6 +170,16 @@ class DemoCondition(BaseModel):
     cell_line: str = ""
     is_real_microscopy: bool = False
     slot_sources: dict[str, Any] = Field(default_factory=dict)
+    pixel_size_um: float | None = Field(
+        default=None,
+        description=(
+            "Physical pixel size in microns from the manifest. The "
+            "frontend auto-fills the sidebar input with this value "
+            "on demo selection so FA maturation bins use the actual "
+            "acquisition optics rather than a hardcoded fallback. "
+            "May be None for legacy manifests — UI surfaces a warning."
+        ),
+    )
 
 
 class DemoListResponse(BaseModel):

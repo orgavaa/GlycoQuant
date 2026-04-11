@@ -48,6 +48,18 @@ export interface JobProgress {
   message: string;
 }
 
+export interface MechanoScoreSummary {
+  mode: "pca" | "weighted_sum";
+  n_cells_used: number;
+  n_features_used: number;
+  pc1_variance_explained: number;
+  loadings: Record<string, number>;
+  mean: number | null;
+  std: number | null;
+  top_correlation_r: number | null;
+  top_correlation_pair: [string, string] | null;
+}
+
 export interface JobResult {
   image_hash: string;
   cell_count: number;
@@ -55,6 +67,9 @@ export interface JobResult {
   segmentation_figure_json: string;
   radial_profile_figure_json: string;
   correlation_figure_json: string;
+  glyco_mechano_correlation_figure_json?: string | null;
+  mechano_score_distribution_figure_json?: string | null;
+  mechano_score_summary?: MechanoScoreSummary | null;
   hero_metrics: Record<string, number | null>;
   has_deep_features: boolean;
   warnings?: string[];
@@ -95,6 +110,7 @@ export interface DemoCondition {
   cell_line: string;
   is_real_microscopy: boolean;
   slot_sources: Record<string, DemoChannelSlotSource>;
+  pixel_size_um?: number | null;
 }
 
 export interface DemoListResponse {
@@ -232,6 +248,8 @@ export interface SubmitAnalyzeArgs {
   upload?: File;
   cellDiameter: number;
   includeDeepFeatures: boolean;
+  /** Physical pixel size in microns. Drives FA maturation bins and µm metrics. */
+  pixelSizeUm?: number;
 }
 
 export async function submitAnalyze(
@@ -242,6 +260,9 @@ export async function submitAnalyze(
   if (args.upload) form.append("upload", args.upload);
   form.append("cell_diameter", String(args.cellDiameter));
   form.append("include_deep_features", args.includeDeepFeatures ? "true" : "false");
+  if (args.pixelSizeUm !== undefined) {
+    form.append("pixel_size_um", String(args.pixelSizeUm));
+  }
 
   const { data } = await api.post<AnalyzeResponse>("/analysis/analyze", form, {
     headers: { "Content-Type": "multipart/form-data" },

@@ -5,5 +5,19 @@ from glycoquant.profiles.assembler import (
     AssemblerConfig,
     ProfileAssembler,
 )
+from glycoquant.profiles.mechano_score import (
+    MechanoScoreSummary,
+    apply_population_post_processing,
+    apply_yap_size_correction,
+    compute_mechano_score,
+)
 
-__all__ = ["CANONICAL_CHANNELS", "AssemblerConfig", "ProfileAssembler"]
+__all__ = [
+    "CANONICAL_CHANNELS",
+    "AssemblerConfig",
+    "MechanoScoreSummary",
+    "ProfileAssembler",
+    "apply_population_post_processing",
+    "apply_yap_size_correction",
+    "compute_mechano_score",
+]

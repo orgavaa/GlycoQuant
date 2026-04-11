@@ -33,11 +33,18 @@ def test_returns_expected_keys(
 
     expected = {
         "glycocalyx_mean_intensity",
+        "glycocalyx_integrated_intensity",
         "glycocalyx_heterogeneity",
+        "glycocalyx_shannon_entropy",
         "glycocalyx_coverage",
         "glycocalyx_pericellular_ratio",
         "glycocalyx_radial_profile",
         "glycocalyx_radial_decay_rate",
+        "glycocalyx_haralick_contrast",
+        "glycocalyx_haralick_homogeneity",
+        "glycocalyx_haralick_correlation",
+        "glycocalyx_haralick_energy",
+        "glycocalyx_moran_i",
     }
     assert set(features.keys()) == expected
 

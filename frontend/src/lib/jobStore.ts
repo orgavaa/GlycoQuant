@@ -21,17 +21,38 @@ interface JobStoreState {
   latestJobResult: JobResult | null;
   /** Human-readable label for the banner in Tab 2 (dataset name or filename). */
   latestDatasetLabel: string | null;
+  /**
+   * Globally selected cell ID for cross-view highlighting per
+   * UI_SCIENCE_GUIDELINES §5 — Single Cell, the canvas overlay, and
+   * the Methods & QC drawer must all reflect the same selection so
+   * the user never has to mentally re-link their context when
+   * switching sub-tabs.
+   */
+  selectedCellId: number | null;
   /** Called by useAnalysisJob when a job transitions to status="complete". */
   setLatestJobResult: (result: JobResult, datasetLabel?: string | null) => void;
   /** Clear the store — useful for the "Show static ranking" toggle in Tab 2. */
   clearLatestJobResult: () => void;
+  /** Set or clear the cross-view cell selection. */
+  setSelectedCellId: (cellId: number | null) => void;
 }
 
 export const useJobStore = create<JobStoreState>((set) => ({
   latestJobResult: null,
   latestDatasetLabel: null,
+  selectedCellId: null,
   setLatestJobResult: (result, datasetLabel = null) =>
-    set({ latestJobResult: result, latestDatasetLabel: datasetLabel }),
+    set({
+      latestJobResult: result,
+      latestDatasetLabel: datasetLabel,
+      // Clear selection on new analysis — old cell IDs are no longer valid.
+      selectedCellId: null,
+    }),
   clearLatestJobResult: () =>
-    set({ latestJobResult: null, latestDatasetLabel: null }),
+    set({
+      latestJobResult: null,
+      latestDatasetLabel: null,
+      selectedCellId: null,
+    }),
+  setSelectedCellId: (cellId) => set({ selectedCellId: cellId }),
 }));
