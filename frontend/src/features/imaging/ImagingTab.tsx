@@ -109,20 +109,37 @@ export function ImagingTab() {
         onActiveStep={setActiveStep}
       />
 
-      {/* Empty state — onboarding prompt with the one-sentence pitch */}
+      {/* Empty state — describe what the pipeline actually measures */}
       {!pending && !job.status && (
         <Card className="border-dashed">
           <CardContent className="py-10">
-            <div className="max-w-2xl space-y-3">
-              <p className="section-label">From the same image…</p>
+            <div className="max-w-3xl space-y-4">
+              <p className="section-label">Single-cell mechanobiology pipeline</p>
               <h2 className="text-[1.15rem] font-semibold leading-snug text-foreground">
-                We quantify glycocalyx state, mechanotransduction state, and
-                their coupling — at single-cell resolution.
+                Per-cell quantification of glycocalyx organisation and
+                mechanotransduction state from a five-channel confocal image,
+                and the cross-block correlation that links the two.
               </h2>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Pick a bundled HPA dataset above or upload a five-channel TIFF
-                in the canonical order DAPI · WGA-lectin · YAP · paxillin ·
-                phalloidin to begin.
+                Cellpose-SAM segments each cell and its nucleus. Twelve
+                glycocalyx descriptors are extracted from the pericellular WGA
+                ring (mean intensity, coverage, Shannon entropy, Haralick
+                texture, Moran&apos;s I), and the mechanotransduction panel
+                reports size-corrected YAP nuclear/cytoplasmic ratio
+                (Jones&nbsp;2024), focal-adhesion maturation classes
+                (Buskermolen&nbsp;2018), actin stress-fibre coherence and
+                nuclear morphology. PC1 over the curated mechano panel yields
+                a per-cell composite score; a rectangular Spearman matrix
+                between the glycocalyx and mechanotransduction blocks then
+                tests their coupling at single-cell resolution — a measurement
+                no published study has reported.
+              </p>
+              <p className="text-xs leading-snug text-muted-foreground">
+                Required input: a five-channel image stack in the canonical
+                order DAPI · WGA-lectin · YAP · paxillin · phalloidin
+                (multi-page TIFF, OME-TIFF, or PNG). Bundled Human Protein
+                Atlas datasets above let you exercise the pipeline end-to-end
+                without uploading anything.
               </p>
             </div>
           </CardContent>
