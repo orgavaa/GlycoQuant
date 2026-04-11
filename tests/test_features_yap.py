@@ -1,12 +1,13 @@
 """Tests for glycoquant.features.yap."""
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pytest
 from skimage.draw import disk
 
 from glycoquant.features import extract_yap_features
-from glycoquant.features.yap import _YAP_NC_RATIO_MAX
 
 IMAGE_SIZE = (512, 512)
 
@@ -70,37 +71,45 @@ def test_nuclear_fraction_is_in_unit_interval(
     assert 0.0 <= features["yap_nuclear_fraction"] <= 1.0
 
 
-def test_zero_cytoplasm_hits_sentinel(
+def test_zero_cytoplasm_returns_nan(
     cell_mask: np.ndarray,
     nuclear_mask: np.ndarray,
 ) -> None:
-    """When cytoplasm is dark but nucleus is bright, ratio returns the finite sentinel."""
+    """Dark cytoplasm + bright nucleus → NaN ratio (division undefined).
+
+    Earlier versions returned a finite sentinel (1000.0) here, which
+    silently biased per-condition means. NaN is the scientifically
+    honest signal; downstream aggregations must use ``nanmean``.
+    """
     image = np.zeros(IMAGE_SIZE, dtype=np.float32)
     image[nuclear_mask == 1] = 5.0  # bright nucleus, dark cytoplasm
 
     features = extract_yap_features(image, cell_mask, nuclear_mask, cell_id=1)
-    assert features["yap_nc_ratio"] == _YAP_NC_RATIO_MAX
+    assert math.isnan(features["yap_nc_ratio"])
 
 
-def test_dark_image_returns_zeros(
+def test_dark_image_returns_nan(
     cell_mask: np.ndarray,
     nuclear_mask: np.ndarray,
 ) -> None:
+    """Uniformly-dark image → every intensity feature is NaN."""
     image = np.zeros(IMAGE_SIZE, dtype=np.float32)
     features = extract_yap_features(image, cell_mask, nuclear_mask, cell_id=1)
+    # Mean intensity inside the cell is a real zero → 0.0 is defensible,
+    # but the NC ratio and nuclear fraction are both undefined → NaN.
     assert features["yap_nuclear_intensity"] == 0.0
     assert features["yap_cytoplasmic_intensity"] == 0.0
-    assert features["yap_nc_ratio"] == 0.0
-    assert features["yap_nuclear_fraction"] == 0.0
+    assert math.isnan(features["yap_nc_ratio"])
+    assert math.isnan(features["yap_nuclear_fraction"])
 
 
-def test_missing_cell_id_returns_zeros(
+def test_missing_cell_id_returns_nan(
     synthetic_yap_image: np.ndarray,
     cell_mask: np.ndarray,
     nuclear_mask: np.ndarray,
 ) -> None:
     features = extract_yap_features(synthetic_yap_image, cell_mask, nuclear_mask, cell_id=999)
-    assert all(v == 0.0 for v in features.values())
+    assert all(math.isnan(v) for v in features.values())
 
 
 def test_rejects_shape_mismatch(

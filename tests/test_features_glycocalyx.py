@@ -61,11 +61,15 @@ def test_ring_fixture_has_bright_pericellular_signal(
     cell_mask: np.ndarray,
     cell_specs: list,
 ) -> None:
-    """On the ring fixture, the pericellular ratio is high for every cell.
+    """On the ring fixture the mean ring intensity is above 0.3.
 
-    The ring intensity is ~1.0 and the cell interior is 0 by construction,
-    so the ratio hits the finite sentinel for each cell.
+    The synthetic fixture has a bright pericellular ring and a zero-
+    intensity cell interior, so the ring-to-interior ratio is NaN by
+    design (division undefined). The mean intensity is the only
+    well-defined readout and must still be high for every cell.
     """
+    import math
+
     for cell_id in range(1, len(cell_specs) + 1):
         features = extract_glycocalyx_features(
             synthetic_glycocalyx_image, cell_mask, cell_id=cell_id
@@ -73,8 +77,9 @@ def test_ring_fixture_has_bright_pericellular_signal(
         assert features["glycocalyx_mean_intensity"] > 0.3, (
             f"cell {cell_id}: ring intensity {features['glycocalyx_mean_intensity']}"
         )
-        assert features["glycocalyx_pericellular_ratio"] > 1.0, (
-            f"cell {cell_id}: ratio {features['glycocalyx_pericellular_ratio']}"
+        assert math.isnan(features["glycocalyx_pericellular_ratio"]), (
+            f"cell {cell_id}: expected NaN ratio on dark-interior fixture, "
+            f"got {features['glycocalyx_pericellular_ratio']}"
         )
 
 
@@ -88,39 +93,48 @@ def test_uniform_image_has_near_zero_heterogeneity(cell_mask: np.ndarray) -> Non
     assert features["glycocalyx_mean_intensity"] == pytest.approx(1.0, abs=1e-6)
 
 
-def test_dark_image_has_zero_features(cell_mask: np.ndarray) -> None:
-    """All-zero glycocalyx channel yields zero intensity-based features."""
+def test_dark_image_has_nan_intensity_features(cell_mask: np.ndarray) -> None:
+    """All-zero glycocalyx channel yields NaN for every ratio/CV feature.
+
+    The mean intensity itself is 0.0 (a real, honest measurement);
+    derived ratios and coverage are NaN because they are division-
+    undefined on a zero-signal ring.
+    """
+    import math
+
     dark = np.zeros((512, 512), dtype=np.float32)
     features = extract_glycocalyx_features(dark, cell_mask, cell_id=1)
 
     assert features["glycocalyx_mean_intensity"] == 0.0
-    assert features["glycocalyx_heterogeneity"] == 0.0
-    assert features["glycocalyx_pericellular_ratio"] == 0.0
-    assert all(v == 0.0 for v in features["glycocalyx_radial_profile"])
+    assert math.isnan(features["glycocalyx_heterogeneity"])
+    assert math.isnan(features["glycocalyx_pericellular_ratio"])
 
 
-def test_missing_cell_id_returns_zero_features(
+def test_missing_cell_id_returns_nan(
     synthetic_glycocalyx_image: np.ndarray,
     cell_mask: np.ndarray,
 ) -> None:
-    """A cell_id not present in the mask yields an all-zero feature dict."""
+    """A cell_id not present in the mask yields an all-NaN feature dict."""
+    import math
+
     features = extract_glycocalyx_features(
         synthetic_glycocalyx_image, cell_mask, cell_id=999
     )
-    assert features["glycocalyx_mean_intensity"] == 0.0
-    assert features["glycocalyx_pericellular_ratio"] == 0.0
-    assert features["glycocalyx_coverage"] == 0.0
+    assert math.isnan(features["glycocalyx_mean_intensity"])
+    assert math.isnan(features["glycocalyx_pericellular_ratio"])
+    assert math.isnan(features["glycocalyx_coverage"])
 
 
-def test_pericellular_ratio_capped_at_sentinel(cell_mask: np.ndarray) -> None:
-    """When the interior is dark but the ring is bright, ratio hits the finite sentinel.
+def test_pericellular_ratio_is_nan_on_dark_interior(cell_mask: np.ndarray) -> None:
+    """Dark cell interior + bright ring → NaN ratio (division undefined).
 
-    Guards downstream clustering / correlation code against ``inf``.
+    Earlier versions capped at a finite sentinel (1000.0), which biased
+    per-condition means toward that value. NaN is the correct marker;
+    downstream aggregations must use ``nanmean``.
     """
-    from glycoquant.features.glycocalyx import _PERICELLULAR_RATIO_MAX
+    import math
 
     image = np.zeros((512, 512), dtype=np.float32)
-    # Ring: dilate cell 1 and set pericellular band to 1.0
     from scipy.ndimage import binary_dilation
 
     this_cell = cell_mask == 1
@@ -128,8 +142,7 @@ def test_pericellular_ratio_capped_at_sentinel(cell_mask: np.ndarray) -> None:
     image[dilated & ~this_cell] = 1.0
 
     features = extract_glycocalyx_features(image, cell_mask, cell_id=1)
-    assert features["glycocalyx_pericellular_ratio"] == _PERICELLULAR_RATIO_MAX
-    assert np.isfinite(features["glycocalyx_pericellular_ratio"])
+    assert math.isnan(features["glycocalyx_pericellular_ratio"])
 
 
 def test_coverage_percentile_method(cell_mask: np.ndarray) -> None:

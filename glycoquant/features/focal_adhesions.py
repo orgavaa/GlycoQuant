@@ -12,6 +12,7 @@ by area, and summarized per cell via ``skimage.measure.regionprops``.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -128,7 +129,10 @@ def extract_fa_features(
     """
     regions = detect_focal_adhesions(paxillin_channel, cell_mask, cell_id, params)
     if not regions:
-        return _zero_features()
+        # No FA detected is a genuine count of zero, but per-FA shape
+        # statistics (mean area, elongation, distances) have no
+        # sensible value — NaN, not 0.
+        return _nan_features()
 
     p = params or FocalAdhesionParams()
     this_cell = cell_mask == cell_id
@@ -138,16 +142,18 @@ def extract_fa_features(
 
     areas = np.array([r.area for r in regions], dtype=np.float64)
     elongations = np.array([_elongation(r) for r in regions], dtype=np.float64)
-    distances = np.array([_centroid_distance(r, distance_to_edge) for r in regions])
+    distances = np.array(
+        [_centroid_distance(r, distance_to_edge) for r in regions], dtype=np.float64
+    )
 
     peripheral_count = int(np.sum(distances <= p.peripheral_distance_px))
 
     return {
         "fa_count": float(len(regions)),
-        "fa_mean_area": float(areas.mean()),
-        "fa_total_area": float(areas.sum()),
-        "fa_mean_elongation": float(elongations.mean()),
-        "fa_mean_distance_to_edge": float(distances.mean()),
+        "fa_mean_area": float(np.nanmean(areas)),
+        "fa_total_area": float(np.nansum(areas)),
+        "fa_mean_elongation": float(np.nanmean(elongations)),
+        "fa_mean_distance_to_edge": float(np.nanmean(distances)),
         "fa_peripheral_fraction": peripheral_count / len(regions),
     }
 
@@ -167,11 +173,16 @@ def _compute_threshold(values: np.ndarray, params: FocalAdhesionParams) -> float
 
 
 def _elongation(region) -> float:  # noqa: ANN001 - skimage region object
-    """major_axis / minor_axis; returns 1.0 if minor axis is zero."""
+    """major_axis / minor_axis. NaN if the minor axis is degenerate.
+
+    Returning 1.0 on a degenerate minor axis used to conflate "perfect
+    circle" (a real biological signal) with "shape undefined" — NaN
+    is the honest marker so nanmean aggregates ignore these FAs.
+    """
     major = region.axis_major_length
     minor = region.axis_minor_length
     if minor <= 0.0:
-        return 1.0
+        return math.nan
     return float(major / minor)
 
 
@@ -183,12 +194,21 @@ def _centroid_distance(region, distance_to_edge: np.ndarray) -> float:  # noqa: 
     return float(distance_to_edge[cy, cx])
 
 
-def _zero_features() -> dict[str, float]:
+def _nan_features() -> dict[str, float]:
+    """Zero count, NaN shape statistics.
+
+    ``fa_count`` stays at 0.0 because "no FA" is a real, interpretable
+    observation (non-adherent cell). But mean/total area, elongation,
+    edge distance, and peripheral fraction have no defined value when
+    there are no FAs to average over, so they are NaN — not a silent
+    zero that would bias per-condition means.
+    """
+    nan = math.nan
     return {
         "fa_count": 0.0,
-        "fa_mean_area": 0.0,
+        "fa_mean_area": nan,
         "fa_total_area": 0.0,
-        "fa_mean_elongation": 0.0,
-        "fa_mean_distance_to_edge": 0.0,
-        "fa_peripheral_fraction": 0.0,
+        "fa_mean_elongation": nan,
+        "fa_mean_distance_to_edge": nan,
+        "fa_peripheral_fraction": nan,
     }

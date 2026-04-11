@@ -130,8 +130,14 @@ def test_yap_nc_ratio_matches_synthetic_ground_truth(
     cell_mask: np.ndarray,
     nuclear_mask: np.ndarray,
 ) -> None:
-    """Fixture has nuclear=2.0 and cytoplasmic=1.0 → N/C = 2.0 for every row."""
-    assembler = ProfileAssembler()
+    """Fixture has nuclear=2.0 and cytoplasmic=1.0 → N/C = 2.0 for every row.
+
+    Background subtraction is disabled for this test because the
+    top-hat transform reshapes the synthetic nuclear/cytoplasmic
+    intensities. For real data the correction is essential; for
+    ground-truth unit testing we want raw intensities.
+    """
+    assembler = ProfileAssembler(config=AssemblerConfig(background_radius_px=0))
     df = assembler.process_image(
         full_channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
     )

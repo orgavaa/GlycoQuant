@@ -10,6 +10,7 @@ gives the average fiber orientation.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -74,10 +75,10 @@ def extract_actin_features(
     p = params or ActinParams()
     this_cell = cell_mask == cell_id
     if not this_cell.any():
-        return _zero_features()
+        return _nan_features()
 
     cell_values = actin_channel[this_cell]
-    mean_intensity = float(cell_values.mean())
+    mean_intensity = float(cell_values.mean()) if cell_values.size else math.nan
 
     coherence, orientation_deg = _structure_tensor_features(
         actin_channel, this_cell, p.structure_tensor_sigma
@@ -110,7 +111,7 @@ def _structure_tensor_features(
     larger, smaller = structure_tensor_eigenvalues((axx, axy, ayy))
 
     if not mask.any():
-        return 0.0, 0.0
+        return math.nan, math.nan
 
     larger_masked = larger[mask]
     smaller_masked = smaller[mask]
@@ -144,7 +145,9 @@ def _cortical_ratio(
     """Cortical ring intensity divided by deep interior intensity.
 
     Cortical ring: the outermost ``ring_width`` pixels of the cell.
-    Deep interior: the cell minus the cortical ring.
+    Deep interior: the cell minus the cortical ring. NaN when either
+    region is empty or the interior mean is zero — there is no
+    biologically meaningful "ratio" in those cases.
     """
     deep_interior = binary_erosion(this_cell, iterations=ring_width)
     cortical = this_cell & ~deep_interior
@@ -152,21 +155,20 @@ def _cortical_ratio(
     cortical_values = actin_channel[cortical]
     interior_values = actin_channel[deep_interior]
 
-    if cortical_values.size == 0:
-        return 0.0
-    cortical_mean = float(cortical_values.mean())
-
-    if interior_values.size == 0 or interior_values.mean() == 0.0:
-        return 0.0 if cortical_mean == 0.0 else 1000.0
-
+    if cortical_values.size == 0 or interior_values.size == 0:
+        return math.nan
     interior_mean = float(interior_values.mean())
-    return float(min(cortical_mean / interior_mean, 1000.0))
+    if interior_mean <= 0.0:
+        return math.nan
+    cortical_mean = float(cortical_values.mean())
+    return float(cortical_mean / interior_mean)
 
 
-def _zero_features() -> dict[str, float]:
+def _nan_features() -> dict[str, float]:
+    nan = math.nan
     return {
-        "actin_mean_intensity": 0.0,
-        "actin_stress_fiber_coherence": 0.0,
-        "actin_dominant_orientation": 0.0,
-        "actin_cortical_ratio": 0.0,
+        "actin_mean_intensity": nan,
+        "actin_stress_fiber_coherence": nan,
+        "actin_dominant_orientation": nan,
+        "actin_cortical_ratio": nan,
     }

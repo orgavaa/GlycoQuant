@@ -22,6 +22,9 @@ from glycoquant.features.glycocalyx import (
     extract_glycocalyx_features,
 )
 from glycoquant.features.morphology import extract_morphology_features
+from glycoquant.features.nuclear_morphology import (
+    extract_nuclear_morphology_features,
+)
 from glycoquant.features.yap import extract_yap_features
 
 __all__ = [
@@ -36,5 +39,6 @@ __all__ = [
     "extract_fa_features",
     "extract_glycocalyx_features",
     "extract_morphology_features",
+    "extract_nuclear_morphology_features",
     "extract_yap_features",
 ]

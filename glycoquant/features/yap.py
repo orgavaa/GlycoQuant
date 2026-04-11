@@ -1,18 +1,18 @@
 """YAP/TAZ nuclear-to-cytoplasmic translocation features.
 
 YAP/TAZ translocates between cytoplasm and nucleus in response to
-mechanical cues (Dupont et al., *Nature* 2011). The nuclear-to-
+mechanical cues (Dupont *et al.*, *Nature* 2011). The nuclear-to-
 cytoplasmic intensity ratio is the canonical readout of
-mechanotransduction activation.
+mechanotransduction activation — but it is a **reductionist** readout:
+Lomakin *et al.* (*Nature* 2020) showed that nuclear shape and
+envelope tension carry complementary mechanotransduction information,
+which is why GlycoQuant also exposes ``extract_nuclear_morphology_features``.
 """
 from __future__ import annotations
 
-import numpy as np
+import math
 
-# Finite sentinel for the ratio when the cytoplasmic mask is perfectly
-# dark; prevents inf from propagating into correlation matrices and
-# clustering downstream.
-_YAP_NC_RATIO_MAX = 1000.0
+import numpy as np
 
 
 def extract_yap_features(
@@ -55,25 +55,28 @@ def extract_yap_features(
     this_nucleus = nuclear_mask == cell_id
 
     if not this_cell.any():
-        return _zero_features()
+        return _nan_features()
 
     cytoplasm = this_cell & ~this_nucleus
     nuclear_values = yap_channel[this_nucleus]
     cytoplasmic_values = yap_channel[cytoplasm]
 
     nuclear_intensity = (
-        float(nuclear_values.mean()) if nuclear_values.size else 0.0
+        float(nuclear_values.mean()) if nuclear_values.size else math.nan
     )
     cytoplasmic_intensity = (
-        float(cytoplasmic_values.mean()) if cytoplasmic_values.size else 0.0
+        float(cytoplasmic_values.mean()) if cytoplasmic_values.size else math.nan
     )
 
     nc_ratio = _safe_ratio(nuclear_intensity, cytoplasmic_intensity)
 
     cell_values = yap_channel[this_cell]
-    total_cell = float(cell_values.sum()) if cell_values.size else 0.0
-    total_nuclear = float(nuclear_values.sum()) if nuclear_values.size else 0.0
-    nuclear_fraction = total_nuclear / total_cell if total_cell > 0.0 else 0.0
+    total_cell = float(cell_values.sum()) if cell_values.size else math.nan
+    total_nuclear = float(nuclear_values.sum()) if nuclear_values.size else math.nan
+    if math.isfinite(total_cell) and total_cell > 0.0 and math.isfinite(total_nuclear):
+        nuclear_fraction = total_nuclear / total_cell
+    else:
+        nuclear_fraction = math.nan
 
     return {
         "yap_nuclear_intensity": nuclear_intensity,
@@ -104,19 +107,27 @@ def _validate_inputs(
 
 
 def _safe_ratio(numerator: float, denominator: float) -> float:
-    """Nuclear/cytoplasmic ratio with a finite sentinel for 0 denominators."""
-    if denominator > 0.0:
-        return float(min(numerator / denominator, _YAP_NC_RATIO_MAX))
-    if numerator > 0.0:
-        return _YAP_NC_RATIO_MAX
-    return 0.0
+    """Nuclear/cytoplasmic ratio. NaN when either side is undefined.
+
+    Earlier versions returned a finite sentinel (``1000.0``) for
+    zero-cytoplasm cases, which silently biased per-condition means
+    toward that value. NaN is the correct marker — pandas and numpy
+    aggregators accept ``skipna=True`` / ``nanmean`` so these cells
+    are excluded from downstream statistics.
+    """
+    if not (math.isfinite(numerator) and math.isfinite(denominator)):
+        return math.nan
+    if denominator <= 0.0:
+        return math.nan
+    return float(numerator / denominator)
 
 
-def _zero_features() -> dict[str, float]:
-    """All-zero feature dict for missing cells."""
+def _nan_features() -> dict[str, float]:
+    """All-NaN feature dict for missing cells."""
+    nan = math.nan
     return {
-        "yap_nuclear_intensity": 0.0,
-        "yap_cytoplasmic_intensity": 0.0,
-        "yap_nc_ratio": 0.0,
-        "yap_nuclear_fraction": 0.0,
+        "yap_nuclear_intensity": nan,
+        "yap_cytoplasmic_intensity": nan,
+        "yap_nc_ratio": nan,
+        "yap_nuclear_fraction": nan,
     }

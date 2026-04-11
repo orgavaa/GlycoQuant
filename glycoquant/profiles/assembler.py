@@ -28,7 +28,12 @@ from glycoquant.features import (
     extract_fa_features,
     extract_glycocalyx_features,
     extract_morphology_features,
+    extract_nuclear_morphology_features,
     extract_yap_features,
+)
+from glycoquant.preprocessing import (
+    DEFAULT_BACKGROUND_RADIUS_PX,
+    subtract_background,
 )
 from glycoquant.segmentation import CellSegmenter
 
@@ -66,6 +71,11 @@ class AssemblerConfig:
     dinov2: DinoV2Params = None  # type: ignore[assignment]
     include_radial_profile: bool = False
     include_deep_features: bool = False
+    # Illumination / background correction applied to every intensity
+    # channel before feature extraction (DAPI is skipped). Setting
+    # ``background_radius_px=0`` disables the correction — useful for
+    # unit tests that assert on raw synthetic intensities.
+    background_radius_px: int = DEFAULT_BACKGROUND_RADIUS_PX
 
     def __post_init__(self) -> None:
         if self.glycocalyx is None:
@@ -150,6 +160,15 @@ class ProfileAssembler:
         if cell_mask is None or nuclear_mask is None:
             cell_mask, nuclear_mask = self._segment(channels, segmentation_channel)
 
+        # White top-hat background subtraction on every intensity
+        # channel (glycocalyx / YAP / paxillin / actin). DAPI is left
+        # untouched — it drives segmentation and nuclear morphometry
+        # where top-hat would destroy nucleolar brights.
+        if self.config.background_radius_px > 0:
+            channels = subtract_background(
+                channels, radius_px=self.config.background_radius_px
+            )
+
         cell_ids = sorted(int(v) for v in np.unique(cell_mask).tolist() if v != 0)
         if not cell_ids:
             return pd.DataFrame()
@@ -230,6 +249,11 @@ class ProfileAssembler:
                 )
             )
         row.update(extract_morphology_features(cell_mask, cell_id))
+        # Nuclear morphometry runs whenever a nuclear mask is available
+        # — it only needs DAPI-derived geometry, not a YAP channel.
+        row.update(
+            extract_nuclear_morphology_features(cell_mask, nuclear_mask, cell_id)
+        )
 
     def _attach_deep_features(
         self,

@@ -75,9 +75,11 @@ def test_elongated_shape_has_high_aspect_ratio() -> None:
     assert features["cell_aspect_ratio"] > 3.0
 
 
-def test_missing_cell_id_returns_zeros(cell_mask: np.ndarray) -> None:
+def test_missing_cell_id_returns_nan(cell_mask: np.ndarray) -> None:
+    import math
+
     features = extract_morphology_features(cell_mask, cell_id=999)
-    assert all(v == 0.0 for v in features.values())
+    assert all(math.isnan(v) for v in features.values())
 
 
 def test_rejects_non_2d() -> None:

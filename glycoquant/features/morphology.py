@@ -48,11 +48,11 @@ def extract_morphology_features(
 
     this_cell = (cell_mask == cell_id).astype(np.uint8)
     if not this_cell.any():
-        return _zero_features()
+        return _nan_features()
 
     regions = regionprops(this_cell)
     if not regions:
-        return _zero_features()
+        return _nan_features()
     region = regions[0]
 
     area = float(region.area)
@@ -60,15 +60,19 @@ def extract_morphology_features(
     circularity = (
         float(4.0 * math.pi * area / (perimeter * perimeter))
         if perimeter > 0.0
-        else 0.0
+        else math.nan
     )
 
     minor = float(region.axis_minor_length)
     major = float(region.axis_major_length)
-    aspect_ratio = float(major / minor) if minor > 0.0 else 1.0
+    aspect_ratio = float(major / minor) if minor > 0.0 else math.nan
 
-    convex_area = float(region.area_convex) if region.area_convex > 0.0 else area
-    solidity = float(area / convex_area) if convex_area > 0.0 else 0.0
+    convex_area = float(region.area_convex) if region.area_convex > 0.0 else math.nan
+    solidity = (
+        float(area / convex_area)
+        if math.isfinite(convex_area) and convex_area > 0.0
+        else math.nan
+    )
 
     return {
         "cell_area": area,
@@ -80,12 +84,13 @@ def extract_morphology_features(
     }
 
 
-def _zero_features() -> dict[str, float]:
+def _nan_features() -> dict[str, float]:
+    nan = math.nan
     return {
-        "cell_area": 0.0,
-        "cell_perimeter": 0.0,
-        "cell_circularity": 0.0,
-        "cell_aspect_ratio": 0.0,
-        "cell_solidity": 0.0,
-        "cell_spread_area": 0.0,
+        "cell_area": nan,
+        "cell_perimeter": nan,
+        "cell_circularity": nan,
+        "cell_aspect_ratio": nan,
+        "cell_solidity": nan,
+        "cell_spread_area": nan,
     }
