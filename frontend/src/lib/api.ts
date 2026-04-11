@@ -16,6 +16,20 @@ export const api: AxiosInstance = axios.create({
   timeout: 30_000,
 });
 
+// Map FastAPI HTTPException detail → Error.message so mutations expose
+// the backend's own explanation instead of a generic "Request failed
+// with status code 422".
+api.interceptors.response.use(
+  (resp) => resp,
+  (err) => {
+    const detail = err?.response?.data?.detail;
+    if (typeof detail === "string" && detail.length > 0) {
+      err.message = detail;
+    }
+    return Promise.reject(err);
+  },
+);
+
 // ---------------------------------------------------------------------------
 // Schemas (kept in sync with backend/app/schemas.py)
 // ---------------------------------------------------------------------------
@@ -43,6 +57,7 @@ export interface JobResult {
   correlation_figure_json: string;
   hero_metrics: Record<string, number | null>;
   has_deep_features: boolean;
+  warnings?: string[];
 }
 
 export interface JobStatusResponse {
@@ -148,6 +163,46 @@ export async function fetchDemoList(): Promise<DemoListResponse> {
 /** URL of the bundled preview PNG for a given dataset name. */
 export function demoPreviewUrl(name: string): string {
   return `${BASE_URL}/demo/${name}/preview`;
+}
+
+/**
+ * POST a user-uploaded image to the backend and return a blob-URL
+ * that can be dropped into an ``<img>`` tag. Browsers cannot render
+ * multi-page TIFFs natively, so the backend composites an RGB PNG
+ * preview using the same per-channel percentile stretch as the
+ * bundled-demo endpoint.
+ */
+export async function uploadPreview(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("upload", file);
+  try {
+    const { data } = await api.post<Blob>("/analysis/preview", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+      responseType: "blob",
+      timeout: 60_000,
+    });
+    return URL.createObjectURL(data);
+  } catch (err) {
+    // With responseType=blob, an error response body is a Blob — read
+    // it back to extract FastAPI's JSON {"detail": "..."} message.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyErr = err as any;
+    const blob = anyErr?.response?.data;
+    if (blob instanceof Blob) {
+      try {
+        const text = await blob.text();
+        const parsed = JSON.parse(text);
+        if (parsed?.detail) {
+          throw new Error(String(parsed.detail));
+        }
+      } catch (parseErr) {
+        if (parseErr instanceof Error && parseErr.message) throw parseErr;
+      }
+    }
+    throw new Error(
+      anyErr?.message ?? "Preview request failed",
+    );
+  }
 }
 
 export interface SubmitAnalyzeArgs {

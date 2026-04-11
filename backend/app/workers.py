@@ -124,6 +124,13 @@ def run_analysis_job(
     try:
         store.update(job_id, status="running", phase="segmenting", pct=5, message="Preparing the analysis")
 
+        # Channel-count warnings recorded by the router when a non-
+        # canonical upload was mapped into a partial channel dict.
+        job = store.get(job_id)
+        channel_warnings: list[str] = list(
+            (job.meta.get("channel_warnings", []) if job else []) or []
+        )
+
         # Remote GPU dispatch: when GLYCOQUANT_GPU_PROVIDER=modal, the
         # entire heavy pipeline runs on a Modal L4 container and we
         # only parse the returned JobResult back into the store. The
@@ -143,6 +150,8 @@ def run_analysis_job(
                 cell_diameter=cell_diameter,
                 include_deep_features=include_deep_features,
             )
+            if channel_warnings:
+                remote_result.warnings = list(remote_result.warnings) + channel_warnings
             store.update(
                 job_id,
                 status="complete",
@@ -186,6 +195,8 @@ def run_analysis_job(
             features_df=features_df,
             include_deep_features=include_deep_features,
         )
+        if channel_warnings:
+            result.warnings = list(result.warnings) + channel_warnings
 
         store.update(
             job_id,

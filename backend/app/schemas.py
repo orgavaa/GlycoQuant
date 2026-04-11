@@ -70,6 +70,14 @@ class JobResult(BaseModel):
         )
     )
     has_deep_features: bool = False
+    warnings: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Non-fatal messages raised during analysis — typically about "
+            "missing or extra channels that caused some extractors to be "
+            "skipped. Rendered as a yellow banner above the result card."
+        ),
+    )
 
 
 class JobStatusResponse(BaseModel):

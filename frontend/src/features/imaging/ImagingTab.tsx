@@ -1,4 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   CheckCircle2,
   Circle,
   CircleDashed,
@@ -7,16 +9,21 @@ import {
   Play,
   Settings2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DataProvenanceNotice } from "@/components/SyntheticDataNotice";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
 import { cn } from "@/lib/utils";
-import { demoPreviewUrl, type DemoCondition } from "@/lib/api";
+import {
+  demoPreviewUrl,
+  uploadPreview,
+  type DemoCondition,
+} from "@/lib/api";
 import { AnalysisParams } from "./AnalysisParams";
 import { FeatureTable } from "./FeatureTable";
 import { HeroMetrics } from "./HeroMetrics";
@@ -81,11 +88,41 @@ export function ImagingTab() {
     [pending, hasResult, activeStep],
   );
 
+  // Upload preview is fetched from the backend (TIFFs cannot be
+  // rendered by <img>) — the mutation is keyed on the File object so
+  // re-selecting the same file replays the request.
+  const uploadPreviewMutation = useMutation({
+    mutationFn: uploadPreview,
+  });
+
+  useEffect(() => {
+    if (pending?.kind !== "upload") return;
+    uploadPreviewMutation.reset();
+    uploadPreviewMutation.mutate(pending.file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending]);
+
+  // Release the blob URL when it's swapped out to avoid a leak.
+  useEffect(() => {
+    const url = uploadPreviewMutation.data;
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [uploadPreviewMutation.data]);
+
   const previewSrc = useMemo(() => {
     if (!pending) return null;
     if (pending.kind === "demo") return demoPreviewUrl(pending.dataset.name);
-    return URL.createObjectURL(pending.file);
-  }, [pending]);
+    return uploadPreviewMutation.data ?? null;
+  }, [pending, uploadPreviewMutation.data]);
+
+  const isPreviewLoading =
+    pending?.kind === "upload" && uploadPreviewMutation.isPending;
+  const previewError =
+    pending?.kind === "upload" && uploadPreviewMutation.isError
+      ? (uploadPreviewMutation.error as Error | undefined)?.message ??
+        "Could not load preview."
+      : null;
 
   const bundledDataset = pending?.kind === "demo" ? pending.dataset : null;
 
@@ -245,7 +282,18 @@ export function ImagingTab() {
                 </span>
               </CardHeader>
               <CardContent>
-                {previewSrc ? (
+                {isPreviewLoading ? (
+                  <div className="flex h-[300px] items-center justify-center gap-3 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Building preview from your upload
+                  </div>
+                ) : previewError ? (
+                  <Alert variant="destructive">
+                    <AlertTriangle />
+                    <AlertTitle>Could not read this image</AlertTitle>
+                    <AlertDescription>{previewError}</AlertDescription>
+                  </Alert>
+                ) : previewSrc ? (
                   <div className="flex justify-center rounded-md border border-border bg-muted/40 p-4">
                     <img
                       src={previewSrc}
@@ -263,6 +311,18 @@ export function ImagingTab() {
           </>
         )}
 
+        {/* Submit error — backend HTTPException before a job is created */}
+        {job.submit.isError && !isRunning && !hasResult && (
+          <Alert variant="destructive">
+            <AlertTriangle />
+            <AlertTitle>Pipeline could not start</AlertTitle>
+            <AlertDescription>
+              {(job.submit.error as Error | undefined)?.message ??
+                "Unknown error from the backend."}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Running */}
         {job.status && isRunning && <JobProgress status={job.status} />}
 
@@ -274,6 +334,19 @@ export function ImagingTab() {
           <>
             {bundledDataset && (
               <DataProvenanceNotice dataset={bundledDataset} />
+            )}
+            {job.result.warnings && job.result.warnings.length > 0 && (
+              <Alert variant="warning">
+                <AlertTriangle />
+                <AlertTitle>Partial analysis</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc space-y-1 pl-4">
+                    {job.result.warnings.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
             )}
             <HeroMetrics result={job.result} />
 

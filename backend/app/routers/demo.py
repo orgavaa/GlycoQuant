@@ -17,6 +17,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
+from backend.app.preview import composite_preview_png
 from backend.app.schemas import DemoCondition, DemoListResponse
 
 router = APIRouter(prefix="/demo", tags=["demo"])
@@ -98,37 +99,12 @@ async def get_demo_preview(name: str) -> StreamingResponse:
     if not path.is_file():
         raise HTTPException(status_code=404, detail=f"Demo image missing: {name}")
 
-    import numpy as np
-    from PIL import Image
+    from glycoquant.io import load_multichannel_image
 
-    from glycoquant.io import downsample_for_display, load_multichannel_image
-
-    image = load_multichannel_image(path)  # (H, W, 5) float32 in [0, 1]
-    if image.ndim != 3 or image.shape[2] < 5:
-        raise HTTPException(status_code=500, detail="Unexpected demo image shape")
-
-    # Preview mapping — restore the HPA look
-    rgb_source = np.stack(
-        [image[:, :, 4], image[:, :, 1], image[:, :, 0]], axis=-1
-    )  # (H, W, 3): R=microtubules, G=antibody, B=DAPI
-
-    # Stretch each channel to [0, 1] via its own 1st–99.5th percentile
-    stretched = np.zeros_like(rgb_source, dtype=np.float32)
-    for i in range(3):
-        ch = rgb_source[:, :, i]
-        lo = float(np.quantile(ch, 0.01))
-        hi = float(np.quantile(ch, 0.995))
-        span = max(hi - lo, 1e-6)
-        stretched[:, :, i] = np.clip((ch - lo) / span, 0.0, 1.0)
-
-    rgb = downsample_for_display(stretched, max_side=1024)
-    rgb_u8 = (np.clip(rgb, 0.0, 1.0) * 255.0).astype(np.uint8)
-
-    buf = io.BytesIO()
-    Image.fromarray(rgb_u8, mode="RGB").save(buf, format="PNG", optimize=False)
-    buf.seek(0)
+    image = load_multichannel_image(path)  # (H, W, C) float32 in [0, 1]
+    png_bytes = composite_preview_png(image)
     return StreamingResponse(
-        buf,
+        io.BytesIO(png_bytes),
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=3600"},
     )
