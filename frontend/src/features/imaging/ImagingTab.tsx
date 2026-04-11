@@ -304,6 +304,7 @@ export function ImagingTab() {
                 <PlotlyFigure
                   figureJson={job.result.segmentation_figure_json}
                   height={560}
+                  downloadName="glycoquant_segmented"
                 />
               </CardContent>
             </Card>
@@ -323,6 +324,7 @@ export function ImagingTab() {
                     <PlotlyFigure
                       figureJson={job.result.radial_profile_figure_json}
                       height={400}
+                      downloadName="glycoquant_radial_profile"
                     />
                   </CardContent>
                 </Card>
@@ -333,6 +335,7 @@ export function ImagingTab() {
                     <PlotlyFigure
                       figureJson={job.result.correlation_figure_json}
                       height={500}
+                      downloadName="glycoquant_correlation"
                     />
                   </CardContent>
                 </Card>

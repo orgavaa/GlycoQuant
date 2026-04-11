@@ -19,13 +19,27 @@ export default function App() {
             <TabsTrigger value="experiment">Experiment Designer</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="imaging">
+          {/* forceMount keeps every tab's React tree alive so in-progress
+              jobs, loaded previews, and results survive tab switches. */}
+          <TabsContent
+            value="imaging"
+            forceMount
+            className="data-[state=inactive]:hidden"
+          >
             <ImagingTab />
           </TabsContent>
-          <TabsContent value="prioritization">
+          <TabsContent
+            value="prioritization"
+            forceMount
+            className="data-[state=inactive]:hidden"
+          >
             <PrioritizationTab />
           </TabsContent>
-          <TabsContent value="experiment">
+          <TabsContent
+            value="experiment"
+            forceMount
+            className="data-[state=inactive]:hidden"
+          >
             <ExperimentTab />
           </TabsContent>
         </Tabs>

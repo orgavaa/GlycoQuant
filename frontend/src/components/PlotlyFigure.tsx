@@ -1,5 +1,7 @@
+import { Download } from "lucide-react";
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 
 interface PlotlyFigureProps {
   /** Serialized Plotly figure JSON (from ``fig.to_json()`` in Python). */
@@ -7,6 +9,8 @@ interface PlotlyFigureProps {
   className?: string;
   /** Override figure height; defaults to whatever is in the JSON. */
   height?: number;
+  /** When set, show an explicit "Download PNG" button above the plot. */
+  downloadName?: string;
 }
 
 /**
@@ -15,8 +19,25 @@ interface PlotlyFigureProps {
  * window resize). Uses ``Plotly.react`` for efficient re-renders when
  * the figure changes.
  */
-export function PlotlyFigure({ figureJson, className, height }: PlotlyFigureProps) {
+export function PlotlyFigure({
+  figureJson,
+  className,
+  height,
+  downloadName,
+}: PlotlyFigureProps) {
   const ref = useRef<HTMLDivElement>(null);
+
+  const handleDownload = () => {
+    if (!ref.current) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Plotly.downloadImage(ref.current as any, {
+      format: "png",
+      filename: downloadName ?? "glycoquant-figure",
+      width: ref.current.clientWidth || 1200,
+      height: height ?? 560,
+      scale: 3,
+    });
+  };
 
   useEffect(() => {
     if (!ref.current) return;
@@ -40,6 +61,12 @@ export function PlotlyFigure({ figureJson, className, height }: PlotlyFigureProp
         "select2d",
         "toggleSpikelines",
       ],
+      // Publication-quality PNG export via the modebar camera icon.
+      toImageButtonOptions: {
+        format: "png" as const,
+        filename: "glycoquant-figure",
+        scale: 3,
+      },
       ...((parsed.config as Record<string, unknown>) ?? {}),
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,5 +84,19 @@ export function PlotlyFigure({ figureJson, className, height }: PlotlyFigureProp
     };
   }, [figureJson, height]);
 
-  return <div ref={ref} className={className} style={{ width: "100%" }} />;
+  if (!downloadName) {
+    return <div ref={ref} className={className} style={{ width: "100%" }} />;
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={handleDownload}>
+          <Download className="h-3.5 w-3.5" />
+          Download PNG
+        </Button>
+      </div>
+      <div ref={ref} className={className} style={{ width: "100%" }} />
+    </div>
+  );
 }

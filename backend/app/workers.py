@@ -335,13 +335,13 @@ def _build_segmentation_figure(
             z=base,
             zmin=0.0,
             zmax=1.0,
-            colorscale="gray",
+            colorscale="Magma",
             showscale=False,
             hoverinfo="skip",
         )
     )
 
-    # Cell outlines (teal)
+    # Cell outlines — bright cyan on magma for maximum contrast
     for cell_id, contour in cell_outline_polygons(cell_mask).items():
         fig.add_trace(
             go.Scatter(
@@ -349,8 +349,8 @@ def _build_segmentation_figure(
                 y=contour[:, 0] * scale_y,
                 mode="lines",
                 fill="toself",
-                fillcolor="rgba(13, 148, 136, 0.12)",
-                line={"color": PALETTE.accent_brand, "width": 1.5},
+                fillcolor="rgba(94, 234, 212, 0.10)",
+                line={"color": "#5EEAD4", "width": 1.6},
                 customdata=[cell_id] * len(contour),
                 hovertemplate=f"<b>Cell {cell_id}</b><extra></extra>",
                 name=f"Cell {cell_id}",

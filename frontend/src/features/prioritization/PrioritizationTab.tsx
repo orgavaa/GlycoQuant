@@ -73,18 +73,21 @@ export function PrioritizationTab() {
         </Alert>
       )}
 
-      {/* Scientific framing */}
+      {/* How this tab works */}
       <Alert variant="info">
         <Info />
-        <AlertTitle>
-          Hypothesis ranking, not mechanistic prediction
-        </AlertTitle>
+        <AlertTitle>How this ranking is produced</AlertTitle>
         <AlertDescription>
-          This view combines transcriptomic co-regulation from Geneformer
-          (pretrained on ~104 M cells) with curated pathway proximity from
-          STRING v12. Outputs are intended to prioritise wet-lab experiments,
-          not to substitute for them. Disagreement between the two priors is
-          the most scientifically informative signal on this page.
+          This tab is independent of the image analysis in Tab 1. It loads
+          a pre-computed ranking of twenty-two glycocalyx-relevant genes
+          against a fixed mechanotransduction signature, so nothing needs
+          to run at view time — the page is ready as soon as you open it.
+          The ranking combines curated pathway proximity from STRING v12
+          with transcriptomic co-regulation from Geneformer (pretrained on
+          roughly 104 M single cells). Disagreement between the two priors
+          is the most scientifically informative signal on this page.
+          Outputs are intended to prioritise wet-lab experiments, not to
+          substitute for them.
         </AlertDescription>
       </Alert>
 
