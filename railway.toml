@@ -1,0 +1,30 @@
+[build]
+builder = "DOCKERFILE"
+
+# GlycoQuant deploys as TWO services under one Railway project.
+# The service configs below live in each service's Settings on the
+# Railway dashboard; this file documents the canonical values so
+# they can be recreated from scratch by a new contributor.
+#
+#   Service "api"
+#     Root dir:       /
+#     Dockerfile:     backend/Dockerfile
+#     Start command:  uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+#     Env:
+#       CORS_ORIGINS   = https://<frontend-url>.up.railway.app
+#       HF_HOME        = /data/.cache/huggingface   (persistent volume mount)
+#       CELLPOSE_LOCAL_MODELS_PATH = /data/.cache/cellpose
+#     Persistent volume: /data  (so Cellpose + DINOv2 weights survive restart)
+#     Healthcheck:    GET /health  (200 expected)
+#     Plan:           Hobby ($5/mo, ~512 MB RAM floor, burst up to 8 GB)
+#
+#   Service "web"
+#     Root dir:       /frontend
+#     Dockerfile:     frontend/Dockerfile
+#     Build args:
+#       VITE_API_BASE_URL = https://<api-url>.up.railway.app
+#     Start command:  (default from Dockerfile CMD)
+#     Plan:           Hobby
+#
+# First deploy will pull ~1.2 GB of Cellpose-SAM weights into /data on
+# the api service. Subsequent deploys reuse the volume.

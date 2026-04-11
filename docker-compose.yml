@@ -1,0 +1,41 @@
+# Local development stack. Run `docker compose up` from the repo root
+# to boot both services with the bundled demo data.
+#
+# For faster inner-loop dev, skip docker and run the backend directly
+# via `uvicorn backend.app.main:app --reload` and the frontend via
+# `cd frontend && npm run dev`.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:4173"
+    volumes:
+      # Mount the host's HF + Cellpose caches so we don't re-download
+      # 1.5 GB of weights on every container rebuild during development.
+      - gq_hf_cache:/app/.cache/huggingface
+      - gq_cellpose_cache:/app/.cache/cellpose
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:8000"
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  gq_hf_cache:
+  gq_cellpose_cache:

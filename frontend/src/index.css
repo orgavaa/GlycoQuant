@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Design tokens mirrored from glycoquant/theme.py (light-mode techbio).
+  Values are in HSL so Tailwind's `hsl(var(--x))` pattern works.
+
+  Palette:
+    background:      #FFFFFF  -> 0 0% 100%
+    foreground:      #0F172A  -> 222 47% 11%         (slate-900)
+    card:            #FFFFFF
+    popover:         #FFFFFF
+    primary:         #0EA5E9  -> 199 89% 48%         (sky-500)
+    brand:           #0D9488  -> 174 77% 31%         (teal-600)
+    secondary:       #F1F5F9  -> 210 40% 96%         (slate-100)
+    muted:           #F8FAFC  -> 210 40% 98%         (slate-50)
+    muted-foreground:#475569  -> 215 16% 47%         (slate-600)
+    accent:          #E0F2FE  -> 204 94% 94%         (sky-100)
+    destructive:     #DC2626  -> 0 72% 51%           (red-600)
+    border:          #E2E8F0  -> 214 32% 91%         (slate-200)
+    input:           #E2E8F0
+    ring:            #0EA5E9
+    success:         #16A34A  -> 142 71% 45%         (green-600)
+    warning:         #EA580C  -> 21 90% 48%          (orange-600)
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --brand: 174 77% 31%;
+    --brand-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 204 94% 94%;
+    --accent-foreground: 199 89% 30%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --warning: 21 90% 48%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+    --radius: 0.625rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
+
+  /* Tabular numerics for every number in the UI — techbio look */
+  .tabular-nums,
+  .font-mono,
+  th,
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* Subtle hover elevation for card groups */
+  .card-hover {
+    @apply transition-all hover:border-slate-300 hover:shadow-sm;
+  }
+
+  /* Uppercase section label pattern */
+  .section-label {
+    @apply text-[0.7rem] uppercase tracking-[0.08em] font-semibold text-muted-foreground;
+  }
+}
+
+/* Scrollbar polish */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}

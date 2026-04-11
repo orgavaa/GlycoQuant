@@ -12,11 +12,18 @@ The platform is designed for wet-lab biologists. Every interpretable number it p
 
 The glycocalyx is a dense layer of glycopolymers — heparan-sulfate proteoglycans, mucins, hyaluronan, glycolipids — tethered to the cell surface. Paszek et al. (*Nature* 2014) showed that a bulky glycocalyx promotes integrin clustering and transforms force transmission through a "kinetic trap" mechanism, linking glycocalyx architecture to mechanotransduction output. Dupont et al. (*Nature* 2011) established the YAP/TAZ nuclear-cytoplasmic ratio as the canonical readout of mechanical activation. Möckl et al. (*Dev Cell* 2019) subsequently showed with super-resolution microscopy that glycocalyx spatial organisation is heterogeneous at the 50–500 nm scale — a regime not resolvable by conventional confocal but whose *pericellular intensity distribution* is, and is measurable with standard immunofluorescence.
 
-Despite this biology, there is no standardised, open-source image-analysis pipeline for glycocalyx–mechanotransduction coupling. Cell Painting (Bray et al., *Nat Protoc* 2016) and JUMP-CP (Chandrasekaran et al., *Nat Methods* 2024) gave the field standardised morphological profiling at compound scale, but neither targets glycocalyx-specific staining. GlycoQuant fills that gap at the scale a single experimental group actually works at: an interactive Streamlit application that a PI can open in a browser, load their own multi-channel TIFF, and obtain per-cell features, group-level plots, and a downloadable CSV within 30 seconds of the first click.
+Despite this biology, there is no standardised, open-source image-analysis pipeline for glycocalyx–mechanotransduction coupling. Cell Painting (Bray et al., *Nat Protoc* 2016) and JUMP-CP (Chandrasekaran et al., *Nat Methods* 2024) gave the field standardised morphological profiling at compound scale, but neither targets glycocalyx-specific staining. GlycoQuant fills that gap at the scale a single experimental group actually works at: a React web application backed by a FastAPI service that a PI can open in a browser, load a multi-channel TIFF, and obtain per-cell features, group-level plots, and a downloadable CSV without installing anything locally.
 
 ---
 
 ## Architecture
+
+GlycoQuant is a **two-service web application** deployed on Railway:
+
+- **`backend/`** — FastAPI (Python 3.11) service that wraps the `glycoquant/` library and exposes three REST routers: `/analysis` (upload + async job queue), `/priors` (Tab 2 ranked data + drill-down), and `/demo` (bundled image metadata). All inference (Cellpose-SAM segmentation, DINOv2 embeddings, Plotly figure generation) happens here.
+- **`frontend/`** — React 18 + TypeScript + Vite SPA styled with Tailwind CSS and shadcn/ui. Uses TanStack Query for data fetching and a `useAnalysisJob` polling hook for the async pipeline. Plotly figures are generated server-side and rendered client-side via `plotly.js-dist-min`.
+
+Both services are containerised (their own `Dockerfile`) and can run locally via `docker compose up` or be deployed as a two-service project on Railway.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -115,26 +122,67 @@ streamlit run glycoquant/app/main.py
 
 | Requirement | Detail |
 |---|---|
-| Python | 3.10+ (tested on 3.13.12) |
+| Python | 3.10+ (tested on 3.13.12) for the FastAPI backend |
+| Node.js | 20+ for the React frontend |
 | Architecture | **x86_64** — required because `opencv-python-headless` (a Cellpose dependency) has no Windows ARM64 wheels on PyPI. On Windows-on-ARM use miniforge3 x86_64 under emulation, or WSL2. |
-| Cellpose-SAM weights | ~1.2 GB downloaded on first use, cached at `~/.cellpose/models/cpsam` |
+| Cellpose-SAM weights | ~1.2 GB downloaded on first analysis run, cached at `~/.cellpose/models/cpsam` |
 | DINOv2 weights (optional) | ~340 MB downloaded on first use, cached at `~/.cache/huggingface/hub/models--facebook--dinov2-base` |
 | GPU | Not required. CPU inference is slower but supported throughout. |
-| Network at runtime | None. The app is fully offline after the weights are cached. |
+| Network at runtime | None after weights are cached; STRING queries happen offline in `scripts/generate_pathway_priors.py`. |
+
+---
+
+## Installation
+
+Two services, two installs.
+
+### Backend (Python + FastAPI)
+
+```bash
+git clone https://github.com/orgavaa/GlycoQuant.git
+cd GlycoQuant
+python -m venv .venv
+source .venv/Scripts/activate        # Windows (Git Bash / miniforge)
+#  or: source .venv/bin/activate     # macOS / Linux
+pip install -e ".[dev]"
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The API is now live at `http://localhost:8000`. Open `http://localhost:8000/docs` for the interactive OpenAPI explorer.
+
+### Frontend (React + Vite)
+
+In a second terminal:
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local            # VITE_API_BASE_URL=http://localhost:8000
+npm run dev
+```
+
+The app is now live at `http://localhost:5173`.
+
+### Or: `docker compose up`
+
+A single command boots both services with a bundled local dev config:
+
+```bash
+docker compose up --build
+```
+
+First build takes a few minutes (Python + Node layers + Cellpose weights). Subsequent runs are cached.
 
 ---
 
 ## Quick start
 
-1. **Launch** the app:
-   ```bash
-   streamlit run glycoquant/app/main.py
-   ```
-2. **Tab 1** → sidebar → select `control` under *Load demo image* → click **Load demo image**.
-3. Optionally tick *Include DINOv2 deep features*.
-4. Click **Run Analysis**.
+1. Open `http://localhost:5173`.
+2. Sidebar → **1 · Load image** → pick a demo dataset (`control`, `siSDC1`, or `heparinase`) → click **Load demo**.
+3. *(optional)* Tick **Include DINOv2 deep features** under **2 · Analysis parameters**.
+4. Click **Run Analysis** under **3 · Run**.
 
-Within ~30 seconds you will see a segmentation overlay on the actin channel, a per-cell feature table with 26 columns (or 794 if the DINOv2 toggle is on), an interactive radial-profile plot of glycocalyx intensity, a Pearson correlation heatmap across all features, and a CSV download button. Toggling any of the five overlays (cells, nuclei, focal adhesions, glycocalyx ring, actin orientation) renders the corresponding shapes directly on the image; clicking a cell cross-highlights the matching row in the feature table and vice versa.
+A progress card shows each phase (segmenting, extracting, embedding). When complete, the main panel renders: 5 hero metric cards, the Plotly-interactive segmented image, and a tabbed area with the per-cell feature table, radial profile chart, and correlation heatmap. On a GPU the whole cycle is ~5 seconds; on CPU expect 6–10 minutes the first time (Cellpose-SAM weights download + segmentation). Subsequent runs on the same image are instant cache hits.
 
 ---
 
@@ -184,14 +232,17 @@ python scripts/generate_geneformer_priors.py
 ```
 
 ```bash
-# Run the full non-slow test suite (~1 min on a warm cache)
-pytest tests/ -m "not slow"
+# Run the full non-slow test suite (~30 s on a warm cache)
+pytest tests/ backend/tests/ -m "not slow"
 
-# Run the segmentation suite separately (real Cellpose-SAM inference, ~15 min cold)
+# Run the segmentation suite separately (real Cellpose-SAM inference, ~36 min cold)
 pytest tests/test_segmentation.py -v
 
-# Lint
-ruff check glycoquant/ tests/ scripts/
+# Lint (Python)
+ruff check glycoquant/ backend/ tests/ scripts/
+
+# Frontend typecheck + production build
+cd frontend && npm run typecheck && npm run build
 ```
 
 Synthetic fixtures in `tests/conftest.py` give deterministic ground truth for every extractor — no external data dependencies, no network calls, no GPU requirement in CI. The rare slow-tier tests (real Cellpose-SAM inference on synthetic images; real DINOv2 embedding of cell crops) are marked with `pytest.mark.slow` and skipped in fast iteration.
@@ -202,8 +253,9 @@ Synthetic fixtures in `tests/conftest.py` give deterministic ground truth for ev
 
 ### Shipped
 
-- **v0.1.0** — Phase 5: Tab 1 dynamic image analysis with per-cell overlays, cross-highlighting, and optional DINOv2 deep features
-- **v0.2.0** — Phase 6: Tab 2 perturbation prioritization with the STRING pathway prior, divergence column, drill-down, and metabolic inhibitor panel
+- **v0.1.0** — Streamlit prototype with Tab 1 dynamic image analysis, cross-highlighting, and optional DINOv2 deep features
+- **v0.2.0** — Streamlit Tab 2 perturbation prioritization with the STRING pathway prior, divergence column, drill-down, and metabolic inhibitor panel
+- **v0.3.0** — **Full rewrite**: Streamlit replaced by a FastAPI backend + React (Vite + TypeScript + Tailwind + shadcn/ui) frontend with TanStack Query polling, deployed as two services on Railway
 
 ### Planned
 
