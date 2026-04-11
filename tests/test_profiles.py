@@ -250,6 +250,12 @@ class _FakeDinoV2Embedder:
     def embedding_dim(self) -> int:
         return self.dim
 
+    def column_names(self) -> list[str]:
+        return [f"deep_{i:03d}" for i in range(self.dim)]
+
+    def backend_name(self) -> str:
+        return "dinov2_base"
+
     def embed_image_with_masks(
         self,
         channels: dict[str, np.ndarray],

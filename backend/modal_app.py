@@ -55,17 +55,43 @@ image = (
         "pydantic>=2.9",
         "networkx>=3.2",
         "pyyaml>=6.0",
+        # Cell-DINO dependencies — required for the channel-adaptive
+        # ViT-L/16 backbone loaded via torch.hub from the bundled
+        # third_party/dinov2 submodule. The model weights themselves
+        # are gated by the FAIR Non-Commercial Research License and
+        # must be uploaded to the persistent volume separately:
+        #
+        #     modal volume put glycoquant-models \
+        #         /local/path/channel_adaptive_dino_vitl16.pth \
+        #         /cell_dino/channel_adaptive_dino_vitl16.pth
+        #
+        # Then set GLYCOQUANT_CELL_DINO_CKPT=/cache/cell_dino/channel_adaptive_dino_vitl16.pth
+        # in the Modal app env (uncomment the line in .env() below).
+        # See docs/CELL_DINO_SETUP.md for the full operator runbook.
+        "fvcore",
+        "iopath",
+        "omegaconf",
     )
     .env(
         {
             "HF_HOME": f"{CACHE_MOUNT}/huggingface",
             "CELLPOSE_LOCAL_MODELS_PATH": f"{CACHE_MOUNT}/cellpose",
             "GLYCOQUANT_DEVICE": "cuda",
+            # Uncomment after uploading the Cell-DINO checkpoint to the
+            # glycoquant-models volume (see docs/CELL_DINO_SETUP.md):
+            # "GLYCOQUANT_CELL_DINO_CKPT": f"{CACHE_MOUNT}/cell_dino/channel_adaptive_dino_vitl16.pth",
         }
     )
     # Bundle the local source tree so the Modal container can
     # ``import glycoquant`` and ``import backend`` exactly like Railway.
+    # third_party/dinov2 is included so torch.hub.load(source='local')
+    # finds the channel_adaptive_dino_vitl16 entry point.
     .add_local_python_source("glycoquant", "backend")
+    .add_local_dir(
+        "third_party/dinov2",
+        remote_path="/root/third_party/dinov2",
+        copy=True,
+    )
 )
 
 # Extended image for Axis B (Geneformer on-demand). Keeps the Tab 1

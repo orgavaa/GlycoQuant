@@ -310,12 +310,21 @@ class ProfileAssembler:
         cell_mask: np.ndarray,
         cell_ids: list[int],
     ) -> pd.DataFrame:
-        """Run DINOv2 on each cell crop and add ``deep_000..deep_767`` columns.
+        """Run the configured deep embedder and append its columns.
 
-        Uses ``self._dinov2_embedder`` if provided, otherwise constructs
-        a lazy default. Cells that DINOv2 skips (bbox extraction failure)
-        receive NaN rows so the DataFrame shape stays consistent with
-        the interpretable-feature rows.
+        The embedder is whichever object was injected at construction
+        time (DINOv2-base by default, Cell-DINO channel-adaptive when
+        the worker dispatched on ``GLYCOQUANT_CELL_DINO_CKPT``). The
+        column-name layout is owned by the embedder via
+        ``column_names()`` so the assembler stays agnostic about the
+        backbone:
+
+            - ``DinoV2Embedder``                → ``deep_000..deep_767``
+            - ``ChannelAdaptiveDinoEmbedder``   → ``deep_dapi_0000..deep_actin_1023``
+
+        Cells that the embedder skips (bbox extraction failure) get
+        NaN rows so the DataFrame shape stays consistent with the
+        interpretable-feature rows.
         """
         if self._dinov2_embedder is None:
             self._dinov2_embedder = DinoV2Embedder(params=self.config.dinov2)
@@ -323,10 +332,13 @@ class ProfileAssembler:
         used_ids, embeddings = self._dinov2_embedder.embed_image_with_masks(
             channels, cell_mask
         )
-        dim = embeddings.shape[1] if embeddings.size else self._dinov2_embedder.embedding_dim()
-        deep_cols = [f"deep_{i:03d}" for i in range(dim)]
+        deep_cols = self._dinov2_embedder.column_names()
+        if embeddings.size and embeddings.shape[1] != len(deep_cols):
+            raise RuntimeError(
+                f"deep embedder shape mismatch: got {embeddings.shape[1]} "
+                f"dims but column_names() returned {len(deep_cols)}"
+            )
 
-        # Build a DataFrame of deep features indexed by cell_id, then merge
         deep_df = pd.DataFrame(
             embeddings,
             index=pd.Index(used_ids, name="cell_id"),

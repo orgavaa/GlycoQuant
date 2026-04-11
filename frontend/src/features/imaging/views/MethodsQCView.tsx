@@ -70,9 +70,27 @@ export function MethodsQCView({
               note="Drives FA maturation bins (Buskermolen 2018)"
             />
             <ProvenanceRow
-              label="DINOv2 deep features"
-              value={includeDeepFeatures ? "computed (768-D)" : "skipped"}
-              note={includeDeepFeatures ? "facebook/dinov2-base" : undefined}
+              label="Deep embedding backbone"
+              value={
+                !includeDeepFeatures
+                  ? "skipped"
+                  : result.deep_embedding_backend ===
+                      "cell_dino_channel_adaptive"
+                    ? "Cell-DINO ViT-L/16 (channel-adaptive)"
+                    : result.deep_embedding_backend === "dinov2_base"
+                      ? "DINOv2-base (natural-image)"
+                      : "computed"
+              }
+              note={
+                !includeDeepFeatures
+                  ? undefined
+                  : result.deep_embedding_backend ===
+                      "cell_dino_channel_adaptive"
+                    ? "5×1024 = 5120 dim per cell · FAIR Non-Commercial Research License"
+                    : result.deep_embedding_backend === "dinov2_base"
+                      ? "768 dim per cell · facebook/dinov2-base · Apache 2.0"
+                      : undefined
+              }
             />
             <ProvenanceRow
               label="Cells detected"

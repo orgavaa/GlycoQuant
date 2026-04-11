@@ -137,9 +137,10 @@ export function ImagingTab() {
               <p className="text-xs leading-snug text-muted-foreground">
                 Required input: a five-channel image stack in the canonical
                 order DAPI · WGA-lectin · YAP · paxillin · phalloidin
-                (multi-page TIFF, OME-TIFF, or PNG). Bundled Human Protein
-                Atlas datasets above let you exercise the pipeline end-to-end
-                without uploading anything.
+                (multi-page TIFF, OME-TIFF, or PNG). The bundled BBBC022
+                Cell Painting field above lets you exercise the pipeline
+                end-to-end against real WGA-lectin signal without uploading
+                anything.
               </p>
             </div>
           </CardContent>

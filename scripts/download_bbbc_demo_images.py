@@ -227,10 +227,14 @@ def build_demo_tiff() -> tuple[Path, dict]:
         "native_image_size": [h, w],
         "image_size": [h, w],
         "crop_strategy": (
-            "No crop — the BBBC022 sample PNG is the page-preview field "
-            "(8-bit), already at a tractable 696×520 resolution. Full "
-            "16-bit TIFFs at native resolution are available inside the "
-            "BBBC022 plate-channel zip archives."
+            f"No crop — the BBBC022 sample PNG is the page-preview field "
+            f"(8-bit, {h}×{w} px ≈ {h * 0.656:.0f}×{w * 0.656:.0f} µm at "
+            f"the 0.656 µm/px BBBC022 native sampling). Yields ~20–30 "
+            f"segmented cells, which trips the n<30 PCA fallback in the "
+            f"composite mechano score; this is expected for a single "
+            f"preview field. Full 16-bit TIFFs at native resolution "
+            f"(2160×2160 px, ~80 cells per FOV) are available inside the "
+            f"BBBC022_v1_images_<plate>w<channel>.zip plate archives."
         ),
         "slot_sources": slot_sources,
     }

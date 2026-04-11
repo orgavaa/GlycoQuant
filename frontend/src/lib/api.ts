@@ -60,6 +60,10 @@ export interface MechanoScoreSummary {
   top_correlation_pair: [string, string] | null;
 }
 
+export type DeepEmbeddingBackend =
+  | "dinov2_base"
+  | "cell_dino_channel_adaptive";
+
 export interface JobResult {
   image_hash: string;
   cell_count: number;
@@ -72,6 +76,15 @@ export interface JobResult {
   mechano_score_summary?: MechanoScoreSummary | null;
   hero_metrics: Record<string, number | null>;
   has_deep_features: boolean;
+  /**
+   * Identifier of the deep-embedding backbone that produced the
+   * ``deep_*`` columns. ``"cell_dino_channel_adaptive"`` is the
+   * Cell-DINO ViT-L/16 channel-adaptive variant under FAIR
+   * Non-Commercial Research License; ``"dinov2_base"`` is the
+   * natural-image fallback under Apache 2.0. ``null`` when
+   * ``has_deep_features`` is false.
+   */
+  deep_embedding_backend?: DeepEmbeddingBackend | null;
   warnings?: string[];
 }
 

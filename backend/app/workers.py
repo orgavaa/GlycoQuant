@@ -207,6 +207,9 @@ def run_analysis_job(
             include_deep_features=include_deep_features,
             pixel_size_um=pixel_size_um,
             mechano_summary=mechano_summary,
+            embedder_backend=(
+                embedder.backend_name() if embedder is not None else None
+            ),
         )
         if channel_warnings:
             result.warnings = list(result.warnings) + channel_warnings
@@ -256,19 +259,63 @@ def _get_segmenter():  # noqa: ANN202
 
 
 def _get_embedder():  # noqa: ANN202
-    """Lazy, cached DINOv2 embedder — loaded once per process."""
+    """Lazy, cached deep embedder — loaded once per process.
+
+    Dispatch rule (per docs/CELL_DINO_SETUP.md):
+
+    - If ``GLYCOQUANT_CELL_DINO_CKPT`` is set and points to an existing
+      file, load Cell-DINO ``channel_adaptive_dino_vitl16`` from that
+      checkpoint via the dinov2 submodule. This is the FAIR
+      Non-Commercial Research License path; available only after the
+      operator has accepted the form at
+      https://ai.meta.com/resources/models-and-libraries/cell-dino-downloads/
+    - Otherwise fall back to the natural-image ``facebook/dinov2-base``
+      via HuggingFace transformers (Apache-2.0). This is the default
+      and runs in CI without any extra setup.
+
+    Both backends share the ``embed_image_with_masks`` and
+    ``column_names`` interface, so ``ProfileAssembler._attach_deep_features``
+    is unaware of which one is active.
+    """
     global _EMBEDDER_SINGLETON
     if _EMBEDDER_SINGLETON is None:
-        from glycoquant.compute import describe_device, resolve_device
-        from glycoquant.features.deep_embedding import (
-            DinoV2Embedder,
-            DinoV2Params,
-        )
+        import os
+        from pathlib import Path
 
-        print(f"[worker] initialising DinoV2Embedder on {describe_device()}")
-        _EMBEDDER_SINGLETON = DinoV2Embedder(
-            params=DinoV2Params(device=resolve_device())
-        )
+        from glycoquant.compute import describe_device, resolve_device
+
+        ckpt = os.environ.get("GLYCOQUANT_CELL_DINO_CKPT")
+        if ckpt and Path(ckpt).is_file():
+            from glycoquant.features.deep_embedding import (
+                ChannelAdaptiveDinoEmbedder,
+                ChannelAdaptiveDinoParams,
+            )
+
+            print(
+                f"[worker] initialising ChannelAdaptiveDinoEmbedder "
+                f"(Cell-DINO ViT-L/16) from {ckpt} on {describe_device()}"
+            )
+            _EMBEDDER_SINGLETON = ChannelAdaptiveDinoEmbedder(
+                params=ChannelAdaptiveDinoParams(
+                    checkpoint_path=ckpt,
+                    device=resolve_device(),
+                )
+            )
+        else:
+            from glycoquant.features.deep_embedding import (
+                DinoV2Embedder,
+                DinoV2Params,
+            )
+
+            if ckpt:
+                print(
+                    f"[worker] GLYCOQUANT_CELL_DINO_CKPT={ckpt} does not "
+                    f"exist; falling back to facebook/dinov2-base"
+                )
+            print(f"[worker] initialising DinoV2Embedder on {describe_device()}")
+            _EMBEDDER_SINGLETON = DinoV2Embedder(
+                params=DinoV2Params(device=resolve_device())
+            )
     return _EMBEDDER_SINGLETON
 
 
@@ -287,6 +334,7 @@ def _build_result_payload(
     include_deep_features: bool,
     pixel_size_um: float = 0.325,
     mechano_summary=None,  # noqa: ANN001 - MechanoScoreSummary | None
+    embedder_backend: str | None = None,
 ) -> JobResult:
     """Package masks + features + plotly figures into a JobResult."""
     import numpy as np
@@ -398,6 +446,9 @@ def _build_result_payload(
         mechano_score_summary=summary_payload,
         hero_metrics=hero_metrics,
         has_deep_features=include_deep_features,
+        deep_embedding_backend=(
+            embedder_backend if include_deep_features else None
+        ),
     )
 
 

@@ -44,6 +44,19 @@ scripts = [
     "scanpy",
     "cellxgene-census",
     "requests",
+    "remotezip",  # used by scripts/download_bbbc_plate_field.py
+]
+cell_dino = [
+    # Optional deps required by the channel-adaptive Cell-DINO ViT-L/16
+    # backbone (loaded via torch.hub from third_party/dinov2). torch and
+    # transformers are already pulled in via the base ``dependencies``
+    # block (cellpose / DINOv2-base path), so this only needs the dinov2
+    # repo's runtime helpers. The Cell-DINO checkpoint itself is gated
+    # by the FAIR Non-Commercial Research License — see
+    # docs/CELL_DINO_SETUP.md for the operator runbook.
+    "fvcore",
+    "iopath",
+    "omegaconf",
 ]
 
 [tool.setuptools.packages.find]

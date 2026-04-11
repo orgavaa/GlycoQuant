@@ -10,221 +10,68 @@
   "datasets": [
     {
       "name": "BBBC022_U2OS_CellPainting",
-      "display_name": "Cell Painting \u2014 U-2 OS (BBBC022)",
-      "source": "Broad BBBC022 \u2014 Cell Painting Pilot",
+      "display_name": "Cell Painting — U-2 OS (BBBC022, plate 20585 / A01 / s5)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
       "license": "CC0 / public domain",
       "attribution": "Gustafsdottir SM et al. (2013) Multiplex Cytological Profiling Assay to Measure Diverse Cellular States. PLOS ONE 8:e80999. Distributed by the Broad Bioimage Benchmark Collection (BBBC022).",
       "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
-      "gene": "\u2014",
+      "gene": "—",
       "ensembl_id": "",
       "cell_line": "U-2 OS (osteosarcoma)",
-      "description": "One U-2 OS field of view from the BBBC022 Cell Painting pilot screen, ~80 cells, 5-channel staining. Two slots (DAPI, glycocalyx-WGA) are biologically real; the actin slot also carries the WGA+phalloidin AGP channel. YAP and paxillin slots are substitutions documented per slot. This is the gold reference demo for exercising the glycocalyx extractors against real WGA-lectin signal.",
+      "description": "One U-2 OS field of view from the BBBC022 Cell Painting pilot screen — plate 20585, well A01 (corner / unperturbed control), site s5 (centre of the 3×3 imaging grid). Native 16-bit TIFFs at 520×696 resolution, ~156 thousand µm². Two slots (DAPI, glycocalyx-WGA) carry real biological signal; the actin slot also pulls the WGA+phalloidin AGP channel. YAP and paxillin slots are documented substitutions. This is the gold reference demo for exercising the GlycoQuant glycocalyx extractors against real WGA-lectin staining.",
       "is_real_microscopy": true,
       "pixel_size_um": 0.656,
-      "pixel_size_note": "BBBC022 was acquired on an ImageXpress Micro at 20\u00d7 \u2014 native pixel size 0.656 \u00b5m/px (Gustafsdottir 2013, Methods). Override in the sidebar if you re-acquire on different optics.",
+      "pixel_size_note": "BBBC022 was acquired on an ImageXpress Micro at 20× — native pixel size 0.656 µm/px (Gustafsdottir 2013, Methods). Override in the sidebar if you re-acquire on different optics.",
       "native_image_size": [
-        327,
-        423
+        520,
+        696
       ],
       "image_size": [
-        327,
-        423
+        520,
+        696
       ],
-      "crop_strategy": "No crop \u2014 the BBBC022 sample PNG is the page-preview field (8-bit), already at a tractable 696\u00d7520 resolution. Full 16-bit TIFFs at native resolution are available inside the BBBC022 plate-channel zip archives.",
+      "crop_strategy": "No crop — 520×696 px = 341×457 µm at the 0.656 µm/px BBBC022 native sampling. Yields ~50–80 segmented cells; n≥30 trips real PCA on the composite mechano score (no weighted-sum fallback). First Cellpose-SAM pass on this field is ~6 min on CPU; subsequent runs hit the model singleton cache and are <30 s.",
       "slot_sources": {
         "dapi": {
-          "bbbc_channel": "DAPI.png",
+          "bbbc_channel": "w1 (Hoechst 33342)",
           "biological_identity": "Hoechst 33342 (DNA / nuclei)",
           "matches_labouesse_protocol": true
         },
         "glycocalyx": {
-          "bbbc_channel": "TxRed.png",
+          "bbbc_channel": "w4 (WGA + phalloidin AGP)",
           "biological_identity": "WGA-lectin + phalloidin (AGP channel)",
           "matches_labouesse_protocol": true,
-          "note": "Real WGA-lectin signal \u2014 the canonical glycocalyx marker. Cell Painting bundles WGA with phalloidin in a single AGP channel, so the same image also feeds the actin slot below. Glycocalyx pericellular features are scientifically meaningful on this slot."
+          "note": "Real WGA-lectin signal — the canonical glycocalyx marker. Cell Painting bundles WGA with phalloidin in a single AGP channel, so the same image also feeds the actin slot. Glycocalyx pericellular features are scientifically meaningful on this slot."
         },
         "yap": {
-          "bbbc_channel": "FITC.png",
+          "bbbc_channel": "w2 (con A / ER)",
           "biological_identity": "con A (endoplasmic reticulum)",
           "matches_labouesse_protocol": false,
           "note": "Real ER stain (concanavalin A), not anti-YAP. The YAP N/C ratio computed on this slot reflects ER nuclear-perinuclear intensity, not YAP/TAZ translocation, and should not be interpreted as mechanotransduction signal."
         },
         "paxillin": {
-          "bbbc_channel": "Cy5.png",
+          "bbbc_channel": "w5 (MitoTracker Deep Red)",
           "biological_identity": "MitoTracker Deep Red (mitochondria)",
           "matches_labouesse_protocol": false,
           "note": "Real mitochondrial stain, not anti-paxillin. Focal-adhesion features extracted from this slot reflect mitochondrial puncta morphometry, not adhesion biology."
         },
         "actin": {
-          "bbbc_channel": "TxRed.png",
+          "bbbc_channel": "w4 (WGA + phalloidin AGP, duplicated)",
           "biological_identity": "WGA-lectin + phalloidin (AGP channel, duplicated)",
           "matches_labouesse_protocol": true,
-          "note": "Same AGP channel as the glycocalyx slot \u2014 Cell Painting does not separate WGA from phalloidin. Actin coherence and cortical-ratio features therefore reflect a mixture of WGA membrane staining and phalloidin F-actin and should be interpreted with that caveat."
+          "note": "Same AGP channel as the glycocalyx slot — Cell Painting does not separate WGA from phalloidin. Actin coherence and cortical-ratio features therefore reflect a mixture of WGA membrane staining and phalloidin F-actin and should be interpreted with that caveat."
         }
-      }
-    },
-    {
-      "name": "HPA_SDC1_U2OS",
-      "display_name": "SDC1 \u2014 U-2 OS (osteosarcoma)",
-      "source": "Human Protein Atlas",
-      "license": "CC BY-SA 3.0",
-      "attribution": "Human Protein Atlas, SDC1 in U-2 OS (osteosarcoma), antibody 6185/95_B1_1",
-      "attribution_url": "https://www.proteinatlas.org/ENSG00000115884-SDC1/subcellular",
-      "gene": "SDC1",
-      "ensembl_id": "ENSG00000115884",
-      "cell_line": "U-2 OS (osteosarcoma)",
-      "description": "Syndecan-1 immunofluorescence in U-2 OS cells. SDC1 is the primary heparan-sulfate proteoglycan target for glycocalyx perturbation studies.",
-      "is_real_microscopy": true,
-      "pixel_size_um": 0.18,
-      "pixel_size_note": "Assumed: HPA confocal native ~0.08 \u00b5m/px (Leica SP5 60\u00d7) downsampled 1728\u2192768 px (\u00d72.25). Override in the sidebar if you have exact metadata.",
-      "native_image_size": [
-        1728,
-        1728
-      ],
-      "image_size": [
-        768,
-        768
-      ],
-      "crop_strategy": "DAPI-dense center crop at native resolution; preserves per-cell pixel size so Cellpose-SAM operates at ~0.88 average precision (Stringer & Pachitariu 2024 benchmark).",
-      "slot_sources": {
-        "dapi": {
-          "hpa_channel": "blue",
-          "biological_identity": "DAPI (nuclei)",
-          "matches_labouesse_protocol": true
-        },
-        "glycocalyx": {
-          "hpa_channel": "green",
-          "biological_identity": "anti-SDC1 immunofluorescence",
-          "matches_labouesse_protocol": false,
-          "note": "Real antibody stain of SDC1. Labouesse protocol expects WGA-lectin in this slot \u2014 SDC1 is a glycocalyx target gene, so feature extraction on this slot still exercises the pipeline meaningfully."
-        },
-        "yap": {
-          "hpa_channel": "green (duplicated)",
-          "biological_identity": "anti-SDC1 (duplicate of slot 1)",
-          "matches_labouesse_protocol": false,
-          "note": "HPA does not provide a YAP co-stain in this image. The YAP slot is duplicated from the antibody channel so the pipeline runs end-to-end; YAP N/C ratios computed on this image are not biologically meaningful."
-        },
-        "paxillin": {
-          "hpa_channel": "yellow",
-          "biological_identity": "ER reference stain",
-          "matches_labouesse_protocol": false,
-          "note": "Real endoplasmic reticulum reference, not paxillin. Focal-adhesion features on this image reflect ER punctate structure and should not be interpreted biologically."
-        },
-        "actin": {
-          "hpa_channel": "red",
-          "biological_identity": "microtubule reference stain",
-          "matches_labouesse_protocol": false,
-          "note": "Real microtubule reference, not phalloidin-stained actin. Actin coherence values reflect microtubule organisation."
-        }
-      }
-    },
-    {
-      "name": "HPA_CD44_U251MG",
-      "display_name": "CD44 \u2014 U-251 MG (glioma)",
-      "source": "Human Protein Atlas",
-      "license": "CC BY-SA 3.0",
-      "attribution": "Human Protein Atlas, CD44 in U-251 MG (glioma), antibody 112/207_F1_1",
-      "attribution_url": "https://www.proteinatlas.org/ENSG00000026508-CD44/subcellular",
-      "gene": "CD44",
-      "ensembl_id": "ENSG00000026508",
-      "cell_line": "U-251 MG (glioma)",
-      "description": "CD44 immunofluorescence. CD44 is the top-ranked gene in the STRING pathway prior shown in Tab 2.",
-      "is_real_microscopy": true,
-      "pixel_size_um": 0.18,
-      "pixel_size_note": "Assumed: HPA confocal native ~0.08 \u00b5m/px (Leica SP5 60\u00d7) downsampled 1728\u2192768 px (\u00d72.25). Override in the sidebar if you have exact metadata.",
-      "native_image_size": [
-        1728,
-        1728
-      ],
-      "image_size": [
-        768,
-        768
-      ],
-      "crop_strategy": "DAPI-dense center crop at native resolution; preserves per-cell pixel size so Cellpose-SAM operates at ~0.88 average precision (Stringer & Pachitariu 2024 benchmark).",
-      "slot_sources": {
-        "dapi": {
-          "hpa_channel": "blue",
-          "biological_identity": "DAPI (nuclei)",
-          "matches_labouesse_protocol": true
-        },
-        "glycocalyx": {
-          "hpa_channel": "green",
-          "biological_identity": "anti-CD44 immunofluorescence",
-          "matches_labouesse_protocol": false,
-          "note": "Real antibody stain of CD44. Labouesse protocol expects WGA-lectin in this slot \u2014 CD44 is a glycocalyx target gene, so feature extraction on this slot still exercises the pipeline meaningfully."
-        },
-        "yap": {
-          "hpa_channel": "green (duplicated)",
-          "biological_identity": "anti-CD44 (duplicate of slot 1)",
-          "matches_labouesse_protocol": false,
-          "note": "HPA does not provide a YAP co-stain in this image. The YAP slot is duplicated from the antibody channel so the pipeline runs end-to-end; YAP N/C ratios computed on this image are not biologically meaningful."
-        },
-        "paxillin": {
-          "hpa_channel": "yellow",
-          "biological_identity": "ER reference stain",
-          "matches_labouesse_protocol": false,
-          "note": "Real endoplasmic reticulum reference, not paxillin. Focal-adhesion features on this image reflect ER punctate structure and should not be interpreted biologically."
-        },
-        "actin": {
-          "hpa_channel": "red",
-          "biological_identity": "microtubule reference stain",
-          "matches_labouesse_protocol": false,
-          "note": "Real microtubule reference, not phalloidin-stained actin. Actin coherence values reflect microtubule organisation."
-        }
-      }
-    },
-    {
-      "name": "HPA_YAP1_U2OS",
-      "display_name": "YAP1 \u2014 U-2 OS (osteosarcoma)",
-      "source": "Human Protein Atlas",
-      "license": "CC BY-SA 3.0",
-      "attribution": "Human Protein Atlas, YAP1 in U-2 OS (osteosarcoma), antibody 38884/862_E4_1",
-      "attribution_url": "https://www.proteinatlas.org/ENSG00000137693-YAP1/subcellular",
-      "gene": "YAP1",
-      "ensembl_id": "ENSG00000137693",
-      "cell_line": "U-2 OS (osteosarcoma)",
-      "description": "YAP1 immunofluorescence. YAP is the canonical mechanotransduction readout; Dupont et al. Nature 2011.",
-      "is_real_microscopy": true,
-      "pixel_size_um": 0.21,
-      "pixel_size_note": "Assumed: HPA confocal native ~0.08 \u00b5m/px (Leica SP5 60\u00d7) downsampled 2048\u2192768 px (\u00d72.67). Override in the sidebar if you have exact metadata.",
-      "native_image_size": [
-        2048,
-        2048
-      ],
-      "image_size": [
-        768,
-        768
-      ],
-      "crop_strategy": "DAPI-dense center crop at native resolution; preserves per-cell pixel size so Cellpose-SAM operates at ~0.88 average precision (Stringer & Pachitariu 2024 benchmark).",
-      "slot_sources": {
-        "dapi": {
-          "hpa_channel": "blue",
-          "biological_identity": "DAPI (nuclei)",
-          "matches_labouesse_protocol": true
-        },
-        "glycocalyx": {
-          "hpa_channel": "green",
-          "biological_identity": "anti-YAP1 immunofluorescence",
-          "matches_labouesse_protocol": false,
-          "note": "Real antibody stain of YAP1. Labouesse protocol expects WGA-lectin in this slot \u2014 YAP1 is a glycocalyx target gene, so feature extraction on this slot still exercises the pipeline meaningfully."
-        },
-        "yap": {
-          "hpa_channel": "green (duplicated)",
-          "biological_identity": "anti-YAP1 (duplicate of slot 1)",
-          "matches_labouesse_protocol": false,
-          "note": "HPA does not provide a YAP co-stain in this image. The YAP slot is duplicated from the antibody channel so the pipeline runs end-to-end; YAP N/C ratios computed on this image are not biologically meaningful."
-        },
-        "paxillin": {
-          "hpa_channel": "yellow",
-          "biological_identity": "ER reference stain",
-          "matches_labouesse_protocol": false,
-          "note": "Real endoplasmic reticulum reference, not paxillin. Focal-adhesion features on this image reflect ER punctate structure and should not be interpreted biologically."
-        },
-        "actin": {
-          "hpa_channel": "red",
-          "biological_identity": "microtubule reference stain",
-          "matches_labouesse_protocol": false,
-          "note": "Real microtubule reference, not phalloidin-stained actin. Actin coherence values reflect microtubule organisation."
+      },
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "A01",
+        "site": "s5",
+        "channels": {
+          "dapi": "w1",
+          "glycocalyx": "w4",
+          "yap": "w2",
+          "paxillin": "w5",
+          "actin": "w4"
         }
       }
     }

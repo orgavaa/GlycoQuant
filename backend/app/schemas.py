@@ -138,6 +138,16 @@ class JobResult(BaseModel):
         )
     )
     has_deep_features: bool = False
+    deep_embedding_backend: Literal["dinov2_base", "cell_dino_channel_adaptive"] | None = Field(
+        default=None,
+        description=(
+            "Identifier of the deep embedder backbone that produced the "
+            "``deep_*`` columns. ``dinov2_base`` is the natural-image "
+            "default (Apache 2.0); ``cell_dino_channel_adaptive`` is the "
+            "Cell-DINO ViT-L/16 channel-adaptive variant (FAIR Non-Commercial "
+            "Research License). ``None`` when ``has_deep_features`` is False."
+        ),
+    )
     warnings: list[str] = Field(
         default_factory=list,
         description=(

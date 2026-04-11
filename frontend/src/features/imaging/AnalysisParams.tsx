@@ -75,11 +75,16 @@ export function AnalysisParams({
         />
         <div className="flex flex-col gap-0.5">
           <Label htmlFor="deep-features" className="cursor-pointer text-xs">
-            Compute DINOv2 embeddings
+            Compute deep embeddings
           </Label>
           <p className="text-[0.7rem] leading-snug text-muted-foreground">
-            Adds a 768-dimensional learned descriptor per cell and a
-            UMAP projection. Substantially slower on CPU.
+            Adds a learned per-cell visual descriptor. Backbone selected
+            server-side: <span className="font-mono">facebook/dinov2-base</span>{" "}
+            (768 dim · Apache 2.0) by default; Cell-DINO ViT-L/16
+            channel-adaptive (5×1024 = 5120 dim · FAIR Non-Commercial
+            Research License) when{" "}
+            <span className="font-mono">GLYCOQUANT_CELL_DINO_CKPT</span> is
+            set on the worker. Substantially slower on CPU.
           </p>
         </div>
       </div>
