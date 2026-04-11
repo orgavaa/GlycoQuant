@@ -42,14 +42,24 @@ def use_gpu() -> bool:
 
 
 def describe_device() -> str:
-    """Human-readable device summary for logs / health endpoint."""
+    """Human-readable device summary for logs / health endpoint.
+
+    Returns strings like ``"cpu"``, ``"cuda · NVIDIA L4"``, or
+    ``"cuda requested but unavailable → cpu fallback"`` so deployments
+    can verify from ``/health`` whether the GPU env var actually
+    resolved to hardware.
+    """
     dev = resolve_device()
     if dev == "cpu":
         return "cpu"
     try:
         import torch
 
-        name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cuda"
+        if not torch.cuda.is_available():
+            return "cuda requested but unavailable → cpu fallback"
+        name = torch.cuda.get_device_name(0)
+        if not name or name.lower() == "cuda":
+            return "cuda (device name unavailable)"
         return f"cuda · {name}"
     except Exception:  # noqa: BLE001
-        return "cuda (device name unavailable)"
+        return "cuda (torch probe failed)"

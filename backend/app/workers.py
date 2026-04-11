@@ -122,12 +122,12 @@ def run_analysis_job(
     """
     store = get_job_store()
     try:
-        store.update(job_id, status="running", phase="segmenting", pct=5, message="Loading models")
+        store.update(job_id, status="running", phase="segmenting", pct=5, message="Preparing the analysis")
 
 
         from glycoquant.profiles import AssemblerConfig, ProfileAssembler
 
-        store.update(job_id, phase="segmenting", pct=15, message="Running Cellpose-SAM segmentation")
+        store.update(job_id, phase="segmenting", pct=15, message="Detecting cells and nuclei")
         segmenter = _get_segmenter()
         cell_mask, nuclear_mask = segmenter.segment_both(
             channels[_seg_channel(channels)],
@@ -135,7 +135,7 @@ def run_analysis_job(
             cell_diameter=float(cell_diameter),
         )
 
-        store.update(job_id, phase="extracting", pct=55, message="Extracting 26 interpretable features per cell")
+        store.update(job_id, phase="extracting", pct=55, message="Measuring features for every detected cell")
         embedder = None
         if include_deep_features:
             embedder = _get_embedder()
@@ -148,10 +148,9 @@ def run_analysis_job(
         )
 
         if include_deep_features:
-            store.update(job_id, phase="embedding", pct=75, message="Computing DINOv2 deep embeddings")
-            # already done inside ProfileAssembler; just update the UI phase
+            store.update(job_id, phase="embedding", pct=75, message="Computing visual embeddings")
 
-        store.update(job_id, phase="extracting", pct=85, message="Building visualizations")
+        store.update(job_id, phase="extracting", pct=85, message="Preparing charts")
         result = _build_result_payload(
             channels=channels,
             cell_mask=cell_mask,
@@ -165,7 +164,7 @@ def run_analysis_job(
             status="complete",
             phase="done",
             pct=100,
-            message=f"Analyzed {len(features_df)} cells",
+            message=f"Done — {len(features_df)} cells analysed",
             result=result,
         )
     except Exception as exc:  # noqa: BLE001 - surface any failure to the client
@@ -316,7 +315,16 @@ def _build_segmentation_figure(
     from glycoquant.theme import PALETTE, get_plotly_layout_template
     from glycoquant.viz import cell_outline_polygons
 
-    base = downsample_for_display(channels[_seg_channel(channels)])
+    import numpy as np
+
+    base = downsample_for_display(channels[_seg_channel(channels)]).astype(np.float32)
+    # Percentile contrast stretch so faint cytoplasmic channels render at a
+    # legible brightness — mirrors the HPA preview endpoint.
+    finite = base[np.isfinite(base)]
+    if finite.size:
+        lo, hi = np.percentile(finite, (1.0, 99.5))
+        if hi > lo:
+            base = np.clip((base - lo) / (hi - lo), 0.0, 1.0)
     h, w = base.shape[:2]
     scale_y = base.shape[0] / cell_mask.shape[0]
     scale_x = base.shape[1] / cell_mask.shape[1]
@@ -325,6 +333,8 @@ def _build_segmentation_figure(
     fig.add_trace(
         go.Heatmap(
             z=base,
+            zmin=0.0,
+            zmax=1.0,
             colorscale="gray",
             showscale=False,
             hoverinfo="skip",

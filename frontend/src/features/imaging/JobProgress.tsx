@@ -5,21 +5,17 @@ import type { JobPhase, JobStatusResponse } from "@/lib/api";
 
 const PHASE_LABEL: Record<JobPhase, string> = {
   idle: "Queued",
-  segmenting: "Segmenting with Cellpose-SAM",
-  extracting: "Extracting 26 interpretable features",
-  embedding: "Computing DINOv2 deep embeddings",
+  segmenting: "Detecting cells and nuclei",
+  extracting: "Measuring per-cell features",
+  embedding: "Computing visual embeddings",
   done: "Analysis complete",
 };
 
-// Expected CPU wall-clock budget per phase on a 768x768 HPA crop.
-// These are honest estimates, not model-reported timings — Cellpose-SAM
-// makes blocking native calls with no internal progress callbacks, so
-// we interpolate visually using the elapsed-time field below.
 const PHASE_EXPECTED_SECONDS: Record<JobPhase, number> = {
   idle: 0,
-  segmenting: 300, // ~5 min on CPU for 2 Cellpose-SAM passes
-  extracting: 10, // pure Python / skimage
-  embedding: 60, // only if DINOv2 is enabled
+  segmenting: 540,
+  extracting: 10,
+  embedding: 60,
   done: 0,
 };
 
@@ -109,8 +105,8 @@ export function JobProgress({ status }: JobProgressProps) {
           )}
           {overBudget && (
             <span className="ml-auto text-[hsl(var(--warning))]">
-              Slower than expected; Cellpose-SAM on CPU can vary with cell
-              density.
+              Taking longer than usual. Dense or large images can push the
+              runtime up.
             </span>
           )}
         </div>
@@ -118,9 +114,9 @@ export function JobProgress({ status }: JobProgressProps) {
 
       {!isTerminal && phase === "segmenting" && (
         <p className="text-[0.7rem] leading-snug text-muted-foreground">
-          Cellpose-SAM runs as a single blocking native call per mask, so
-          the progress bar does not advance inside this phase. Expect
-          roughly five minutes per image on CPU, a few seconds on GPU.
+          Outlining every cell and its nucleus from the raw image. This is
+          the slowest step — plan on several minutes per image on a CPU
+          server, or a few seconds on a GPU.
         </p>
       )}
 
