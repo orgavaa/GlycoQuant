@@ -1,3 +1,4 @@
+import { Box } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface AppHeaderProps {
@@ -7,19 +8,12 @@ interface AppHeaderProps {
 export function AppHeader({ version }: AppHeaderProps) {
   return (
     <header className="border-b border-border bg-background">
-      <div className="mx-auto flex max-w-[1400px] items-baseline gap-4 px-6 py-5">
-        {/* Wordmark. Inter everywhere. */}
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h1 className="text-[1.35rem] font-semibold tracking-tight text-foreground">
-            GlycoQuant
-          </h1>
-          <p className="text-[0.82rem] font-normal leading-snug text-muted-foreground">
-            Per-cell glycocalyx and mechanotransduction phenotyping from
-            multi-channel fluorescence microscopy.
-          </p>
-        </div>
+      <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-6 py-5">
+        <Box className="h-6 w-6 shrink-0 text-foreground" strokeWidth={1.75} />
+        <h1 className="text-[1.35rem] font-semibold tracking-tight text-foreground">
+          GlycoQuant
+        </h1>
 
-        {/* Version pill — only secondary metadata we keep */}
         <div className="ml-auto shrink-0">
           <Badge variant="outline" className="font-normal tracking-tight">
             {version}
