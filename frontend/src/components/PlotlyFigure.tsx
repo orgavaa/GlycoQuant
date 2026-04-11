@@ -29,6 +29,9 @@ export function PlotlyFigure({
 
   const handleDownload = () => {
     if (!ref.current) return;
+    // Plotly's runtime accepts `scale` on downloadImage options but its
+    // TS type (DownloadImgopts) does not list it — cast the whole opts
+    // object to any to let the 3x DPI export through.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Plotly.downloadImage(ref.current as any, {
       format: "png",
@@ -36,7 +39,8 @@ export function PlotlyFigure({
       width: ref.current.clientWidth || 1200,
       height: height ?? 560,
       scale: 3,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
   };
 
   useEffect(() => {
@@ -62,11 +66,13 @@ export function PlotlyFigure({
         "toggleSpikelines",
       ],
       // Publication-quality PNG export via the modebar camera icon.
+      // Same TS-type workaround as handleDownload above.
       toImageButtonOptions: {
-        format: "png" as const,
+        format: "png",
         filename: "glycoquant-figure",
         scale: 3,
-      },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       ...((parsed.config as Record<string, unknown>) ?? {}),
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
