@@ -126,6 +126,27 @@ export interface PriorsResponse {
   metabolic_inhibitors: MetabolicInhibitor[];
   pathway_metadata: Record<string, unknown>;
   geneformer_metadata: Record<string, unknown>;
+  // Axis A — image-aware re-weighting
+  dynamic?: boolean;
+  mechano_weights?: Record<string, number> | null;
+  used_fallback_reference?: boolean;
+  // Axis B — on-demand Geneformer on Modal
+  can_generate_geneformer?: boolean;
+}
+
+export interface GeneformerGenerationResponse {
+  job_id: string;
+  modal_call_id: string | null;
+  state: string;
+  message: string;
+}
+
+export interface GeneformerStatusResponse {
+  job_id: string;
+  state: "queued" | "running" | "complete" | "failed";
+  elapsed_sec: number;
+  message: string;
+  error: string | null;
 }
 
 export interface PathwayEdge {
@@ -244,5 +265,42 @@ export async function fetchPriors(): Promise<PriorsResponse> {
 
 export async function fetchDrillDown(gene: string): Promise<DrillDownResponse> {
   const { data } = await api.get<DrillDownResponse>(`/priors/drill/${gene}`);
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Axis A — POST /priors/contextual
+// ---------------------------------------------------------------------------
+
+export interface ContextualPriorsArgs {
+  features_df_json: string;
+  cell_count: number;
+  dataset_label?: string | null;
+}
+
+export async function fetchContextualPriors(
+  args: ContextualPriorsArgs,
+): Promise<PriorsResponse> {
+  const { data } = await api.post<PriorsResponse>("/priors/contextual", args);
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Axis B — on-demand Geneformer generation on Modal
+// ---------------------------------------------------------------------------
+
+export async function generateGeneformer(): Promise<GeneformerGenerationResponse> {
+  const { data } = await api.post<GeneformerGenerationResponse>(
+    "/priors/geneformer/generate",
+  );
+  return data;
+}
+
+export async function fetchGeneformerStatus(
+  jobId: string,
+): Promise<GeneformerStatusResponse> {
+  const { data } = await api.get<GeneformerStatusResponse>(
+    `/priors/geneformer/status/${jobId}`,
+  );
   return data;
 }

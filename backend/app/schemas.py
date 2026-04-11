@@ -147,6 +147,49 @@ class PriorsResponse(BaseModel):
     metabolic_inhibitors: list[MetabolicInhibitor]
     pathway_metadata: dict[str, Any]
     geneformer_metadata: dict[str, Any]
+    # Axis A — dynamic image-aware re-weighting
+    dynamic: bool = False
+    mechano_weights: dict[str, float] | None = None
+    used_fallback_reference: bool = False
+    # Axis B — on-demand Geneformer generation
+    can_generate_geneformer: bool = False
+
+
+class ContextualPriorsRequest(BaseModel):
+    """POST /priors/contextual — re-weight the pathway prior by observed features.
+
+    Sends the serialised per-cell feature table from a completed Tab 1
+    job. The backend computes image-specific mechano-gene weights and
+    returns a :class:`PriorsResponse` with ``dynamic=True``.
+    """
+
+    features_df_json: str = Field(
+        description="pandas.DataFrame.to_json(orient='records') from JobResult."
+    )
+    cell_count: int = Field(default=0, ge=0)
+    dataset_label: str | None = Field(
+        default=None,
+        description="Optional display name of the Tab 1 dataset for the banner.",
+    )
+
+
+class GeneformerGenerationResponse(BaseModel):
+    """POST /priors/geneformer/generate — job kicked off on Modal."""
+
+    job_id: str
+    modal_call_id: str | None = None
+    state: str = "queued"
+    message: str = ""
+
+
+class GeneformerStatusResponse(BaseModel):
+    """GET /priors/geneformer/status/{job_id} — poll status of a Modal run."""
+
+    job_id: str
+    state: str  # queued | running | complete | failed
+    elapsed_sec: int
+    message: str = ""
+    error: str | None = None
 
 
 class DrillDownResponse(BaseModel):

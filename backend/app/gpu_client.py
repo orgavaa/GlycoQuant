@@ -24,10 +24,12 @@ Provider = Literal["local", "modal"]
 
 MODAL_APP_NAME = "glycoquant-gpu"
 MODAL_FUNCTION_NAME = "run_pipeline"
+MODAL_GENEFORMER_FUNCTION_NAME = "generate_geneformer_prior"
 
-# Cached remote function handle so we only pay the lookup cost once per
-# worker process. Invalidated implicitly on process restart.
+# Cached remote function handles so we only pay the lookup cost once
+# per worker process. Invalidated implicitly on process restart.
 _REMOTE_FUNCTION: Any = None
+_REMOTE_GENEFORMER_FUNCTION: Any = None
 
 
 def get_provider() -> Provider:
@@ -98,3 +100,102 @@ def run_pipeline_remote(
             "expected a dict matching JobResult."
         )
     return JobResult.model_validate(raw)
+
+
+# ---------------------------------------------------------------------------
+# Axis B — Geneformer async spawn + poll
+# ---------------------------------------------------------------------------
+
+
+def _lookup_geneformer_function() -> Any:
+    """Lazy + cached lookup of the deployed Geneformer Modal function."""
+    global _REMOTE_GENEFORMER_FUNCTION
+    if _REMOTE_GENEFORMER_FUNCTION is not None:
+        return _REMOTE_GENEFORMER_FUNCTION
+    try:
+        import modal
+    except ImportError as exc:  # noqa: BLE001
+        raise RuntimeError(
+            "Modal provider selected but the 'modal' package is not installed."
+        ) from exc
+    try:
+        _REMOTE_GENEFORMER_FUNCTION = modal.Function.from_name(
+            MODAL_APP_NAME, MODAL_GENEFORMER_FUNCTION_NAME
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"Modal Geneformer function lookup failed: {type(exc).__name__}: {exc}"
+        ) from exc
+    return _REMOTE_GENEFORMER_FUNCTION
+
+
+def spawn_geneformer_generation(
+    n_reference_cells: int = 5000,
+) -> str:
+    """Spawn a Modal Geneformer run asynchronously.
+
+    Uses ``modal.Function.spawn`` which returns an opaque function-call
+    handle immediately instead of blocking. The returned ``object_id``
+    is stored in the JobStore so subsequent polls can re-fetch the
+    call state via :func:`poll_geneformer_call`.
+
+    The full 22 × 15 in-silico perturbation grid takes ~20-30 min on
+    an L4 — too long for a synchronous HTTP request.
+    """
+    from glycoquant.predictor import get_glycocalyx_genes, get_mechano_signature
+
+    fn = _lookup_geneformer_function()
+    try:
+        call = fn.spawn(
+            glycocalyx_genes=list(get_glycocalyx_genes()),
+            mechano_genes=list(get_mechano_signature()),
+            n_reference_cells=int(n_reference_cells),
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"Modal spawn failed: {type(exc).__name__}: {exc}"
+        ) from exc
+    return str(call.object_id)
+
+
+def poll_geneformer_call(call_id: str) -> tuple[str, dict[str, Any] | None]:
+    """Return the current state of a spawned Geneformer call.
+
+    Returns
+    -------
+    (state, result) : tuple
+        ``state`` ∈ ``{"running", "complete", "failed"}``.
+        ``result`` is the dict returned by the Modal function when
+        complete, otherwise ``None``.
+    """
+    try:
+        import modal
+    except ImportError as exc:  # noqa: BLE001
+        raise RuntimeError(
+            "Modal provider selected but the 'modal' package is not installed."
+        ) from exc
+
+    try:
+        call = modal.FunctionCall.from_id(call_id)
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"Modal call lookup failed for {call_id}: {type(exc).__name__}: {exc}"
+        ) from exc
+
+    try:
+        # Non-blocking poll: timeout=0 raises TimeoutError if still running.
+        result = call.get(timeout=0)
+    except TimeoutError:
+        return "running", None
+    except Exception as exc:  # noqa: BLE001 - catch Modal's OutputExpired and friends
+        # Any other exception from Modal is treated as failed so the
+        # caller can surface a useful error to the user.
+        return "failed", None if "Expired" in type(exc).__name__ else None
+
+    if not isinstance(result, dict):
+        raise RuntimeError(
+            f"Modal Geneformer function returned unexpected type "
+            f"{type(result).__name__}; expected a dict matching "
+            "geneformer_ranks.json schema."
+        )
+    return "complete", result

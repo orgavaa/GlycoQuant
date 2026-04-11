@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchJobStatus,
   JobStatusResponse,
   submitAnalyze,
   SubmitAnalyzeArgs,
 } from "@/lib/api";
+import { useJobStore } from "@/lib/jobStore";
 
 /**
  * Submit an analysis job and poll its status every 2 s until terminal.
@@ -16,10 +17,18 @@ import {
 export function useAnalysisJob() {
   const queryClient = useQueryClient();
   const [jobId, setJobId] = useState<string | null>(null);
+  const setLatestJobResult = useJobStore((s) => s.setLatestJobResult);
+  const datasetLabelRef = useRef<string | null>(null);
 
   // ----- Mutation: POST /analysis/analyze -----
   const submit = useMutation({
-    mutationFn: async (args: SubmitAnalyzeArgs) => submitAnalyze(args),
+    mutationFn: async (args: SubmitAnalyzeArgs) => {
+      // Capture a human-readable label for Tab 2's dynamic banner.
+      datasetLabelRef.current = args.demoCondition
+        ?? args.upload?.name
+        ?? null;
+      return submitAnalyze(args);
+    },
     onSuccess: (response) => {
       setJobId(response.job_id);
       // Seed the query cache with the initial status so the polling
@@ -59,6 +68,16 @@ export function useAnalysisJob() {
   const isFailed = status?.status === "failed";
   const result = status?.result ?? null;
   const progress = status?.progress ?? null;
+
+  // Mirror the completed JobResult into the cross-tab Zustand store so
+  // Tab 2 can pick it up for image-aware re-weighting. Firing in an
+  // effect (not inside the useQuery hook) keeps React's "setState
+  // during render" warning quiet and preserves referential stability.
+  useEffect(() => {
+    if (isComplete && result) {
+      setLatestJobResult(result, datasetLabelRef.current);
+    }
+  }, [isComplete, result, setLatestJobResult]);
 
   const reset = () => {
     setJobId(null);

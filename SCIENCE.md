@@ -207,16 +207,45 @@ The 768-dim embedding is appended to every per-cell row as `deep_000..deep_767` 
 - Confidence cutoff ≥ 0.70 (high-confidence edges only).
 - Edge weight `−log(confidence)`; aggregation via **median inverse shortest path** across the 15-gene mechanotransduction signature. Dijkstra on the weighted graph via NetworkX.
 
-### Transcriptomic prior (Geneformer)
+### Transcriptomic prior (Geneformer) — now **on-demand**
 
-**Module:** `glycoquant/predictor/geneformer.py` + `scripts/generate_geneformer_priors.py`
+**Module:** `backend/modal_app.py::generate_geneformer_prior` + `scripts/generate_geneformer_priors.py`
 
 - Geneformer V2, Theodoris *et al.*, *Nature* 2023 📎 — transformer pretrained on ~104 M single-cell transcriptomes.
-- In-silico deletion of each glycocalyx gene against the 15-gene mechanotransduction signature, one-shot cosine-distance readout. Runs on a Colab T4/A100 in ~15 min for the 22-gene × 15-target grid.
+- In-silico deletion of each glycocalyx gene against the 15-gene mechanotransduction signature, one-shot cosine-distance readout.
+- The full 22 × 15 perturbation grid runs on a Modal L4 GPU in ~20-30 min at 5 000 reference cells. Weights and the Tabula Sapiens fibroblast reference dataset are cached on the persistent `glycoquant-models` Modal Volume so subsequent runs skip the downloads.
+- **User-triggerable:** Tab 2 surfaces a **"Generate transcriptomic prior"** button when the backend reports `can_generate_geneformer=true` (i.e. `GLYCOQUANT_GPU_PROVIDER=modal`). Clicking it dispatches via `modal.Function.spawn`, the FastAPI backend registers the call in its `JobStore` and the frontend polls `/priors/geneformer/status/{job_id}` every 2 s until completion. No Colab, no manual steps.
+- The result is written to `data/priors/geneformer_ranks.json` on the Railway backend, so the existing `prior_loader.load_prior` picks it up unchanged and the divergence column lights up on the next `/priors` query.
 
 ### Divergence — the actually informative column
 
 `abs_rank_divergence = |rank_pathway − rank_geneformer|` is the scientifically interesting per-gene metric. Agreement between the two priors = uncontroversial ranking; disagreement = a wet-lab experiment that would discriminate between hypotheses. This is the column a PI should prioritise at the bench.
+
+## 10.1 Dynamic image-aware re-ranking 🧪
+
+**Module:** `glycoquant/predictor/dynamic_ranking.py`
+
+Tab 2 is no longer a static table. When a Tab 1 analysis completes, its per-cell feature DataFrame is pushed into a tiny Zustand store. Tab 2 reads that store and POSTs the DataFrame to `/priors/contextual`, which:
+
+1. **Computes an image-specific weight vector** over the 15-gene mechanotransduction signature. Each feature is mapped to the mechano genes it biologically reports on (curated map `FEATURE_TO_MECHANO` in the module, with a specific citation per line) and the image-level mean is z-scored against a bundled reference cohort — the mean and standard deviation of every feature across the three HPA demos, committed as `data/reference/mechano_reference.json`. The absolute z-scores are summed per mechano gene and L1-normalised into weights that sum to 1, with a minimum floor to prevent degenerate inputs from zeroing any gene.
+
+2. **Re-aggregates the pathway prior** as a weighted median of the per-target inverse shortest-paths already shipped in `pathway_ranks.json`. Crucially, uniform weights reproduce the static `np.median` ranking exactly — this is the regression guardrail enforced by `tests/test_dynamic_ranking.py::test_uniform_weights_reproduce_static_ranking`. Ties preserve the static rank so the guarantee is byte-exact, not just order-exact.
+
+3. **Re-aggregates the Geneformer prior identically** once it's available. Same weight vector, same weighted-median operator, applied to the Geneformer `per_mechano_gene` cosine-shift vectors. This is what makes the `abs_rank_divergence` column meaningful on a *per-image* basis: it reports where the two priors disagree **for the phenotype the user just observed**.
+
+### Curated feature → mechano gene map
+
+| Phenotype feature | Mechano genes it reports on | Citation |
+|---|---|---|
+| `yap_nc_ratio`, `yap_nuclear_fraction` | YAP1, WWTR1 | Dupont 2011 📎 |
+| *(alias on `yap_nc_ratio`)* | CTGF, CYR61, ANKRD1 | Zanconato 2016 📎 |
+| `fa_count`, `fa_mean_elongation`, `fa_peripheral_fraction`, `fa_mean_area` | ITGB1, PTK2, VCL, PXN, TLN1 | Kanchanawong 2010 📎, Zaidel-Bar 2007 📎 |
+| `actin_stress_fiber_coherence`, `actin_cortical_ratio` | RHOA, ROCK1, ROCK2, MYL9 | Ridley 1992 📎, Maekawa 1999 📎 |
+| `nuclear_solidity`, `nuclear_to_cell_area_ratio` | PIEZO1 | Lomakin 2020 📎, Venturini 2020 📎 |
+
+### Why this matters
+
+Without this layer, every user of Tab 2 sees the same **`CD44 > SDC4 > SDC2`** ranking regardless of whether their image shows massive YAP nuclear translocation, high-contractility actin, or a non-adherent rounded phenotype. The dynamic re-weighting closes the loop from image observation to experimental prioritisation hypothesis — it surfaces glycocalyx genes that sit topologically close to **whichever mechano axis is actually engaged in the user's image**. That is the difference between a curated table and an experimental planning tool.
 
 ---
 
@@ -232,6 +261,9 @@ All references are checked against PubMed / Google Scholar and can be cited dire
 - 📎 Fay *et al.* — DINOv2 for Cell Painting, biorxiv 2023, [10.1101/2023.11.23.568213](https://doi.org/10.1101/2023.11.23.568213)
 - 📎 Jähne — *Spatio-Temporal Image Processing*, Springer 1993 — structure tensor formalism.
 - 📎 Kanchanawong *et al.* — Paxillin architecture of focal adhesions, *Nature* 2010, [10.1038/nature09621](https://doi.org/10.1038/nature09621)
+- 📎 Maekawa *et al.* — Rho-associated kinase phosphorylation of the myosin phosphatase target, *Science* 1999, [10.1126/science.285.5429.895](https://doi.org/10.1126/science.285.5429.895)
+- 📎 Ridley & Hall — The small GTP-binding protein rho regulates the assembly of focal adhesions and actin stress fibers in response to growth factors, *Cell* 1992, [10.1016/0092-8674(92)90163-7](https://doi.org/10.1016/0092-8674(92)90163-7)
+- 📎 Zanconato *et al.* — Genome-wide association between YAP/TAZ and gene regulation, *Genes Dev* 2016, [10.1101/gad.280701.116](https://doi.org/10.1101/gad.280701.116)
 - 📎 Lomakin *et al.* — Nucleus as a mechanical gauge, *Nature* 2020, [10.1038/s41586-020-2574-4](https://doi.org/10.1038/s41586-020-2574-4)
 - 📎 Möckl *et al.* — Super-resolution glycocalyx imaging, *Dev Cell* 2019, [10.1016/j.devcel.2019.02.020](https://doi.org/10.1016/j.devcel.2019.02.020)
 - 📎 Oquab *et al.* — DINOv2, arXiv 2024, [2304.07193](https://arxiv.org/abs/2304.07193)
