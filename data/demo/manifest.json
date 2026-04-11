@@ -9,6 +9,61 @@
   ],
   "datasets": [
     {
+      "name": "BBBC022_U2OS_CellPainting",
+      "display_name": "Cell Painting \u2014 U-2 OS (BBBC022)",
+      "source": "Broad BBBC022 \u2014 Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) Multiplex Cytological Profiling Assay to Measure Diverse Cellular States. PLOS ONE 8:e80999. Distributed by the Broad Bioimage Benchmark Collection (BBBC022).",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "\u2014",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "One U-2 OS field of view from the BBBC022 Cell Painting pilot screen, ~80 cells, 5-channel staining. Two slots (DAPI, glycocalyx-WGA) are biologically real; the actin slot also carries the WGA+phalloidin AGP channel. YAP and paxillin slots are substitutions documented per slot. This is the gold reference demo for exercising the glycocalyx extractors against real WGA-lectin signal.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "pixel_size_note": "BBBC022 was acquired on an ImageXpress Micro at 20\u00d7 \u2014 native pixel size 0.656 \u00b5m/px (Gustafsdottir 2013, Methods). Override in the sidebar if you re-acquire on different optics.",
+      "native_image_size": [
+        327,
+        423
+      ],
+      "image_size": [
+        327,
+        423
+      ],
+      "crop_strategy": "No crop \u2014 the BBBC022 sample PNG is the page-preview field (8-bit), already at a tractable 696\u00d7520 resolution. Full 16-bit TIFFs at native resolution are available inside the BBBC022 plate-channel zip archives.",
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "DAPI.png",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "TxRed.png",
+          "biological_identity": "WGA-lectin + phalloidin (AGP channel)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin signal \u2014 the canonical glycocalyx marker. Cell Painting bundles WGA with phalloidin in a single AGP channel, so the same image also feeds the actin slot below. Glycocalyx pericellular features are scientifically meaningful on this slot."
+        },
+        "yap": {
+          "bbbc_channel": "FITC.png",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false,
+          "note": "Real ER stain (concanavalin A), not anti-YAP. The YAP N/C ratio computed on this slot reflects ER nuclear-perinuclear intensity, not YAP/TAZ translocation, and should not be interpreted as mechanotransduction signal."
+        },
+        "paxillin": {
+          "bbbc_channel": "Cy5.png",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false,
+          "note": "Real mitochondrial stain, not anti-paxillin. Focal-adhesion features extracted from this slot reflect mitochondrial puncta morphometry, not adhesion biology."
+        },
+        "actin": {
+          "bbbc_channel": "TxRed.png",
+          "biological_identity": "WGA-lectin + phalloidin (AGP channel, duplicated)",
+          "matches_labouesse_protocol": true,
+          "note": "Same AGP channel as the glycocalyx slot \u2014 Cell Painting does not separate WGA from phalloidin. Actin coherence and cortical-ratio features therefore reflect a mixture of WGA membrane staining and phalloidin F-actin and should be interpreted with that caveat."
+        }
+      }
+    },
+    {
       "name": "HPA_SDC1_U2OS",
       "display_name": "SDC1 \u2014 U-2 OS (osteosarcoma)",
       "source": "Human Protein Atlas",
@@ -21,7 +76,7 @@
       "description": "Syndecan-1 immunofluorescence in U-2 OS cells. SDC1 is the primary heparan-sulfate proteoglycan target for glycocalyx perturbation studies.",
       "is_real_microscopy": true,
       "pixel_size_um": 0.18,
-      "pixel_size_note": "Assumed: HPA confocal native ~0.08 µm/px (Leica SP5 60×) downsampled 1728→768 px (×2.25). Override in the sidebar if you have exact metadata.",
+      "pixel_size_note": "Assumed: HPA confocal native ~0.08 \u00b5m/px (Leica SP5 60\u00d7) downsampled 1728\u2192768 px (\u00d72.25). Override in the sidebar if you have exact metadata.",
       "native_image_size": [
         1728,
         1728
@@ -76,7 +131,7 @@
       "description": "CD44 immunofluorescence. CD44 is the top-ranked gene in the STRING pathway prior shown in Tab 2.",
       "is_real_microscopy": true,
       "pixel_size_um": 0.18,
-      "pixel_size_note": "Assumed: HPA confocal native ~0.08 µm/px (Leica SP5 60×) downsampled 1728→768 px (×2.25). Override in the sidebar if you have exact metadata.",
+      "pixel_size_note": "Assumed: HPA confocal native ~0.08 \u00b5m/px (Leica SP5 60\u00d7) downsampled 1728\u2192768 px (\u00d72.25). Override in the sidebar if you have exact metadata.",
       "native_image_size": [
         1728,
         1728
@@ -131,7 +186,7 @@
       "description": "YAP1 immunofluorescence. YAP is the canonical mechanotransduction readout; Dupont et al. Nature 2011.",
       "is_real_microscopy": true,
       "pixel_size_um": 0.21,
-      "pixel_size_note": "Assumed: HPA confocal native ~0.08 µm/px (Leica SP5 60×) downsampled 2048→768 px (×2.67). Override in the sidebar if you have exact metadata.",
+      "pixel_size_note": "Assumed: HPA confocal native ~0.08 \u00b5m/px (Leica SP5 60\u00d7) downsampled 2048\u2192768 px (\u00d72.67). Override in the sidebar if you have exact metadata.",
       "native_image_size": [
         2048,
         2048
