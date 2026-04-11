@@ -124,6 +124,34 @@ def run_analysis_job(
     try:
         store.update(job_id, status="running", phase="segmenting", pct=5, message="Preparing the analysis")
 
+        # Remote GPU dispatch: when GLYCOQUANT_GPU_PROVIDER=modal, the
+        # entire heavy pipeline runs on a Modal L4 container and we
+        # only parse the returned JobResult back into the store. The
+        # local code path below is preserved for laptop dev runs and
+        # CPU-fallback Railway deployments.
+        from backend.app.gpu_client import get_provider, run_pipeline_remote
+
+        if get_provider() == "modal":
+            store.update(
+                job_id,
+                phase="segmenting",
+                pct=20,
+                message="Running on remote GPU",
+            )
+            remote_result = run_pipeline_remote(
+                channels=channels,
+                cell_diameter=cell_diameter,
+                include_deep_features=include_deep_features,
+            )
+            store.update(
+                job_id,
+                status="complete",
+                phase="done",
+                pct=100,
+                message=f"Done — {remote_result.cell_count} cells analysed",
+                result=remote_result,
+            )
+            return
 
         from glycoquant.profiles import AssemblerConfig, ProfileAssembler
 
@@ -309,13 +337,12 @@ def _build_segmentation_figure(
     features_df,  # noqa: ANN001
 ):  # noqa: ANN202
     """Base image heatmap + transparent cell-outline polygons for the React viewer."""
+    import numpy as np
     import plotly.graph_objects as go
 
     from glycoquant.io import downsample_for_display
-    from glycoquant.theme import PALETTE, get_plotly_layout_template
+    from glycoquant.theme import get_plotly_layout_template
     from glycoquant.viz import cell_outline_polygons
-
-    import numpy as np
 
     base = downsample_for_display(channels[_seg_channel(channels)]).astype(np.float32)
     # Percentile contrast stretch so faint cytoplasmic channels render at a

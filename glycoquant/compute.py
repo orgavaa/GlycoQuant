@@ -18,21 +18,25 @@ from functools import lru_cache
 
 @lru_cache(maxsize=1)
 def resolve_device() -> str:
-    """Return ``"cuda"`` or ``"cpu"`` based on env var + hardware probe."""
+    """Return ``"cuda"`` or ``"cpu"`` based on env var + hardware probe.
+
+    A literal ``GLYCOQUANT_DEVICE=cuda`` is only honored if torch can
+    actually see a CUDA device. Otherwise we fall back to CPU so
+    downstream models (DINOv2, Cellpose) don't crash on ``.to("cuda")``
+    in a container that has no NVIDIA driver.
+    """
     env = os.environ.get("GLYCOQUANT_DEVICE", "auto").strip().lower()
     if env == "cpu":
         return "cpu"
-    if env == "cuda":
-        return "cuda"
-    # auto
     try:
         import torch
 
-        if torch.cuda.is_available():
-            return "cuda"
+        cuda_available = torch.cuda.is_available()
     except Exception:  # noqa: BLE001 - torch may not be importable in some test contexts
-        pass
-    return "cpu"
+        cuda_available = False
+    if env == "cuda":
+        return "cuda" if cuda_available else "cpu"
+    return "cuda" if cuda_available else "cpu"
 
 
 @lru_cache(maxsize=1)

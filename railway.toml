@@ -7,8 +7,20 @@ builder = "DOCKERFILE"
 # service's dashboard settings; the block below is the canonical
 # reference for recreating the stack from scratch.
 #
+# Production topology (2026-04-11 onward):
+#
+#   Railway "api"   → FastAPI + React dispatcher (CPU-only)
+#   Railway "web"   → nginx + compiled Vite bundle (CPU-only)
+#   Modal           → serverless L4 container running the heavy pipeline
+#                     (Cellpose-SAM + DINOv2 + scikit-image features)
+#
+# The Railway api service NEVER runs Cellpose itself; it serializes the
+# channel dict and calls ``modal.Function.lookup("glycoquant-gpu",
+# "run_pipeline").remote(...)``. See backend/modal_app.py for the GPU
+# function and scripts/deploy_modal.sh for the one-shot deploy command.
+#
 # -----------------------------------------------------------------------
-# Service "api"  (backend, GPU-enabled on Pro tier)
+# Service "api"  (backend, CPU-only, dispatches to Modal)
 # -----------------------------------------------------------------------
 #   Source repo:        orgavaa/GlycoQuant
 #   Branch:             main
@@ -20,25 +32,25 @@ builder = "DOCKERFILE"
 #   Dockerfile path:    backend/Dockerfile
 #
 #   Build Args:
-#     TORCH_VARIANT         = cuda     (installs CUDA 12.1 PyTorch;
-#                                        use 'cpu' on Hobby tier)
+#     TORCH_VARIANT         = cpu      (Railway api is CPU-only now;
+#                                        GPU work is offloaded to Modal)
 #
 #   Runtime env vars:
-#     GLYCOQUANT_DEVICE     = cuda     (forces GPU; 'auto' also works
-#                                        once CUDA is detected)
+#     GLYCOQUANT_GPU_PROVIDER = modal   (flip to 'local' for a pure-CPU
+#                                         fallback if Modal is down)
+#     MODAL_TOKEN_ID        = ak-...    (from ~/.modal.toml after
+#                                         'modal token new')
+#     MODAL_TOKEN_SECRET    = as-...
 #     CORS_ORIGINS          = https://<web-service-domain>.up.railway.app
-#     HF_HOME               = /data/.cache/huggingface
-#     CELLPOSE_LOCAL_MODELS_PATH = /data/.cache/cellpose
 #
 #   Resources:
-#     GPU:                  NVIDIA L4   (24 GB VRAM, recommended)
-#                           alt: T4 (16 GB) if L4 is unavailable
-#     CPU:                  4-8 vCPU
-#     RAM:                  8-16 GB
+#     CPU:                  1-2 vCPU
+#     RAM:                  1-2 GB
+#     GPU:                  none — Modal handles every inference call
 #
-#   Persistent volume:    /data  (survives deploys; holds the 1.2 GB
-#                                  Cellpose-SAM cpsam weights and
-#                                  the ~340 MB DINOv2 weights)
+#   Persistent volume:    none required — the Modal volume
+#                         "glycoquant-models" holds the Cellpose + HF
+#                         caches on the GPU side.
 #
 #   Healthcheck path:     /health
 #   Serverless:           ON  (scale to zero; GPU is only billed when
@@ -72,8 +84,29 @@ builder = "DOCKERFILE"
 #   3. Update "api" CORS_ORIGINS to the real web URL, redeploy
 #
 # -----------------------------------------------------------------------
+# Modal GPU worker (deployed separately, once, from a developer machine)
+# -----------------------------------------------------------------------
+#   Setup:
+#     pip install modal
+#     modal token new                      # one-time browser auth
+#     bash scripts/deploy_modal.sh         # or: modal deploy backend/modal_app.py
+#
+#   What it deploys:
+#     App name:     glycoquant-gpu
+#     Function:     run_pipeline
+#     GPU:          L4
+#     Volume:       glycoquant-models  (holds ~1.5 GB of model weights,
+#                                        downloaded once and cached forever)
+#     Timeout:      600 s per call
+#
+#   Auth on Railway:
+#     Set MODAL_TOKEN_ID and MODAL_TOKEN_SECRET on the api service; the
+#     Modal SDK picks them up automatically on import.
+#
+# -----------------------------------------------------------------------
 # First-deploy cost to expect:
-#   The "api" service will download the full 1.5 GB Cellpose-SAM +
-#   DINOv2 model weights on its first inference call, streaming into
-#   the /data persistent volume. After that every deploy reuses the
-#   cache (seconds to boot).
+#   The Modal container downloads the full 1.5 GB Cellpose-SAM + DINOv2
+#   weights on its first invocation, streaming into the glycoquant-models
+#   Volume. Subsequent cold starts skip the download and complete in
+#   ~15-20 s. Warm calls finish a single 768² image in ~25-30 s
+#   (segmentation + feature extraction + optional DINOv2 embedding).

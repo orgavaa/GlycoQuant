@@ -28,6 +28,7 @@ dependencies = [
     "umap-learn>=0.5",
     "requests>=2.30",
     "tifffile>=2024.0",
+    "modal>=0.64",
 ]
 
 [project.optional-dependencies]

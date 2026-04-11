@@ -175,6 +175,62 @@ First build takes a few minutes (Python + Node layers + Cellpose weights). Subse
 
 ---
 
+## Deployment — Railway + Modal
+
+The production deployment splits the stack across two providers:
+
+| Tier | Provider | Role |
+|---|---|---|
+| Frontend (nginx + React bundle) | Railway service `web` | Static asset server |
+| Backend (FastAPI + job store + priors) | Railway service `api` | CPU-only dispatcher |
+| GPU inference (Cellpose-SAM + DINOv2) | **Modal** serverless L4 | Heavy lifting |
+
+Railway's Pro plan does not currently ship NVIDIA drivers on standard containers, and the GPU access form has a 1–3 day turnaround. Rather than wait, the heavy pipeline runs on Modal (pay-per-second L4, ~$0.00019/s, $30 free credit on signup) while Railway keeps hosting the web tier. A single-image run drops from roughly 10 min on Railway CPU to 25–30 s on Modal warm + 15–20 s cold start.
+
+### One-time setup
+
+```bash
+pip install modal
+modal token new                       # opens a browser for auth
+bash scripts/deploy_modal.sh          # runs: modal deploy backend/modal_app.py
+```
+
+Modal prints `✓ Deployed app glycoquant-gpu`. Copy the two tokens from `~/.modal.toml`.
+
+### Railway backend service variables
+
+On the `api` service → Variables:
+
+```
+GLYCOQUANT_GPU_PROVIDER = modal
+MODAL_TOKEN_ID          = ak-...
+MODAL_TOKEN_SECRET      = as-...
+CORS_ORIGINS            = https://<web-service-domain>.up.railway.app
+```
+
+Build args (Settings → Build → Build Args):
+
+```
+TORCH_VARIANT = cpu
+```
+
+The api service no longer needs a GPU, a persistent `/data` volume, or `GLYCOQUANT_DEVICE`. Remove those if they are left over from a previous deploy.
+
+### Smoke test after deploy
+
+```bash
+curl https://<api-service-domain>.up.railway.app/health
+# → { "status": "ok", "device": "cpu", "device_detail": "cpu", ... }
+```
+
+Then open the frontend URL, load a demo image, click **Start pipeline**. The first call pays a ~15–20 s cold start as the Modal container boots and attaches the `glycoquant-models` volume; subsequent calls within ~5 minutes of idleness reuse the warm container and complete in ~25–30 s.
+
+### Kill switch
+
+To fall back to pure-CPU execution on Railway (e.g. if Modal is down), set `GLYCOQUANT_GPU_PROVIDER=local` on the api service and redeploy. No code change required.
+
+---
+
 ## Quick start
 
 1. Open `http://localhost:5173`.
