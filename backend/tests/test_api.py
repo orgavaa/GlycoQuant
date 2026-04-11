@@ -57,8 +57,18 @@ def test_demo_list(client: TestClient) -> None:
     assert resp.status_code == 200
     data = resp.json()
     names = {c["name"] for c in data["conditions"]}
-    # At least the three bundled conditions should be there
-    assert {"control", "siSDC1", "heparinase"}.issubset(names)
+    # At least the three HPA datasets should be present
+    assert {
+        "HPA_SDC1_U2OS",
+        "HPA_CD44_U251MG",
+        "HPA_YAP1_U2OS",
+    }.issubset(names)
+    # Every dataset must carry real attribution so the UI can show it
+    for c in data["conditions"]:
+        assert c["is_real_microscopy"] is True
+        assert c["source"] == "Human Protein Atlas"
+        assert c["license"]
+        assert c["attribution"]
 
 
 # ---------------------------------------------------------------------------
@@ -114,7 +124,7 @@ def test_analyze_submits_demo_job_end_to_end(client: TestClient) -> None:
     resp = client.post(
         "/analysis/analyze",
         data={
-            "demo_condition": "control",
+            "demo_condition": "HPA_SDC1_U2OS",
             "cell_diameter": "80",
             "include_deep_features": "false",
         },

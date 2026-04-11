@@ -18,10 +18,10 @@ export function AnalysisParams({
   disabled,
 }: AnalysisParamsProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="space-y-2">
         <Label htmlFor="cell-diameter" className="section-label">
-          Cell diameter (px)
+          Expected cell diameter (px)
         </Label>
         <Input
           id="cell-diameter"
@@ -33,8 +33,9 @@ export function AnalysisParams({
           onChange={(e) => onDiameterChange(Number(e.target.value))}
           disabled={disabled}
         />
-        <p className="text-[0.7rem] text-muted-foreground">
-          Cellpose uses this as the expected average cell diameter.
+        <p className="text-[0.72rem] leading-snug text-muted-foreground">
+          Prior on segmentation scale. A value near the true mean cell
+          diameter improves Cellpose stability on small or dense fields.
         </p>
       </div>
 
@@ -48,10 +49,11 @@ export function AnalysisParams({
         />
         <div className="flex flex-col gap-0.5">
           <Label htmlFor="deep-features" className="cursor-pointer text-xs">
-            Include DINOv2 deep features
+            Compute DINOv2 embeddings
           </Label>
-          <p className="text-[0.65rem] leading-tight text-muted-foreground">
-            Adds 768-dim embeddings + UMAP. Slower on CPU.
+          <p className="text-[0.7rem] leading-snug text-muted-foreground">
+            Adds a 768-dimensional learned descriptor per cell and a
+            UMAP projection. Substantially slower on CPU.
           </p>
         </div>
       </div>

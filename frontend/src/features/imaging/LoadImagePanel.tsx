@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FileImage, FolderOpen, Loader2 } from "lucide-react";
+import { ImageIcon, Loader2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,10 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchDemoList } from "@/lib/api";
+import { fetchDemoList, type DemoCondition } from "@/lib/api";
 
 interface LoadImagePanelProps {
-  onLoadDemo: (condition: "control" | "siSDC1" | "heparinase") => void;
+  onLoadDemo: (condition: DemoCondition) => void;
   onLoadUpload: (file: File) => void;
   disabled: boolean;
 }
@@ -31,9 +31,11 @@ export function LoadImagePanel({
   });
 
   const handleDemoLoad = () => {
-    if (selectedCondition) {
-      onLoadDemo(selectedCondition as "control" | "siSDC1" | "heparinase");
-    }
+    if (!selectedCondition) return;
+    const found = demoQuery.data?.conditions.find(
+      (c) => c.name === selectedCondition,
+    );
+    if (found) onLoadDemo(found);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,21 +44,26 @@ export function LoadImagePanel({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Demo image selector */}
+    <div className="space-y-5">
+      {/* Bundled datasets from the Human Protein Atlas */}
       <div className="space-y-2">
-        <label className="section-label">Demo dataset</label>
+        <label className="section-label">Reference dataset</label>
+        <p className="text-[0.7rem] leading-snug text-muted-foreground">
+          Real immunofluorescence microscopy from the Human Protein Atlas
+          (CC BY-SA 3.0). Three canonical proteins from our glycocalyx
+          and mechanotransduction panels.
+        </p>
         <Select value={selectedCondition} onValueChange={setSelectedCondition}>
           <SelectTrigger disabled={demoQuery.isLoading}>
-            <SelectValue placeholder="Select a condition..." />
+            <SelectValue placeholder="Choose a dataset" />
           </SelectTrigger>
           <SelectContent>
             {demoQuery.data?.conditions.map((c) => (
               <SelectItem key={c.name} value={c.name}>
                 <div className="flex flex-col">
-                  <span className="font-medium">{c.name}</span>
+                  <span className="font-medium">{c.display_name || c.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {c.description}
+                    {c.source}
                   </span>
                 </div>
               </SelectItem>
@@ -68,14 +75,13 @@ export function LoadImagePanel({
           disabled={!selectedCondition || disabled}
           className="w-full"
           size="sm"
-          variant="brand"
         >
           {demoQuery.isLoading ? (
             <Loader2 className="animate-spin" />
           ) : (
-            <FolderOpen />
+            <ImageIcon />
           )}
-          Load demo
+          Load dataset
         </Button>
       </div>
 
@@ -88,9 +94,9 @@ export function LoadImagePanel({
         <div className="h-px flex-1 bg-border" />
       </div>
 
-      {/* File upload */}
+      {/* User upload */}
       <div className="space-y-2">
-        <label className="section-label">Upload image</label>
+        <label className="section-label">Upload your own image</label>
         <input
           ref={fileInputRef}
           type="file"
@@ -105,11 +111,12 @@ export function LoadImagePanel({
           size="sm"
           variant="outline"
         >
-          <FileImage />
-          Choose TIFF / PNG
+          <Upload />
+          Select TIFF or PNG
         </Button>
-        <p className="text-[0.7rem] text-muted-foreground">
-          5-channel expected: DAPI · WGA · YAP · paxillin · phalloidin
+        <p className="text-[0.72rem] leading-snug text-muted-foreground">
+          Five channels required, in the order DAPI, WGA-lectin, YAP,
+          paxillin, phalloidin.
         </p>
       </div>
     </div>

@@ -178,11 +178,17 @@ First build takes a few minutes (Python + Node layers + Cellpose weights). Subse
 ## Quick start
 
 1. Open `http://localhost:5173`.
-2. Sidebar → **1 · Load image** → pick a demo dataset (`control`, `siSDC1`, or `heparinase`) → click **Load demo**.
-3. *(optional)* Tick **Include DINOv2 deep features** under **2 · Analysis parameters**.
-4. Click **Run Analysis** under **3 · Run**.
+2. **Step 1 — Load image** → pick a synthetic demo (`control`, `siSDC1`, or `heparinase`) → click **Load synthetic dataset**.
+3. *(optional)* Tick **Compute DINOv2 embeddings** under **Step 2 — Configure pipeline**.
+4. Click **Start pipeline** under **Step 3 — Run analysis**.
 
 A progress card shows each phase (segmenting, extracting, embedding). When complete, the main panel renders: 5 hero metric cards, the Plotly-interactive segmented image, and a tabbed area with the per-cell feature table, radial profile chart, and correlation heatmap. On a GPU the whole cycle is ~5 seconds; on CPU expect 6–10 minutes the first time (Cellpose-SAM weights download + segmentation). Subsequent runs on the same image are instant cache hits.
+
+### Important — the bundled demo data is 100% synthetic
+
+The three bundled demo conditions (`control`, `siSDC1`, `heparinase`) in `data/demo/*.tiff` are **not real microscopy**. They are generated deterministically by `scripts/generate_demo_images.py` using `skimage.draw.disk` — five circles on a black background with known intensity profiles that let the feature extractors produce predictable numbers. Their purpose is to exercise the full pipeline end-to-end on a fresh clone without requiring any external data, not to demonstrate that the pipeline has been validated on real cells.
+
+Every part of the UI that shows bundled data carries a visible **"Synthetic demonstration data"** notice. To analyse real images, upload a five-channel TIFF via **Step 1** (channel order: DAPI, WGA-lectin, YAP, paxillin, phalloidin). Real-data validation on a representative Labouesse-group imaging dataset is on the roadmap below.
 
 ---
 

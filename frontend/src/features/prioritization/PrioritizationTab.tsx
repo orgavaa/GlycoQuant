@@ -3,7 +3,7 @@ import { AlertTriangle, Info, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MetricCard } from "@/components/MetricCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { fetchPriors } from "@/lib/api";
 import { DrillDownPanel } from "./DrillDownPanel";
 import { MetabolicInhibitorTable } from "./MetabolicInhibitorTable";
@@ -55,102 +55,130 @@ export function PrioritizationTab() {
   const top3 = priors.genes.slice(0, 3);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {/* Pathway-only warning */}
       {!priors.geneformer_available && (
         <Alert variant="warning">
           <AlertTriangle />
-          <AlertTitle>Pathway-only mode</AlertTitle>
+          <AlertTitle>Running in pathway-only mode</AlertTitle>
           <AlertDescription>
-            Geneformer prior not found at{" "}
-            <span className="font-mono">data/priors/geneformer_ranks.json</span>.
-            To enable the dual-prior divergence column, run{" "}
-            <span className="font-mono">scripts/generate_geneformer_priors.py</span>{" "}
-            on a Colab GPU runtime and commit the resulting JSON.
+            The transcriptomic prior is not yet committed. Generate it by
+            running{" "}
+            <span className="rounded bg-muted px-1 py-0.5 text-[0.72rem]">
+              scripts/generate_geneformer_priors.py
+            </span>{" "}
+            on a Colab GPU runtime to unlock the dual-prior divergence
+            column.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Scientific disclaimer */}
+      {/* Scientific framing */}
       <Alert variant="info">
         <Info />
-        <AlertTitle>Hypothesis ranking, not mechanistic prediction</AlertTitle>
+        <AlertTitle>
+          Hypothesis ranking, not mechanistic prediction
+        </AlertTitle>
         <AlertDescription>
-          These rankings reflect transcriptomic co-regulation (Geneformer,
-          ~104 M cells) and curated pathway proximity (STRING v12). They
-          generate hypotheses for experimental validation. When the two priors
-          disagree, the divergence is the most informative signal on this page.
+          This view combines transcriptomic co-regulation from Geneformer
+          (pretrained on ~104 M cells) with curated pathway proximity from
+          STRING v12. Outputs are intended to prioritise wet-lab experiments,
+          not to substitute for them. Disagreement between the two priors is
+          the most scientifically informative signal on this page.
         </AlertDescription>
       </Alert>
 
       {/* Hero: top 3 glycocalyx genes by pathway rank */}
-      <div>
-        <div className="section-label mb-2">Top candidates by pathway score</div>
+      <section>
+        <div className="mb-3">
+          <div className="section-label">Top candidates</div>
+          <h2 className="mt-1 text-[1.05rem] font-semibold leading-tight text-foreground">
+            Highest pathway proximity to the mechanotransduction signature
+          </h2>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {top3.map((g) => (
             <MetricCard
               key={g.gene}
-              label={`Rank #${g.pathway_rank} · Pathway`}
+              label={`Rank ${g.pathway_rank} in STRING`}
               value={g.gene}
               unit={
                 g.pathway_score !== null
-                  ? `s=${g.pathway_score.toFixed(3)}`
+                  ? `score ${g.pathway_score.toFixed(3)}`
                   : ""
               }
             />
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Ranking table */}
-      <Card>
-        <CardHeader className="flex-row items-baseline justify-between">
-          <CardTitle className="text-sm">Ranked perturbations</CardTitle>
-          <span className="font-mono text-[0.72rem] text-muted-foreground">
-            {priors.genes.length} glycocalyx genes · sorted by pathway rank
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <div className="section-label">Ranked perturbations</div>
+            <h2 className="mt-1 text-[1.05rem] font-semibold leading-tight text-foreground">
+              Twenty-two glycocalyx genes, sorted by pathway rank
+            </h2>
+          </div>
+          <span className="text-[0.72rem] text-muted-foreground">
+            Click any row to drill into its per-target evidence
           </span>
-        </CardHeader>
-        <CardContent>
-          <RankingTable
-            genes={priors.genes}
-            geneformerAvailable={priors.geneformer_available}
-            selectedGene={activeGene}
-            onSelectGene={setSelectedGene}
-          />
-        </CardContent>
-      </Card>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <RankingTable
+              genes={priors.genes}
+              geneformerAvailable={priors.geneformer_available}
+              selectedGene={activeGene}
+              onSelectGene={setSelectedGene}
+            />
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Per-gene drill-down */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Per-gene drill-down</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activeGene ? (
-            <DrillDownPanel
-              gene={activeGene}
-              mechanoSignature={priors.mechano_signature}
-              onGeneChange={setSelectedGene}
-              availableGenes={priors.genes.map((g) => g.gene)}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">No genes available.</p>
-          )}
-        </CardContent>
-      </Card>
+      <section className="space-y-4">
+        <div>
+          <div className="section-label">Per-gene drill-down</div>
+          <h2 className="mt-1 text-[1.05rem] font-semibold leading-tight text-foreground">
+            Shortest-path evidence for the selected gene
+          </h2>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            {activeGene ? (
+              <DrillDownPanel
+                gene={activeGene}
+                mechanoSignature={priors.mechano_signature}
+                onGeneChange={setSelectedGene}
+                availableGenes={priors.genes.map((g) => g.gene)}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No genes available.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Metabolic inhibitors panel */}
-      <Card>
-        <CardHeader className="flex-row items-baseline justify-between">
-          <CardTitle className="text-sm">Metabolic inhibitors</CardTitle>
-          <span className="font-mono text-[0.72rem] text-muted-foreground">
-            drug → primary target gene → position in ranked panel
-          </span>
-        </CardHeader>
-        <CardContent>
-          <MetabolicInhibitorTable inhibitors={priors.metabolic_inhibitors} />
-        </CardContent>
-      </Card>
+      <section className="space-y-4">
+        <div>
+          <div className="section-label">Metabolic inhibitors</div>
+          <h2 className="mt-1 text-[1.05rem] font-semibold leading-tight text-foreground">
+            Where each drug sits in the ranked panel via its primary target
+          </h2>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <MetabolicInhibitorTable
+              inhibitors={priors.metabolic_inhibitors}
+            />
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }

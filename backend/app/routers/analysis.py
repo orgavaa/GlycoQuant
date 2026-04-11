@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
 
 from fastapi import (
     APIRouter,
@@ -28,7 +27,7 @@ CANONICAL_CHANNELS = ("dapi", "glycocalyx", "yap", "paxillin", "actin")
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def submit_analysis(
     background_tasks: BackgroundTasks,
-    demo_condition: Literal["control", "siSDC1", "heparinase"] | None = Form(default=None),  # noqa: B008
+    demo_condition: str | None = Form(default=None),  # noqa: B008
     cell_diameter: int = Form(default=80),  # noqa: B008
     include_deep_features: bool = Form(default=False),  # noqa: B008
     upload: UploadFile | None = File(default=None),  # noqa: B008
@@ -36,8 +35,8 @@ async def submit_analysis(
     """Queue an analysis job and return its ``job_id`` immediately.
 
     The caller must provide either a ``demo_condition`` (loads one of
-    the three bundled synthetic TIFFs from ``data/demo/``) or a file
-    ``upload`` (streamed to a temp file, loaded, and analyzed).
+    the bundled TIFFs from ``data/demo/``, identified by its manifest
+    ``name``) or a file ``upload`` (loaded and analyzed directly).
     """
     if demo_condition is None and upload is None:
         raise HTTPException(

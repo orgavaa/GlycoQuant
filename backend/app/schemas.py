@@ -16,9 +16,9 @@ class AnalyzeRequest(BaseModel):
     and this schema is not used directly.
     """
 
-    demo_condition: Literal["control", "siSDC1", "heparinase"] | None = Field(
+    demo_condition: str | None = Field(
         default=None,
-        description="Load a bundled synthetic demo image by condition name.",
+        description="Load a bundled demo dataset by its manifest name.",
     )
     cell_diameter: int = Field(default=80, ge=10, le=300)
     include_deep_features: bool = Field(default=False)
@@ -84,8 +84,16 @@ class JobStatusResponse(BaseModel):
 
 class DemoCondition(BaseModel):
     name: str
+    display_name: str = ""
     description: str
-    cell_count: int
+    source: str = "Synthetic"
+    license: str = ""
+    attribution: str = ""
+    attribution_url: str = ""
+    gene: str = ""
+    cell_line: str = ""
+    is_real_microscopy: bool = False
+    slot_sources: dict[str, Any] = Field(default_factory=dict)
 
 
 class DemoListResponse(BaseModel):

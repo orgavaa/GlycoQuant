@@ -65,6 +65,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        // Inter everywhere — headings, body, numbers, monospace blocks alike.
+        // We still expose a "mono" alias that resolves to Inter so existing
+        // `font-mono` classes (for tabular-nums numeric displays) don't break.
         sans: [
           "Inter",
           "-apple-system",
@@ -74,11 +77,12 @@ const config: Config = {
           "sans-serif",
         ],
         mono: [
-          "JetBrains Mono",
-          "SF Mono",
-          "Consolas",
-          "Liberation Mono",
-          "monospace",
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif",
         ],
       },
       keyframes: {

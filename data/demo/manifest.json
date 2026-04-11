@@ -1,4 +1,5 @@
 {
+  "schema_version": 2,
   "channel_order": [
     "dapi",
     "glycocalyx",
@@ -6,14 +7,165 @@
     "paxillin",
     "actin"
   ],
-  "image_size": [
-    512,
-    512
-  ],
-  "conditions": [
-    "control",
-    "siSDC1",
-    "heparinase"
-  ],
-  "cell_count": 5
+  "datasets": [
+    {
+      "name": "HPA_SDC1_U2OS",
+      "display_name": "SDC1 \u2014 U-2 OS (osteosarcoma)",
+      "source": "Human Protein Atlas",
+      "license": "CC BY-SA 3.0",
+      "attribution": "Human Protein Atlas, SDC1 in U-2 OS (osteosarcoma), antibody 6185/95_B1_1",
+      "attribution_url": "https://www.proteinatlas.org/ENSG00000115884-SDC1/subcellular",
+      "gene": "SDC1",
+      "ensembl_id": "ENSG00000115884",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Syndecan-1 immunofluorescence in U-2 OS cells. SDC1 is the primary heparan-sulfate proteoglycan target for glycocalyx perturbation studies.",
+      "is_real_microscopy": true,
+      "native_image_size": [
+        1728,
+        1728
+      ],
+      "image_size": [
+        768,
+        768
+      ],
+      "crop_strategy": "DAPI-dense center crop at native resolution; preserves per-cell pixel size so Cellpose-SAM operates at ~0.88 average precision (Stringer & Pachitariu 2024 benchmark).",
+      "slot_sources": {
+        "dapi": {
+          "hpa_channel": "blue",
+          "biological_identity": "DAPI (nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "hpa_channel": "green",
+          "biological_identity": "anti-SDC1 immunofluorescence",
+          "matches_labouesse_protocol": false,
+          "note": "Real antibody stain of SDC1. Labouesse protocol expects WGA-lectin in this slot \u2014 SDC1 is a glycocalyx target gene, so feature extraction on this slot still exercises the pipeline meaningfully."
+        },
+        "yap": {
+          "hpa_channel": "green (duplicated)",
+          "biological_identity": "anti-SDC1 (duplicate of slot 1)",
+          "matches_labouesse_protocol": false,
+          "note": "HPA does not provide a YAP co-stain in this image. The YAP slot is duplicated from the antibody channel so the pipeline runs end-to-end; YAP N/C ratios computed on this image are not biologically meaningful."
+        },
+        "paxillin": {
+          "hpa_channel": "yellow",
+          "biological_identity": "ER reference stain",
+          "matches_labouesse_protocol": false,
+          "note": "Real endoplasmic reticulum reference, not paxillin. Focal-adhesion features on this image reflect ER punctate structure and should not be interpreted biologically."
+        },
+        "actin": {
+          "hpa_channel": "red",
+          "biological_identity": "microtubule reference stain",
+          "matches_labouesse_protocol": false,
+          "note": "Real microtubule reference, not phalloidin-stained actin. Actin coherence values reflect microtubule organisation."
+        }
+      }
+    },
+    {
+      "name": "HPA_CD44_U251MG",
+      "display_name": "CD44 \u2014 U-251 MG (glioma)",
+      "source": "Human Protein Atlas",
+      "license": "CC BY-SA 3.0",
+      "attribution": "Human Protein Atlas, CD44 in U-251 MG (glioma), antibody 112/207_F1_1",
+      "attribution_url": "https://www.proteinatlas.org/ENSG00000026508-CD44/subcellular",
+      "gene": "CD44",
+      "ensembl_id": "ENSG00000026508",
+      "cell_line": "U-251 MG (glioma)",
+      "description": "CD44 immunofluorescence. CD44 is the top-ranked gene in the STRING pathway prior shown in Tab 2.",
+      "is_real_microscopy": true,
+      "native_image_size": [
+        1728,
+        1728
+      ],
+      "image_size": [
+        768,
+        768
+      ],
+      "crop_strategy": "DAPI-dense center crop at native resolution; preserves per-cell pixel size so Cellpose-SAM operates at ~0.88 average precision (Stringer & Pachitariu 2024 benchmark).",
+      "slot_sources": {
+        "dapi": {
+          "hpa_channel": "blue",
+          "biological_identity": "DAPI (nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "hpa_channel": "green",
+          "biological_identity": "anti-CD44 immunofluorescence",
+          "matches_labouesse_protocol": false,
+          "note": "Real antibody stain of CD44. Labouesse protocol expects WGA-lectin in this slot \u2014 CD44 is a glycocalyx target gene, so feature extraction on this slot still exercises the pipeline meaningfully."
+        },
+        "yap": {
+          "hpa_channel": "green (duplicated)",
+          "biological_identity": "anti-CD44 (duplicate of slot 1)",
+          "matches_labouesse_protocol": false,
+          "note": "HPA does not provide a YAP co-stain in this image. The YAP slot is duplicated from the antibody channel so the pipeline runs end-to-end; YAP N/C ratios computed on this image are not biologically meaningful."
+        },
+        "paxillin": {
+          "hpa_channel": "yellow",
+          "biological_identity": "ER reference stain",
+          "matches_labouesse_protocol": false,
+          "note": "Real endoplasmic reticulum reference, not paxillin. Focal-adhesion features on this image reflect ER punctate structure and should not be interpreted biologically."
+        },
+        "actin": {
+          "hpa_channel": "red",
+          "biological_identity": "microtubule reference stain",
+          "matches_labouesse_protocol": false,
+          "note": "Real microtubule reference, not phalloidin-stained actin. Actin coherence values reflect microtubule organisation."
+        }
+      }
+    },
+    {
+      "name": "HPA_YAP1_U2OS",
+      "display_name": "YAP1 \u2014 U-2 OS (osteosarcoma)",
+      "source": "Human Protein Atlas",
+      "license": "CC BY-SA 3.0",
+      "attribution": "Human Protein Atlas, YAP1 in U-2 OS (osteosarcoma), antibody 38884/862_E4_1",
+      "attribution_url": "https://www.proteinatlas.org/ENSG00000137693-YAP1/subcellular",
+      "gene": "YAP1",
+      "ensembl_id": "ENSG00000137693",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "YAP1 immunofluorescence. YAP is the canonical mechanotransduction readout; Dupont et al. Nature 2011.",
+      "is_real_microscopy": true,
+      "native_image_size": [
+        2048,
+        2048
+      ],
+      "image_size": [
+        768,
+        768
+      ],
+      "crop_strategy": "DAPI-dense center crop at native resolution; preserves per-cell pixel size so Cellpose-SAM operates at ~0.88 average precision (Stringer & Pachitariu 2024 benchmark).",
+      "slot_sources": {
+        "dapi": {
+          "hpa_channel": "blue",
+          "biological_identity": "DAPI (nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "hpa_channel": "green",
+          "biological_identity": "anti-YAP1 immunofluorescence",
+          "matches_labouesse_protocol": false,
+          "note": "Real antibody stain of YAP1. Labouesse protocol expects WGA-lectin in this slot \u2014 YAP1 is a glycocalyx target gene, so feature extraction on this slot still exercises the pipeline meaningfully."
+        },
+        "yap": {
+          "hpa_channel": "green (duplicated)",
+          "biological_identity": "anti-YAP1 (duplicate of slot 1)",
+          "matches_labouesse_protocol": false,
+          "note": "HPA does not provide a YAP co-stain in this image. The YAP slot is duplicated from the antibody channel so the pipeline runs end-to-end; YAP N/C ratios computed on this image are not biologically meaningful."
+        },
+        "paxillin": {
+          "hpa_channel": "yellow",
+          "biological_identity": "ER reference stain",
+          "matches_labouesse_protocol": false,
+          "note": "Real endoplasmic reticulum reference, not paxillin. Focal-adhesion features on this image reflect ER punctate structure and should not be interpreted biologically."
+        },
+        "actin": {
+          "hpa_channel": "red",
+          "biological_identity": "microtubule reference stain",
+          "matches_labouesse_protocol": false,
+          "note": "Real microtubule reference, not phalloidin-stained actin. Actin coherence values reflect microtubule organisation."
+        }
+      }
+    }
+  ]
 }

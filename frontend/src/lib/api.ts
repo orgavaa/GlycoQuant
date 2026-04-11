@@ -61,10 +61,25 @@ export interface AnalyzeResponse {
   created_at: string;
 }
 
+export interface DemoChannelSlotSource {
+  hpa_channel?: string;
+  biological_identity: string;
+  matches_labouesse_protocol: boolean;
+  note?: string;
+}
+
 export interface DemoCondition {
   name: string;
+  display_name: string;
   description: string;
-  cell_count: number;
+  source: string;
+  license: string;
+  attribution: string;
+  attribution_url: string;
+  gene: string;
+  cell_line: string;
+  is_real_microscopy: boolean;
+  slot_sources: Record<string, DemoChannelSlotSource>;
 }
 
 export interface DemoListResponse {
@@ -130,8 +145,14 @@ export async function fetchDemoList(): Promise<DemoListResponse> {
   return data;
 }
 
+/** URL of the bundled preview PNG for a given dataset name. */
+export function demoPreviewUrl(name: string): string {
+  return `${BASE_URL}/demo/${name}/preview`;
+}
+
 export interface SubmitAnalyzeArgs {
-  demoCondition?: "control" | "siSDC1" | "heparinase";
+  /** Name of a bundled demo dataset (see GET /demo). */
+  demoCondition?: string;
   upload?: File;
   cellDiameter: number;
   includeDeepFeatures: boolean;

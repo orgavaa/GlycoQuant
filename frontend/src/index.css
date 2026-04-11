@@ -26,30 +26,37 @@
 */
 
 @layer base {
+  /*
+    Restricted monochrome palette per senior-scientist brief:
+    - background: pure white
+    - text hierarchy: slate scale (greys), zero coloured accents in the base UI
+    - only "functional" colour is a dark slate used as primary for buttons,
+      keeping alerts (info/warning/destructive) with subtle tinted greys
+  */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%;          /* white */
+    --foreground: 222 47% 11%;        /* slate-900 */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 199 89% 48%;
+    --primary: 222 47% 11%;           /* slate-900 — primary buttons are dark */
     --primary-foreground: 0 0% 100%;
-    --brand: 174 77% 31%;
+    --brand: 215 20% 35%;             /* slate-600 — neutral emphasis */
     --brand-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
+    --secondary: 210 40% 96%;         /* slate-100 */
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 98%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 204 94% 94%;
-    --accent-foreground: 199 89% 30%;
+    --muted: 210 40% 98%;             /* slate-50 */
+    --muted-foreground: 215 16% 47%;  /* slate-600 */
+    --accent: 210 40% 96%;            /* slate-100 */
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --warning: 21 90% 48%;
-    --border: 214 32% 91%;
+    --success: 142 50% 36%;           /* desaturated green, restrained */
+    --warning: 35 80% 45%;            /* desaturated amber, restrained */
+    --border: 214 32% 91%;            /* slate-200 */
     --input: 214 32% 91%;
-    --ring: 199 89% 48%;
+    --ring: 222 47% 11%;
     --radius: 0.625rem;
   }
 
