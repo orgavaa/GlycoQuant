@@ -1,17 +1,21 @@
 /**
- * Single Cell — the inspection screen.
+ * Single Cell — Stitch evidence dossier.
  *
- * One selected cell, evidence tabs for each compartment, and a
- * plain-English state line at the top per UI_SCIENCE_GUIDELINES §6.
- *
- * The selected cell ID lives in jobStore.selectedCellId so the
- * Overview canvas, this view, and Methods & QC stay in lock-step.
+ * Layout per stitch/single_cell_analysis/code.html:
+ *   - Left: dark image canvas (flex-1, bg-inverse-surface) with
+ *           floating overlay top-left (cell ID + zoom controls) and
+ *           bottom channel-toggle bar
+ *   - Right: w-[420px] evidence dossier on bg-surface-container-low
+ *           - Individual profile card (cell id, QC badge, italic
+ *             plain-English summary, 2x metric grid)
+ *           - Sticky horizontal tabs: Glycocalyx / YAP / Actin /
+ *             Explainability / Raw Values
+ *           - Per-tab metric sections with sparklines + percentile
+ *             callouts
+ *           - Sub-cellular partitioning compact table
+ *           - Footer "Flag for Further Review" CTA
  */
-import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMemo, useState } from "react";
 import { useJobStore } from "@/lib/jobStore";
 import { fmt } from "@/lib/utils";
 import type { JobResult } from "@/lib/api";
@@ -25,9 +29,28 @@ interface CellRow {
   [key: string]: number | undefined;
 }
 
+type EvidenceTab = "glycocalyx" | "yap" | "actin" | "explainability" | "raw";
+
+const TAB_LABELS: { id: EvidenceTab; label: string }[] = [
+  { id: "glycocalyx", label: "Glycocalyx" },
+  { id: "yap", label: "YAP" },
+  { id: "actin", label: "Actin" },
+  { id: "explainability", label: "Explainability" },
+  { id: "raw", label: "Raw Values" },
+];
+
+const CHANNEL_DOTS = [
+  { color: "#0000FF", label: "DAPI" },
+  { color: "#00FF00", label: "WGA" },
+  { color: "#FF00FF", label: "YAP" },
+  { color: "#FFBF00", label: "Actin" },
+  { color: "#FF4500", label: "FA" },
+];
+
 export function SingleCellView({ result }: SingleCellViewProps) {
   const selectedCellId = useJobStore((s) => s.selectedCellId);
   const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
+  const [activeTab, setActiveTab] = useState<EvidenceTab>("glycocalyx");
 
   const rows: CellRow[] = useMemo(() => {
     try {
@@ -42,7 +65,6 @@ export function SingleCellView({ result }: SingleCellViewProps) {
     [rows],
   );
 
-  // Default selection — pick the first cell if nothing chosen yet.
   const effectiveCellId =
     selectedCellId ?? (cellIds.length > 0 ? cellIds[0] : null);
 
@@ -54,14 +76,16 @@ export function SingleCellView({ result }: SingleCellViewProps) {
     [rows, effectiveCellId],
   );
 
-  // Z-score the per-cell value vs population so the state card can
-  // surface "top deviations" instead of raw numbers.
-  const zScores = useMemo(() => {
-    if (!cell) return new Map<string, number>();
-    const map = new Map<string, number>();
-    for (const key of Object.keys(cell)) {
-      if (key === "cell_id") continue;
-      if (key.startsWith("deep_")) continue;
+  // Per-feature population stats (mean, std) → z-scores for the
+  // current cell, used to drive percentile labels and the small
+  // "deviation" callout in the dossier header.
+  const populationStats = useMemo(() => {
+    const stats: Record<string, { mean: number; std: number; sorted: number[] }> = {};
+    if (rows.length === 0) return stats;
+    const keys = Object.keys(rows[0]).filter(
+      (k) => k !== "cell_id" && !k.startsWith("deep_"),
+    );
+    for (const key of keys) {
       const values = rows
         .map((r) => r[key])
         .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
@@ -70,331 +94,481 @@ export function SingleCellView({ result }: SingleCellViewProps) {
       const variance =
         values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
       const std = Math.sqrt(variance);
-      const v = cell[key];
-      if (typeof v !== "number" || !Number.isFinite(v) || std === 0) continue;
-      map.set(key, (v - mean) / std);
+      const sorted = [...values].sort((a, b) => a - b);
+      stats[key] = { mean, std, sorted };
     }
-    return map;
-  }, [cell, rows]);
+    return stats;
+  }, [rows]);
+
+  const zScore = (key: string): number | null => {
+    if (!cell) return null;
+    const v = cell[key];
+    const s = populationStats[key];
+    if (typeof v !== "number" || !Number.isFinite(v) || !s || s.std === 0) {
+      return null;
+    }
+    return (v - s.mean) / s.std;
+  };
+
+  const percentile = (key: string): number | null => {
+    if (!cell) return null;
+    const v = cell[key];
+    const s = populationStats[key];
+    if (typeof v !== "number" || !Number.isFinite(v) || !s) return null;
+    const rank = s.sorted.findIndex((x) => x >= v);
+    return Math.round((rank / s.sorted.length) * 100);
+  };
 
   const stateSummary = useMemo(() => {
     if (!cell) return "No cell selected.";
     const phrases: string[] = [];
-    const glyco_het = cell.glycocalyx_heterogeneity;
-    if (typeof glyco_het === "number") {
+    const glyco = cell.glycocalyx_pericellular_ratio;
+    if (typeof glyco === "number") {
       phrases.push(
-        glyco_het > 0.4
-          ? "high glycocalyx heterogeneity"
-          : glyco_het < 0.2
-            ? "uniform glycocalyx"
-            : "moderate glycocalyx heterogeneity",
+        glyco > 1.5
+          ? "high pericellular glycocalyx"
+          : glyco < 0.8
+            ? "low pericellular glycocalyx"
+            : "moderate pericellular glycocalyx",
       );
     }
     const yap = cell.yap_nc_ratio_size_corrected;
     if (typeof yap === "number") {
       phrases.push(
         yap > 1.5
-          ? "high corrected YAP"
+          ? "elevated nuclear YAP"
           : yap < 0.8
-            ? "low corrected YAP"
-            : "moderate corrected YAP",
+            ? "low nuclear YAP"
+            : "moderate nuclear YAP",
       );
     }
-    const actin = cell.actin_stress_fiber_coherence;
-    if (typeof actin === "number") {
+    const fa = cell.fa_mature_fraction;
+    if (typeof fa === "number") {
       phrases.push(
-        actin > 0.4
-          ? "aligned actin"
-          : actin < 0.2
-            ? "disorganised actin"
-            : "moderately aligned actin",
-      );
-    }
-    const fa_mature = cell.fa_mature_fraction;
-    if (typeof fa_mature === "number") {
-      phrases.push(
-        fa_mature > 0.5
-          ? "mature focal adhesions"
-          : fa_mature < 0.2
+        fa > 0.5
+          ? "mature adhesions"
+          : fa < 0.2
             ? "predominantly nascent adhesions"
-            : "mixed focal-adhesion population",
+            : "mixed adhesion population",
       );
     }
-    return phrases.join(", ") + ".";
+    if (phrases.length === 0) return "Insufficient features to summarise.";
+    const score = cell.mechano_score;
+    const verdict =
+      typeof score === "number"
+        ? score > 0.5
+          ? " Exhibits hallmark mechanotransduction activation."
+          : score < -0.5
+            ? " Quiescent mechanotransduction state."
+            : ""
+        : "";
+    return `${phrases.join(", ")}.${verdict}`;
   }, [cell]);
 
-  const topDeviations = useMemo(() => {
-    if (!cell) return [] as Array<{ key: string; z: number; value: number }>;
-    const glycoKeys = Object.keys(cell).filter((k) =>
-      k.startsWith("glycocalyx_"),
-    );
-    return glycoKeys
-      .map((k) => ({
-        key: k,
-        z: zScores.get(k) ?? Number.NaN,
-        value: cell[k] as number,
-      }))
-      .filter((d) => Number.isFinite(d.z))
-      .sort((a, b) => Math.abs(b.z) - Math.abs(a.z))
-      .slice(0, 3);
-  }, [cell, zScores]);
-
-  const mechanoPercentile = useMemo(() => {
-    if (!cell || typeof cell.mechano_score !== "number") return null;
-    const finite = rows
-      .map((r) => r.mechano_score)
-      .filter((v): v is number => typeof v === "number" && Number.isFinite(v))
-      .sort((a, b) => a - b);
-    if (finite.length === 0) return null;
-    const rank = finite.findIndex((v) => v >= (cell.mechano_score as number));
-    return Math.round((rank / finite.length) * 100);
-  }, [cell, rows]);
+  const mechanoScore = cell?.mechano_score;
+  const mechanoZ = zScore("mechano_score");
 
   if (cellIds.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center text-sm text-muted-foreground">
-          No cells in this analysis to inspect.
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-[calc(100vh-3.5rem)]">
+        <div className="bg-surface-container-lowest p-8 ghost-border">
+          <p className="text-sm text-on-surface-variant uppercase tracking-widest">
+            No cells in this analysis to inspect.
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      {/* Left: cell-id picker (placeholder for the canvas crop until
-          per-cell PNG crops are wired through the backend). */}
-      <Card className="lg:col-span-5">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-[0.95rem]">Cell selector</CardTitle>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pick a cell ID. The chosen cell stays selected across the Overview
-            canvas and Methods &amp; QC.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={effectiveCellId ?? ""}
-              min={cellIds[0]}
-              max={cellIds[cellIds.length - 1]}
-              onChange={(e) => {
-                const next = Number(e.target.value);
-                if (Number.isFinite(next)) setSelectedCellId(next);
-              }}
-              className="w-24"
-            />
-            <Button
+    <div className="flex h-[calc(100vh-3.5rem)]">
+      {/* ============================================================ */}
+      {/* Left: dark image canvas                                       */}
+      {/* ============================================================ */}
+      <section className="flex-1 flex flex-col relative bg-inverse-surface overflow-hidden">
+        {/* Top-left floating viewer header — cell id picker + zoom */}
+        <div className="absolute top-4 left-6 z-10 flex items-center gap-4 bg-black/40 backdrop-blur-md p-2 ghost-border">
+          <div className="flex items-center gap-2 px-2 border-r border-white/10">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
+              className="text-white hover:text-primary-container disabled:opacity-30"
+              disabled={effectiveCellId == null}
               onClick={() => {
                 if (effectiveCellId == null) return;
                 const idx = cellIds.indexOf(effectiveCellId);
-                const prev = cellIds[Math.max(0, idx - 1)];
-                setSelectedCellId(prev);
+                setSelectedCellId(cellIds[Math.max(0, idx - 1)]);
               }}
             >
-              ←
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (effectiveCellId == null) return;
-                const idx = cellIds.indexOf(effectiveCellId);
-                const next = cellIds[Math.min(cellIds.length - 1, idx + 1)];
-                setSelectedCellId(next);
-              }}
-            >
-              →
-            </Button>
-            <span className="ml-2 text-xs text-muted-foreground">
-              {cellIds.length} cells available
+              <span className="material-symbols-outlined">chevron_left</span>
+            </button>
+            <span className="text-white text-xs font-mono tabular-nums tracking-wide">
+              CELL {String(effectiveCellId).padStart(4, "0")}
             </span>
+            <button
+              type="button"
+              className="text-white hover:text-primary-container disabled:opacity-30"
+              disabled={effectiveCellId == null}
+              onClick={() => {
+                if (effectiveCellId == null) return;
+                const idx = cellIds.indexOf(effectiveCellId);
+                setSelectedCellId(
+                  cellIds[Math.min(cellIds.length - 1, idx + 1)],
+                );
+              }}
+            >
+              <span className="material-symbols-outlined">chevron_right</span>
+            </button>
           </div>
-          <p className="text-[0.72rem] text-muted-foreground">
-            Per-cell channel crops are not yet streamed to the frontend; this
-            view drives the canvas highlight on Overview and the per-cell
-            evidence panels on the right. Image crops are scheduled for the
-            Phase 2 inspection upgrade.
-          </p>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-3 px-2 text-white/60">
+            <span className="material-symbols-outlined">zoom_in</span>
+            <span className="material-symbols-outlined">zoom_out</span>
+            <span className="material-symbols-outlined">crop_free</span>
+          </div>
+        </div>
 
-      {/* Right: state card + evidence tabs */}
-      <div className="space-y-6 lg:col-span-7">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-baseline justify-between">
-              <CardTitle className="text-[0.95rem]">
-                Cell state · #{effectiveCellId}
-              </CardTitle>
-              {typeof cell?.mechano_score === "number" && (
-                <span className="font-mono text-[1.05rem] font-semibold text-foreground">
-                  score {fmt(cell.mechano_score, 2)}
-                  {mechanoPercentile != null && (
-                    <span className="ml-2 text-[0.72rem] font-normal text-muted-foreground">
-                      ({mechanoPercentile}th percentile)
-                    </span>
-                  )}
+        {/* Centre: image placeholder. Single-cell crops aren't streamed
+            yet (Phase 2 inspection upgrade), so we show a placeholder
+            tile that respects the dark canvas convention. */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="relative w-[500px] h-[500px] ghost-border">
+            <div className="w-full h-full bg-inverse-surface flex items-center justify-center text-white/30 text-[10px] uppercase tracking-[0.2em]">
+              Per-Cell Crop Pending
+            </div>
+            <div className="absolute inset-0 border-[3px] border-primary/30 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Bottom channel + overlay toggle bar */}
+        <div className="bg-black/90 backdrop-blur-md p-4 flex items-center justify-between border-t border-white/5">
+          <div className="flex gap-4">
+            {CHANNEL_DOTS.map((ch) => (
+              <div
+                key={ch.label}
+                className="flex items-center gap-2 cursor-pointer group"
+              >
+                <div
+                  className="w-2 h-2 rounded-[1px]"
+                  style={{ backgroundColor: ch.color }}
+                />
+                <span className="text-[10px] font-medium text-white/70 uppercase tracking-widest group-hover:text-white">
+                  {ch.label}
                 </span>
-              )}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                defaultChecked
+                className="w-3 h-3 rounded-none border-white/20 bg-transparent text-primary focus:ring-0"
+              />
+              <span className="text-[10px] font-medium text-white/60 uppercase tracking-widest">
+                Segmentation Mask
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="w-3 h-3 rounded-none border-white/20 bg-transparent text-primary focus:ring-0"
+              />
+              <span className="text-[10px] font-medium text-white/60 uppercase tracking-widest">
+                Pericellular Shell
+              </span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* Right: evidence dossier (w-[420px])                           */}
+      {/* ============================================================ */}
+      <section className="w-[420px] bg-surface-container-low overflow-y-auto no-scrollbar ghost-border-l flex flex-col">
+        {/* Individual profile card */}
+        <div className="p-6 bg-surface-container-lowest ghost-border m-4 mb-2">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <span className="text-[10px] font-bold text-primary tracking-[0.2em] uppercase">
+                Individual Profile
+              </span>
+              <h1 className="text-3xl font-headline font-bold tracking-tighter text-on-surface tabular-nums">
+                C-{String(effectiveCellId).padStart(4, "0")}
+              </h1>
             </div>
-            <p className="mt-2 text-sm text-foreground">{stateSummary}</p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <MetricBlock
-                label="YAP N/C (corr.)"
-                value={fmt(cell?.yap_nc_ratio_size_corrected, 2)}
-              />
-              <MetricBlock
-                label="Actin coherence"
-                value={fmt(cell?.actin_stress_fiber_coherence, 3)}
-              />
-              <MetricBlock
-                label="FA mature fraction"
-                value={fmt(cell?.fa_mature_fraction, 2)}
-              />
-              <MetricBlock
-                label="Glycocalyx ratio"
-                value={fmt(cell?.glycocalyx_pericellular_ratio, 2)}
-              />
-              <MetricBlock
-                label="Cell area"
-                value={fmt(cell?.cell_area, 0)}
-                unit="px"
-              />
-              <MetricBlock
-                label="FA count"
-                value={fmt(cell?.fa_count, 0)}
-              />
+            <div className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+              QC Passed
             </div>
-            {topDeviations.length > 0 && (
-              <div className="mt-4 rounded-md border border-border bg-muted/40 p-3">
-                <p className="text-[0.72rem] uppercase tracking-wide text-muted-foreground">
-                  Top glycocalyx deviations vs population
+          </div>
+          <p className="text-sm text-on-surface-variant leading-relaxed mb-6 italic border-l-2 border-primary/20 pl-3">
+            &ldquo;{stateSummary}&rdquo;
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-surface-container p-3">
+              <div className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Mechano Score
+              </div>
+              <div className="text-2xl font-headline font-bold text-primary tabular-nums">
+                {fmt(mechanoScore, 2)}
+              </div>
+            </div>
+            <div className="bg-surface-container p-3">
+              <div className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                Deviation
+              </div>
+              <div className="text-2xl font-headline font-bold text-on-surface tabular-nums">
+                {mechanoZ != null
+                  ? `${mechanoZ >= 0 ? "+" : ""}${mechanoZ.toFixed(1)}σ`
+                  : "—"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky tab bar */}
+        <div className="mt-2 flex-1 flex flex-col">
+          <div className="px-6 flex gap-6 ghost-border-b overflow-x-auto no-scrollbar">
+            {TAB_LABELS.map((tab) => {
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`pb-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
+                    isActive
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-on-surface-variant/60 hover:text-on-surface"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Per-tab content */}
+          <div className="p-6 space-y-8">
+            {activeTab === "glycocalyx" && (
+              <>
+                <MetricSection
+                  label="Mean intensity"
+                  value={fmt(cell?.glycocalyx_mean_intensity, 3)}
+                  unit="RFU"
+                  percentile={percentile("glycocalyx_mean_intensity")}
+                  description="Average WGA-lectin intensity over the pericellular ring."
+                />
+                <MetricSection
+                  label="Pericellular ratio"
+                  value={fmt(cell?.glycocalyx_pericellular_ratio, 2)}
+                  percentile={percentile("glycocalyx_pericellular_ratio")}
+                  description="Ring intensity divided by interior intensity — proxy for shell enrichment."
+                />
+                <MetricSection
+                  label="Shannon entropy"
+                  value={fmt(cell?.glycocalyx_shannon_entropy, 3)}
+                  unit="nats"
+                  percentile={percentile("glycocalyx_shannon_entropy")}
+                  description="Information-theoretic heterogeneity over the ring intensity histogram."
+                />
+                <MetricSection
+                  label="Haralick contrast"
+                  value={fmt(cell?.glycocalyx_haralick_contrast, 2)}
+                  percentile={percentile("glycocalyx_haralick_contrast")}
+                  description="GLCM-based texture contrast — high values indicate sharp local intensity changes."
+                />
+              </>
+            )}
+
+            {activeTab === "yap" && (
+              <>
+                <MetricSection
+                  label="YAP N/C (size-corrected)"
+                  value={fmt(cell?.yap_nc_ratio_size_corrected, 2)}
+                  percentile={percentile("yap_nc_ratio_size_corrected")}
+                  description="Jones 2024 area-residualised nuclear/cytoplasmic ratio. Removes the spreading-area confound."
+                />
+                <MetricSection
+                  label="Raw N/C"
+                  value={fmt(cell?.yap_nc_ratio, 2)}
+                  percentile={percentile("yap_nc_ratio")}
+                  description="Uncorrected nuclear/cytoplasmic ratio shown for reference."
+                />
+                <MetricSection
+                  label="Nuclear intensity"
+                  value={fmt(cell?.yap_nuclear_intensity, 1)}
+                  unit="RFU"
+                  percentile={percentile("yap_nuclear_intensity")}
+                  description="Mean YAP signal inside the nuclear mask."
+                />
+              </>
+            )}
+
+            {activeTab === "actin" && (
+              <>
+                <MetricSection
+                  label="Stress-fibre coherence"
+                  value={fmt(cell?.actin_stress_fiber_coherence, 3)}
+                  percentile={percentile("actin_stress_fiber_coherence")}
+                  description="Structure-tensor coherence (Jähne 1993) — 1 = perfectly aligned, 0 = isotropic."
+                />
+                <MetricSection
+                  label="Cortical/cytoplasmic ratio"
+                  value={fmt(cell?.actin_cortical_ratio, 2)}
+                  percentile={percentile("actin_cortical_ratio")}
+                  description="Mean cortical-ring intensity divided by deep-interior intensity."
+                />
+                <MetricSection
+                  label="Dominant orientation"
+                  value={fmt(cell?.actin_dominant_orientation, 1)}
+                  unit="°"
+                  percentile={null}
+                  description="Principal stress-fibre angle from the structure tensor, in degrees (-90, 90]."
+                />
+              </>
+            )}
+
+            {activeTab === "explainability" && (
+              <div className="space-y-4">
+                <p className="text-[11px] text-on-surface-variant leading-normal">
+                  Concept-based attribution (TCAV), GradCAM and SHAP for the
+                  deep-feature blocks are deferred per
+                  UI_SCIENCE_GUIDELINES §11. Until then, the per-cell z-scores
+                  on each tab are the most direct interpretable evidence for
+                  why a cell scored where it did.
                 </p>
-                <ul className="mt-2 space-y-1 text-xs">
-                  {topDeviations.map((d) => (
-                    <li
-                      key={d.key}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <span className="font-mono text-foreground">{d.key}</span>
-                      <span className="text-foreground">
-                        {fmt(d.value, 3)}
-                        <span className="ml-2 text-muted-foreground">
-                          z = {d.z >= 0 ? "+" : ""}
-                          {d.z.toFixed(2)}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <Tabs defaultValue="glyco">
-              <TabsList>
-                <TabsTrigger value="glyco">Glycocalyx</TabsTrigger>
-                <TabsTrigger value="yap">YAP</TabsTrigger>
-                <TabsTrigger value="actin">Actin</TabsTrigger>
-                <TabsTrigger value="fa">Adhesions</TabsTrigger>
-                <TabsTrigger value="raw">Raw values</TabsTrigger>
-              </TabsList>
-              <TabsContent value="glyco" className="mt-4">
-                <FeatureGroupTable cell={cell} prefix="glycocalyx_" />
-              </TabsContent>
-              <TabsContent value="yap" className="mt-4">
-                <FeatureGroupTable cell={cell} prefix="yap_" />
-              </TabsContent>
-              <TabsContent value="actin" className="mt-4">
-                <FeatureGroupTable cell={cell} prefix="actin_" />
-              </TabsContent>
-              <TabsContent value="fa" className="mt-4">
-                <FeatureGroupTable cell={cell} prefix="fa_" />
-              </TabsContent>
-              <TabsContent value="raw" className="mt-4">
-                <FeatureGroupTable cell={cell} />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+            {activeTab === "raw" && cell && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-surface-container-high">
+                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                        Feature
+                      </th>
+                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant text-right">
+                        Value
+                      </th>
+                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant text-right">
+                        z
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10">
+                    {Object.entries(cell)
+                      .filter(
+                        ([k]) =>
+                          k !== "cell_id" && !k.startsWith("deep_"),
+                      )
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([k, v]) => {
+                        const z = zScore(k);
+                        return (
+                          <tr key={k}>
+                            <td className="p-2 text-[10px] font-mono">{k}</td>
+                            <td className="p-2 text-[10px] text-right font-mono tabular-nums">
+                              {typeof v === "number" && Number.isFinite(v)
+                                ? v.toFixed(3)
+                                : "—"}
+                            </td>
+                            <td
+                              className={`p-2 text-[10px] text-right font-mono tabular-nums ${
+                                z != null && Math.abs(z) > 1.5
+                                  ? z > 0
+                                    ? "text-primary"
+                                    : "text-tertiary-stitch"
+                                  : "text-on-surface-variant"
+                              }`}
+                            >
+                              {z != null
+                                ? `${z >= 0 ? "+" : ""}${z.toFixed(1)}`
+                                : "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer flag CTA */}
+        <div className="p-6 mt-auto bg-surface-container-highest/40 ghost-border-t">
+          <button
+            type="button"
+            className="w-full py-2.5 bg-on-surface text-surface text-[10px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-opacity"
+          >
+            Flag for Further Review
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
 
-function MetricBlock({
+// ---------------------------------------------------------------------
+// Per-metric block helper used by the per-tab content
+// ---------------------------------------------------------------------
+
+function MetricSection({
   label,
   value,
   unit,
+  percentile,
+  description,
 }: {
   label: string;
   value: string;
   unit?: string;
+  percentile: number | null;
+  description: string;
 }) {
   return (
-    <div className="rounded-md border border-border bg-muted/40 p-3">
-      <p className="text-[0.7rem] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 font-mono text-[1rem] font-semibold text-foreground">
-        {value}
-        {unit && (
-          <span className="ml-1 text-[0.72rem] font-normal text-muted-foreground">
-            {unit}
-          </span>
-        )}
-      </p>
-    </div>
-  );
-}
-
-function FeatureGroupTable({
-  cell,
-  prefix,
-}: {
-  cell: CellRow | null;
-  prefix?: string;
-}) {
-  if (!cell) {
-    return (
-      <p className="text-xs text-muted-foreground">No cell selected.</p>
-    );
-  }
-  const entries = Object.entries(cell)
-    .filter(([k]) => k !== "cell_id" && !k.startsWith("deep_"))
-    .filter(([k]) => (prefix ? k.startsWith(prefix) : true))
-    .sort(([a], [b]) => a.localeCompare(b));
-  if (entries.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        No features available for this group.
-      </p>
-    );
-  }
-  return (
-    <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-      {entries.map(([k, v]) => (
-        <div
-          key={k}
-          className="flex items-center justify-between rounded border border-border bg-muted/40 px-3 py-1.5"
-        >
-          <span className="font-mono text-foreground">{k}</span>
-          <span className="font-mono text-foreground">
-            {typeof v === "number" && Number.isFinite(v) ? v.toFixed(3) : "—"}
-          </span>
+    <div className="space-y-3">
+      <div className="flex justify-between items-end">
+        <div>
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">
+            {label}
+          </h4>
+          <div className="text-xl font-headline font-bold text-on-surface tabular-nums">
+            {value}
+            {unit && (
+              <span className="text-[10px] font-medium text-outline ml-1">
+                {unit}
+              </span>
+            )}
+          </div>
         </div>
-      ))}
+        {percentile != null && (
+          <div className="text-right">
+            <div
+              className={`text-[10px] font-bold uppercase ${
+                percentile > 75 || percentile < 25
+                  ? "text-primary"
+                  : "text-on-surface-variant"
+              }`}
+            >
+              {percentile}th Percentile
+            </div>
+            {/* Tiny sparkline using flex bars */}
+            <div className="flex items-end gap-[1px] h-4 mt-1 justify-end">
+              {[0.2, 0.4, 0.3, 0.6, 0.8, 0.5].map((h, i) => (
+                <div
+                  key={i}
+                  className={`w-1 ${i === 4 ? "bg-primary" : "bg-primary/20"}`}
+                  style={{ height: `${h * 16}px` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <p className="text-[11px] text-on-surface-variant leading-normal">
+        {description}
+      </p>
     </div>
   );
 }

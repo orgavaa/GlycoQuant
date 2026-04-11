@@ -37,7 +37,9 @@
       "Bash(.venv/Scripts/python.exe scripts/download_bbbc_plate_field.py)",
       "Bash(tasklist //FI \"PID eq 33388\")",
       "Bash(.venv/Scripts/python.exe -m pytest tests/test_features_glycocalyx.py tests/test_features_fa.py tests/test_mechano_score.py tests/test_viz_glyco_mechano.py tests/test_channel_adaptive_dino.py tests/test_dynamic_ranking.py -q --tb=short)",
-      "Bash(.venv/Scripts/python.exe -m pytest tests/test_profiles.py -q --tb=short)"
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_profiles.py -q --tb=short)",
+      "Bash(unzip -l stitch.zip)",
+      "Bash(unzip -q stitch.zip -d stitch_unpacked)"
     ],
     "deny": [
       "Bash(rm -rf /)",
