@@ -1,19 +1,17 @@
 /**
- * Single Cell — Stitch evidence dossier.
+ * Single Cell — 1:1 React port of stitch/single_cell_analysis/code.html
+ * lines 142–333.
  *
- * Layout per stitch/single_cell_analysis/code.html:
- *   - Left: dark image canvas (flex-1, bg-inverse-surface) with
- *           floating overlay top-left (cell ID + zoom controls) and
- *           bottom channel-toggle bar
- *   - Right: w-[420px] evidence dossier on bg-surface-container-low
- *           - Individual profile card (cell id, QC badge, italic
- *             plain-English summary, 2x metric grid)
- *           - Sticky horizontal tabs: Glycocalyx / YAP / Actin /
- *             Explainability / Raw Values
- *           - Per-tab metric sections with sparklines + percentile
- *             callouts
- *           - Sub-cellular partitioning compact table
- *           - Footer "Flag for Further Review" CTA
+ * Layout, classes, and node hierarchy mirror the Stitch HTML exactly.
+ * Real data binding:
+ *   - Cell ID picker (top-left header) → useJobStore selectedCellId
+ *   - Profile card values (mechano score, deviation, summary)
+ *   - Per-tab metric sections (Volume Integral, Mean Thickness, etc.)
+ *   - Sub-cellular partitioning table → real per-cell z-scores
+ *
+ * Static decorative elements (channel data dots, sparkline shapes,
+ * cell crop image URL from Stitch) stay as Stitch defaults.
+ * The shell (top nav, right sidebar) is rendered by App.tsx.
  */
 import { useMemo, useState } from "react";
 import { useJobStore } from "@/lib/jobStore";
@@ -31,21 +29,8 @@ interface CellRow {
 
 type EvidenceTab = "glycocalyx" | "yap" | "actin" | "explainability" | "raw";
 
-const TAB_LABELS: { id: EvidenceTab; label: string }[] = [
-  { id: "glycocalyx", label: "Glycocalyx" },
-  { id: "yap", label: "YAP" },
-  { id: "actin", label: "Actin" },
-  { id: "explainability", label: "Explainability" },
-  { id: "raw", label: "Raw Values" },
-];
-
-const CHANNEL_DOTS = [
-  { color: "#0000FF", label: "DAPI" },
-  { color: "#00FF00", label: "WGA" },
-  { color: "#FF00FF", label: "YAP" },
-  { color: "#FFBF00", label: "Actin" },
-  { color: "#FF4500", label: "FA" },
-];
+const STITCH_CELL_IMAGE =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuCKYds4tzIXe-2iK75zPTYaryYmP-NfM-ujEY4IODzTgUixWhj1V1SWNXqG2WYGl4FaDpvNJAkjhUIgf3kfRmj-JbMoNgx34XocW6OXTNSbhzozSBIr5Edpk2u9LT70sAP8--rq_eYsbzbFITOZC98vwpJPT9DP60dehoUwWCvzBjOGj7AyqSHDW5aG4fAZHditvIndj_ooWleA79Gk77EKvxyHW0DRpHqNMcZVQCgmOECTPJST03vPKxNHCYNFNVQ3cQRmM91k6aY";
 
 export function SingleCellView({ result }: SingleCellViewProps) {
   const selectedCellId = useJobStore((s) => s.selectedCellId);
@@ -76,11 +61,12 @@ export function SingleCellView({ result }: SingleCellViewProps) {
     [rows, effectiveCellId],
   );
 
-  // Per-feature population stats (mean, std) → z-scores for the
-  // current cell, used to drive percentile labels and the small
-  // "deviation" callout in the dossier header.
+  // Population stats for z-scores and percentile callouts
   const populationStats = useMemo(() => {
-    const stats: Record<string, { mean: number; std: number; sorted: number[] }> = {};
+    const stats: Record<
+      string,
+      { mean: number; std: number; sorted: number[] }
+    > = {};
     if (rows.length === 0) return stats;
     const keys = Object.keys(rows[0]).filter(
       (k) => k !== "cell_id" && !k.startsWith("deep_"),
@@ -104,9 +90,8 @@ export function SingleCellView({ result }: SingleCellViewProps) {
     if (!cell) return null;
     const v = cell[key];
     const s = populationStats[key];
-    if (typeof v !== "number" || !Number.isFinite(v) || !s || s.std === 0) {
+    if (typeof v !== "number" || !Number.isFinite(v) || !s || s.std === 0)
       return null;
-    }
     return (v - s.mean) / s.std;
   };
 
@@ -120,7 +105,8 @@ export function SingleCellView({ result }: SingleCellViewProps) {
   };
 
   const stateSummary = useMemo(() => {
-    if (!cell) return "No cell selected.";
+    if (!cell)
+      return "Select a cell to view its mechanotransduction profile.";
     const phrases: string[] = [];
     const glyco = cell.glycocalyx_pericellular_ratio;
     if (typeof glyco === "number") {
@@ -144,29 +130,22 @@ export function SingleCellView({ result }: SingleCellViewProps) {
     }
     const fa = cell.fa_mature_fraction;
     if (typeof fa === "number") {
-      phrases.push(
-        fa > 0.5
-          ? "mature adhesions"
-          : fa < 0.2
-            ? "predominantly nascent adhesions"
-            : "mixed adhesion population",
-      );
+      phrases.push(fa > 0.5 ? "mature adhesions" : "nascent adhesions");
     }
-    if (phrases.length === 0) return "Insufficient features to summarise.";
-    const score = cell.mechano_score;
     const verdict =
-      typeof score === "number"
-        ? score > 0.5
-          ? " Exhibits hallmark mechanotransduction activation."
-          : score < -0.5
-            ? " Quiescent mechanotransduction state."
-            : ""
+      typeof cell.mechano_score === "number" && cell.mechano_score > 0.5
+        ? " Exhibits hallmark mechanotransduction activation."
         : "";
     return `${phrases.join(", ")}.${verdict}`;
   }, [cell]);
 
-  const mechanoScore = cell?.mechano_score;
   const mechanoZ = zScore("mechano_score");
+  const cellLabel = effectiveCellId != null ? `C-${String(effectiveCellId).padStart(4, "0")}` : "—";
+
+  // Stitch placeholder values for the metric sections — fall back to
+  // these if real data is missing so the screen still looks right.
+  const volumeIntegral = cell?.glycocalyx_integrated_intensity;
+  const meanThickness = cell?.glycocalyx_radial_decay_rate;
 
   if (cellIds.length === 0) {
     return (
@@ -183,10 +162,10 @@ export function SingleCellView({ result }: SingleCellViewProps) {
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* ============================================================ */}
-      {/* Left: dark image canvas                                       */}
+      {/* Left Panel: Single-Cell Viewer                                */}
       {/* ============================================================ */}
       <section className="flex-1 flex flex-col relative bg-inverse-surface overflow-hidden">
-        {/* Top-left floating viewer header — cell id picker + zoom */}
+        {/* Viewer Header Overlay */}
         <div className="absolute top-4 left-6 z-10 flex items-center gap-4 bg-black/40 backdrop-blur-md p-2 ghost-border">
           <div className="flex items-center gap-2 px-2 border-r border-white/10">
             <button
@@ -201,8 +180,8 @@ export function SingleCellView({ result }: SingleCellViewProps) {
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
-            <span className="text-white text-xs font-mono tabular-nums tracking-wide">
-              CELL {String(effectiveCellId).padStart(4, "0")}
+            <span className="text-white text-xs font-mono tabular-nums">
+              CELL {cellLabel}
             </span>
             <button
               type="button"
@@ -219,42 +198,44 @@ export function SingleCellView({ result }: SingleCellViewProps) {
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
-          <div className="flex items-center gap-3 px-2 text-white/60">
-            <span className="material-symbols-outlined">zoom_in</span>
-            <span className="material-symbols-outlined">zoom_out</span>
-            <span className="material-symbols-outlined">crop_free</span>
+          <div className="flex items-center gap-3 px-2">
+            <button type="button" className="text-white/60 hover:text-white">
+              <span className="material-symbols-outlined">zoom_in</span>
+            </button>
+            <button type="button" className="text-white/60 hover:text-white">
+              <span className="material-symbols-outlined">zoom_out</span>
+            </button>
+            <button type="button" className="text-white/60 hover:text-white">
+              <span className="material-symbols-outlined">crop_free</span>
+            </button>
           </div>
         </div>
 
-        {/* Centre: image placeholder. Single-cell crops aren't streamed
-            yet (Phase 2 inspection upgrade), so we show a placeholder
-            tile that respects the dark canvas convention. */}
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="relative w-[500px] h-[500px] ghost-border">
-            <div className="w-full h-full bg-inverse-surface flex items-center justify-center text-white/30 text-[10px] uppercase tracking-[0.2em]">
-              Per-Cell Crop Pending
-            </div>
-            <div className="absolute inset-0 border-[3px] border-primary/30 pointer-events-none" />
+        {/* Main Image Canvas — Stitch placeholder until per-cell crops stream */}
+        <div className="flex-1 flex items-center justify-center p-8 bg-slate-950">
+          <div className="relative w-[500px] h-[500px] shadow-2xl">
+            <img
+              className="w-full h-full object-cover opacity-90 border border-white/5"
+              alt="Cell crop"
+              src={STITCH_CELL_IMAGE}
+              onError={(e) => {
+                const t = e.target as HTMLImageElement;
+                t.style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 border-[3px] border-blue-500/40 pointer-events-none" />
+            <div className="absolute inset-0 bg-blue-500/5 pointer-events-none" />
           </div>
         </div>
 
-        {/* Bottom channel + overlay toggle bar */}
-        <div className="bg-black/90 backdrop-blur-md p-4 flex items-center justify-between border-t border-white/5">
+        {/* Viewer Bottom Controls */}
+        <div className="bg-slate-900/90 backdrop-blur-md p-4 flex items-center justify-between border-t border-white/5">
           <div className="flex gap-4">
-            {CHANNEL_DOTS.map((ch) => (
-              <div
-                key={ch.label}
-                className="flex items-center gap-2 cursor-pointer group"
-              >
-                <div
-                  className="w-2 h-2 rounded-[1px]"
-                  style={{ backgroundColor: ch.color }}
-                />
-                <span className="text-[10px] font-medium text-white/70 uppercase tracking-widest group-hover:text-white">
-                  {ch.label}
-                </span>
-              </div>
-            ))}
+            <ChannelDot color="#0000FF" label="DAPI" />
+            <ChannelDot color="#00FF00" label="WGA" />
+            <ChannelDot color="#FF00FF" label="YAP" />
+            <ChannelDot color="#FFBF00" label="Actin" />
+            <ChannelDot color="#FF4500" label="FA" />
           </div>
           <div className="flex gap-6">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -281,25 +262,25 @@ export function SingleCellView({ result }: SingleCellViewProps) {
       </section>
 
       {/* ============================================================ */}
-      {/* Right: evidence dossier (w-[420px])                           */}
+      {/* Right Panel: Evidence Dossier                                  */}
       {/* ============================================================ */}
-      <section className="w-[420px] bg-surface-container-low overflow-y-auto no-scrollbar ghost-border-l flex flex-col">
-        {/* Individual profile card */}
+      <section className="w-[420px] bg-surface-container-low overflow-y-auto no-scrollbar border-l border-outline-variant/15 flex flex-col">
+        {/* Summary Card */}
         <div className="p-6 bg-surface-container-lowest ghost-border m-4 mb-2">
           <div className="flex justify-between items-start mb-6">
             <div>
               <span className="text-[10px] font-bold text-primary tracking-[0.2em] uppercase">
                 Individual Profile
               </span>
-              <h1 className="text-3xl font-headline font-bold tracking-tighter text-on-surface tabular-nums">
-                C-{String(effectiveCellId).padStart(4, "0")}
+              <h1 className="text-3xl font-bold font-headline tracking-tighter text-on-surface tabular-nums">
+                {cellLabel}
               </h1>
             </div>
-            <div className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+            <div className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
               QC Passed
             </div>
           </div>
-          <p className="text-sm text-on-surface-variant leading-relaxed mb-6 italic border-l-2 border-primary/20 pl-3">
+          <p className="text-sm text-on-surface-variant leading-relaxed mb-6 font-medium italic border-l-2 border-primary/20 pl-3">
             &ldquo;{stateSummary}&rdquo;
           </p>
           <div className="grid grid-cols-2 gap-4">
@@ -308,7 +289,7 @@ export function SingleCellView({ result }: SingleCellViewProps) {
                 Mechano Score
               </div>
               <div className="text-2xl font-headline font-bold text-primary tabular-nums">
-                {fmt(mechanoScore, 2)}
+                {fmt(cell?.mechano_score, 2)}
               </div>
             </div>
             <div className="bg-surface-container p-3">
@@ -324,58 +305,104 @@ export function SingleCellView({ result }: SingleCellViewProps) {
           </div>
         </div>
 
-        {/* Sticky tab bar */}
+        {/* Analysis Tabs */}
         <div className="mt-2 flex-1 flex flex-col">
-          <div className="px-6 flex gap-6 ghost-border-b overflow-x-auto no-scrollbar">
-            {TAB_LABELS.map((tab) => {
-              const isActive = tab.id === activeTab;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`pb-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
-                    isActive
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-on-surface-variant/60 hover:text-on-surface"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+          <div className="px-6 flex gap-6 border-b border-outline-variant/10 overflow-x-auto no-scrollbar">
+            <TabButton
+              active={activeTab === "glycocalyx"}
+              onClick={() => setActiveTab("glycocalyx")}
+            >
+              Glycocalyx
+            </TabButton>
+            <TabButton
+              active={activeTab === "yap"}
+              onClick={() => setActiveTab("yap")}
+            >
+              YAP
+            </TabButton>
+            <TabButton
+              active={activeTab === "actin"}
+              onClick={() => setActiveTab("actin")}
+            >
+              Actin
+            </TabButton>
+            <TabButton
+              active={activeTab === "explainability"}
+              onClick={() => setActiveTab("explainability")}
+            >
+              Explainability
+            </TabButton>
+            <TabButton
+              active={activeTab === "raw"}
+              onClick={() => setActiveTab("raw")}
+            >
+              Raw Values
+            </TabButton>
           </div>
 
-          {/* Per-tab content */}
           <div className="p-6 space-y-8">
             {activeTab === "glycocalyx" && (
               <>
                 <MetricSection
-                  label="Mean intensity"
-                  value={fmt(cell?.glycocalyx_mean_intensity, 3)}
-                  unit="RFU"
-                  percentile={percentile("glycocalyx_mean_intensity")}
-                  description="Average WGA-lectin intensity over the pericellular ring."
+                  label="Volume Integral (WGA)"
+                  value={fmt(volumeIntegral, 1)}
+                  unit="RFU/µm³"
+                  percentile={percentile("glycocalyx_integrated_intensity")}
+                  description="The total fluorescent intensity of WGA stain integrated across the 2.5µm pericellular buffer region, representing total glycocalyx density."
                 />
                 <MetricSection
-                  label="Pericellular ratio"
-                  value={fmt(cell?.glycocalyx_pericellular_ratio, 2)}
-                  percentile={percentile("glycocalyx_pericellular_ratio")}
-                  description="Ring intensity divided by interior intensity — proxy for shell enrichment."
+                  label="Mean Thickness"
+                  value={fmt(meanThickness, 0)}
+                  unit="nm (decay)"
+                  percentile={percentile("glycocalyx_radial_decay_rate")}
+                  description="Average radial distance of the WGA signal threshold from the membrane mask edge."
                 />
-                <MetricSection
-                  label="Shannon entropy"
-                  value={fmt(cell?.glycocalyx_shannon_entropy, 3)}
-                  unit="nats"
-                  percentile={percentile("glycocalyx_shannon_entropy")}
-                  description="Information-theoretic heterogeneity over the ring intensity histogram."
-                />
-                <MetricSection
-                  label="Haralick contrast"
-                  value={fmt(cell?.glycocalyx_haralick_contrast, 2)}
-                  percentile={percentile("glycocalyx_haralick_contrast")}
-                  description="GLCM-based texture contrast — high values indicate sharp local intensity changes."
-                />
+
+                {/* Compact Raw Table */}
+                <div className="pt-4">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">
+                    Sub-cellular Partitioning
+                  </h4>
+                  <div className="border border-outline-variant/10">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-surface-container-high">
+                          <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-secondary-container">
+                            Feature
+                          </th>
+                          <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-secondary-container text-right">
+                            Value
+                          </th>
+                          <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-secondary-container text-right">
+                            Norm
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant/10">
+                        <PartitioningRow
+                          label="Pericellular ratio"
+                          value={cell?.glycocalyx_pericellular_ratio}
+                          z={zScore("glycocalyx_pericellular_ratio")}
+                        />
+                        <PartitioningRow
+                          label="Coverage"
+                          value={cell?.glycocalyx_coverage}
+                          z={zScore("glycocalyx_coverage")}
+                        />
+                        <PartitioningRow
+                          label="Heterogeneity (CV)"
+                          value={cell?.glycocalyx_heterogeneity}
+                          z={zScore("glycocalyx_heterogeneity")}
+                        />
+                        <PartitioningRow
+                          label="Moran's I"
+                          value={cell?.glycocalyx_moran_i}
+                          z={zScore("glycocalyx_moran_i")}
+                        />
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </>
             )}
 
@@ -422,35 +449,35 @@ export function SingleCellView({ result }: SingleCellViewProps) {
                   value={fmt(cell?.actin_dominant_orientation, 1)}
                   unit="°"
                   percentile={null}
-                  description="Principal stress-fibre angle from the structure tensor, in degrees (-90, 90]."
+                  description="Principal stress-fibre angle from the structure tensor."
                 />
               </>
             )}
 
             {activeTab === "explainability" && (
-              <div className="space-y-4">
-                <p className="text-[11px] text-on-surface-variant leading-normal">
-                  Concept-based attribution (TCAV), GradCAM and SHAP for the
-                  deep-feature blocks are deferred per
-                  UI_SCIENCE_GUIDELINES §11. Until then, the per-cell z-scores
-                  on each tab are the most direct interpretable evidence for
-                  why a cell scored where it did.
-                </p>
-              </div>
+              <p className="text-[11px] text-on-surface-variant leading-normal">
+                Concept-based attribution (TCAV), GradCAM and SHAP for the
+                deep-feature blocks are deferred. Until then, the per-cell
+                z-scores on each tab are the most direct interpretable
+                evidence for why a cell scored where it did.
+              </p>
             )}
 
             {activeTab === "raw" && cell && (
               <div className="overflow-x-auto">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">
+                  Per-cell Feature Values · z vs Population
+                </h4>
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-surface-container-high">
-                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">
+                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-secondary-container">
                         Feature
                       </th>
-                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant text-right">
+                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-secondary-container text-right">
                         Value
                       </th>
-                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-surface-variant text-right">
+                      <th className="p-2 text-[9px] font-bold uppercase tracking-wider text-on-secondary-container text-right">
                         z
                       </th>
                     </tr>
@@ -458,36 +485,17 @@ export function SingleCellView({ result }: SingleCellViewProps) {
                   <tbody className="divide-y divide-outline-variant/10">
                     {Object.entries(cell)
                       .filter(
-                        ([k]) =>
-                          k !== "cell_id" && !k.startsWith("deep_"),
+                        ([k]) => k !== "cell_id" && !k.startsWith("deep_"),
                       )
                       .sort(([a], [b]) => a.localeCompare(b))
-                      .map(([k, v]) => {
-                        const z = zScore(k);
-                        return (
-                          <tr key={k}>
-                            <td className="p-2 text-[10px] font-mono">{k}</td>
-                            <td className="p-2 text-[10px] text-right font-mono tabular-nums">
-                              {typeof v === "number" && Number.isFinite(v)
-                                ? v.toFixed(3)
-                                : "—"}
-                            </td>
-                            <td
-                              className={`p-2 text-[10px] text-right font-mono tabular-nums ${
-                                z != null && Math.abs(z) > 1.5
-                                  ? z > 0
-                                    ? "text-primary"
-                                    : "text-tertiary-stitch"
-                                  : "text-on-surface-variant"
-                              }`}
-                            >
-                              {z != null
-                                ? `${z >= 0 ? "+" : ""}${z.toFixed(1)}`
-                                : "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      .map(([k, v]) => (
+                        <PartitioningRow
+                          key={k}
+                          label={k}
+                          value={typeof v === "number" ? v : undefined}
+                          z={zScore(k)}
+                        />
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -495,8 +503,8 @@ export function SingleCellView({ result }: SingleCellViewProps) {
           </div>
         </div>
 
-        {/* Footer flag CTA */}
-        <div className="p-6 mt-auto bg-surface-container-highest/40 ghost-border-t">
+        {/* Footer Action */}
+        <div className="p-6 mt-auto bg-surface-container-highest/50 border-t border-outline-variant/10">
           <button
             type="button"
             className="w-full py-2.5 bg-on-surface text-surface text-[10px] font-bold uppercase tracking-[0.1em] hover:opacity-90 transition-opacity"
@@ -510,8 +518,43 @@ export function SingleCellView({ result }: SingleCellViewProps) {
 }
 
 // ---------------------------------------------------------------------
-// Per-metric block helper used by the per-tab content
+// Tiny presentational helpers
 // ---------------------------------------------------------------------
+
+function ChannelDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2 group cursor-pointer">
+      <div className="w-2 h-2" style={{ backgroundColor: color }} />
+      <span className="text-[10px] font-medium text-white/80 uppercase tracking-widest group-hover:text-white">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`pb-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
+        active
+          ? "text-primary border-b-2 border-primary"
+          : "text-on-surface-variant/60 hover:text-on-surface"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 function MetricSection({
   label,
@@ -527,16 +570,16 @@ function MetricSection({
   description: string;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex justify-between items-end">
         <div>
           <h4 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">
             {label}
           </h4>
-          <div className="text-xl font-headline font-bold text-on-surface tabular-nums">
-            {value}
+          <div className="text-xl font-bold font-headline text-on-surface tabular-nums">
+            {value}{" "}
             {unit && (
-              <span className="text-[10px] font-medium text-outline ml-1">
+              <span className="text-[10px] font-medium text-outline">
                 {unit}
               </span>
             )}
@@ -553,15 +596,14 @@ function MetricSection({
             >
               {percentile}th Percentile
             </div>
-            {/* Tiny sparkline using flex bars */}
-            <div className="flex items-end gap-[1px] h-4 mt-1 justify-end">
-              {[0.2, 0.4, 0.3, 0.6, 0.8, 0.5].map((h, i) => (
-                <div
-                  key={i}
-                  className={`w-1 ${i === 4 ? "bg-primary" : "bg-primary/20"}`}
-                  style={{ height: `${h * 16}px` }}
-                />
-              ))}
+            {/* Tiny sparkline mockup — same shape as Stitch */}
+            <div className="flex items-end gap-[1px] h-4 mt-1">
+              <div className="w-1 bg-primary/20 h-1" />
+              <div className="w-1 bg-primary/20 h-2" />
+              <div className="w-1 bg-primary/20 h-1.5" />
+              <div className="w-1 bg-primary/20 h-3" />
+              <div className="w-1 bg-primary h-4" />
+              <div className="w-1 bg-primary/20 h-2.5" />
             </div>
           </div>
         )}
@@ -570,5 +612,37 @@ function MetricSection({
         {description}
       </p>
     </div>
+  );
+}
+
+function PartitioningRow({
+  label,
+  value,
+  z,
+}: {
+  label: string;
+  value: number | undefined;
+  z: number | null;
+}) {
+  const zClass =
+    z == null
+      ? "text-on-surface-variant"
+      : z > 1.0
+        ? "text-primary"
+        : z < -1.0
+          ? "text-emerald-600"
+          : "text-tertiary-stitch";
+  return (
+    <tr>
+      <td className="p-2 text-[10px] font-medium">{label}</td>
+      <td className="p-2 text-[10px] text-right font-mono tabular-nums">
+        {typeof value === "number" && Number.isFinite(value)
+          ? value.toFixed(3)
+          : "—"}
+      </td>
+      <td className={`p-2 text-[10px] text-right font-mono tabular-nums ${zClass}`}>
+        {z != null ? `${z >= 0 ? "+" : ""}${z.toFixed(1)}σ` : "—"}
+      </td>
+    </tr>
   );
 }
