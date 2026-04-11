@@ -188,7 +188,9 @@ class ProfileAssembler:
                 "pass it or provide pre-computed masks"
             )
         if self._segmenter is None:
-            self._segmenter = CellSegmenter(gpu=False)
+            from glycoquant.compute import use_gpu
+
+            self._segmenter = CellSegmenter(gpu=use_gpu())
         return self._segmenter.segment_both(
             channels[segmentation_channel],
             channels["dapi"],

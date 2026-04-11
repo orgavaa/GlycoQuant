@@ -1,0 +1,48 @@
+# Keep the Docker build context tight — without this the backend build
+# would ship the local .venv (hundreds of MB) and frontend/node_modules
+# (similar), dramatically slowing every push to Railway.
+
+# Python
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+frontend/**/*.tsbuildinfo
+
+# Local caches
+.cache/
+.claude/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Large local files we never want in the image
+*.log
+*.zip
+*.tar.gz
+results/

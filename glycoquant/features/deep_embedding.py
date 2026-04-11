@@ -169,14 +169,19 @@ class DinoV2Embedder:
 
         import torch  # local import keeps module importable without torch at startup
 
+        device = self.params.device
         with torch.no_grad():
             inputs = self._processor(images=pil_crops, return_tensors="pt")
+            # Move every tensor in the BatchFeature onto the target device
+            inputs = {
+                k: (v.to(device) if hasattr(v, "to") else v) for k, v in inputs.items()
+            }
             outputs = self._model(**inputs)
             # CLS token = position 0 of the last hidden state
             cls = outputs.last_hidden_state[:, 0, :]
             if self._finetuned_head is not None:
                 cls = self._finetuned_head(cls)
-            embeddings = cls.cpu().numpy().astype(np.float32)
+            embeddings = cls.detach().cpu().numpy().astype(np.float32)
 
         return embeddings
 
@@ -185,13 +190,19 @@ class DinoV2Embedder:
     # ------------------------------------------------------------------
 
     def _lazy_load(self) -> None:
-        """Load the DINOv2 model and processor on first use."""
+        """Load the DINOv2 model and processor on first use.
+
+        Moves the frozen ViT onto the device specified in
+        ``self.params.device`` (``"cpu"`` or ``"cuda"``) so every
+        forward pass runs on the correct hardware.
+        """
         if self._model is not None:
             return
         from transformers import AutoImageProcessor, AutoModel
 
         self._model = AutoModel.from_pretrained(self.params.model_name)
         self._model.eval()
+        self._model = self._model.to(self.params.device)
         self._processor = AutoImageProcessor.from_pretrained(self.params.model_name)
 
         if self._finetuned_head_path is not None and self._finetuned_head_path.exists():

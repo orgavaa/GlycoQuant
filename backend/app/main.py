@@ -52,8 +52,19 @@ app.include_router(demo.router)
 
 @app.get("/health", tags=["meta"])
 async def health() -> dict[str, str]:
-    """Simple liveness endpoint for Railway healthcheck."""
-    return {"status": "ok", "version": __version__}
+    """Liveness endpoint for Railway healthcheck.
+
+    Also reports the active compute device so a GPU-tier deployment
+    can be verified from ``curl .../health`` without opening a shell.
+    """
+    from glycoquant.compute import describe_device, resolve_device
+
+    return {
+        "status": "ok",
+        "version": __version__,
+        "device": resolve_device(),
+        "device_detail": describe_device(),
+    }
 
 
 @app.get("/", tags=["meta"])

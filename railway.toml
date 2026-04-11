@@ -1,30 +1,79 @@
 [build]
 builder = "DOCKERFILE"
 
-# GlycoQuant deploys as TWO services under one Railway project.
-# The service configs below live in each service's Settings on the
-# Railway dashboard; this file documents the canonical values so
-# they can be recreated from scratch by a new contributor.
+# GlycoQuant — two-service Railway deployment under one project.
 #
-#   Service "api"
-#     Root dir:       /
-#     Dockerfile:     backend/Dockerfile
-#     Start command:  uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
-#     Env:
-#       CORS_ORIGINS   = https://<frontend-url>.up.railway.app
-#       HF_HOME        = /data/.cache/huggingface   (persistent volume mount)
-#       CELLPOSE_LOCAL_MODELS_PATH = /data/.cache/cellpose
-#     Persistent volume: /data  (so Cellpose + DINOv2 weights survive restart)
-#     Healthcheck:    GET /health  (200 expected)
-#     Plan:           Hobby ($5/mo, ~512 MB RAM floor, burst up to 8 GB)
+# This file is documentation. The actual service config lives in each
+# service's dashboard settings; the block below is the canonical
+# reference for recreating the stack from scratch.
 #
-#   Service "web"
-#     Root dir:       /frontend
-#     Dockerfile:     frontend/Dockerfile
-#     Build args:
-#       VITE_API_BASE_URL = https://<api-url>.up.railway.app
-#     Start command:  (default from Dockerfile CMD)
-#     Plan:           Hobby
+# -----------------------------------------------------------------------
+# Service "api"  (backend, GPU-enabled on Pro tier)
+# -----------------------------------------------------------------------
+#   Source repo:        orgavaa/GlycoQuant
+#   Branch:             main
+#   Root directory:     /           (the full repo — backend/Dockerfile
+#                                    needs access to glycoquant/, data/,
+#                                    configs/)
+#   Builder:            Dockerfile  (NOT Railpack — switch the dropdown
+#                                    in Settings → Build → Builder)
+#   Dockerfile path:    backend/Dockerfile
 #
-# First deploy will pull ~1.2 GB of Cellpose-SAM weights into /data on
-# the api service. Subsequent deploys reuse the volume.
+#   Build Args:
+#     TORCH_VARIANT         = cuda     (installs CUDA 12.1 PyTorch;
+#                                        use 'cpu' on Hobby tier)
+#
+#   Runtime env vars:
+#     GLYCOQUANT_DEVICE     = cuda     (forces GPU; 'auto' also works
+#                                        once CUDA is detected)
+#     CORS_ORIGINS          = https://<web-service-domain>.up.railway.app
+#     HF_HOME               = /data/.cache/huggingface
+#     CELLPOSE_LOCAL_MODELS_PATH = /data/.cache/cellpose
+#
+#   Resources:
+#     GPU:                  NVIDIA L4   (24 GB VRAM, recommended)
+#                           alt: T4 (16 GB) if L4 is unavailable
+#     CPU:                  4-8 vCPU
+#     RAM:                  8-16 GB
+#
+#   Persistent volume:    /data  (survives deploys; holds the 1.2 GB
+#                                  Cellpose-SAM cpsam weights and
+#                                  the ~340 MB DINOv2 weights)
+#
+#   Healthcheck path:     /health
+#   Serverless:           ON  (scale to zero; GPU is only billed when
+#                               a request is in flight)
+#
+# -----------------------------------------------------------------------
+# Service "web"  (frontend, CPU-only, static nginx)
+# -----------------------------------------------------------------------
+#   Source repo:        orgavaa/GlycoQuant
+#   Branch:             main
+#   Root directory:     frontend
+#   Builder:            Dockerfile
+#   Dockerfile path:    Dockerfile   (relative to frontend/ root)
+#
+#   Build Args:
+#     VITE_API_BASE_URL   = https://<api-service-domain>.up.railway.app
+#     (baked into the Vite bundle at build time — redeploy on change)
+#
+#   Resources:
+#     CPU:                  1 vCPU
+#     RAM:                  512 MB
+#
+#   Healthcheck path:     /
+#   Serverless:           ON
+#
+# -----------------------------------------------------------------------
+# Deployment order (chicken-and-egg — because web bakes VITE_API_BASE_URL):
+#
+#   1. Create "api" with CORS_ORIGINS=* (temporarily), deploy, note URL
+#   2. Create "web" with VITE_API_BASE_URL=<api url>, deploy
+#   3. Update "api" CORS_ORIGINS to the real web URL, redeploy
+#
+# -----------------------------------------------------------------------
+# First-deploy cost to expect:
+#   The "api" service will download the full 1.5 GB Cellpose-SAM +
+#   DINOv2 model weights on its first inference call, streaming into
+#   the /data persistent volume. After that every deploy reuses the
+#   cache (seconds to boot).

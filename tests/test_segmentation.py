@@ -28,6 +28,9 @@ def _add_noise(image: np.ndarray, sigma: float = 0.05, seed: int = 42) -> np.nda
 @pytest.fixture(scope="session")
 def segmenter() -> CellSegmenter:
     """Session-scoped Cellpose-SAM segmenter (weights load once per session)."""
+    # Tests always run on CPU to keep them hardware-independent; on the
+    # GPU deployment the runtime singletons pick up CUDA via
+    # ``glycoquant.compute.use_gpu`` instead.
     return CellSegmenter(gpu=False)
 
 

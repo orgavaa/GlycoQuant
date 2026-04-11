@@ -188,12 +188,19 @@ _EMBEDDER_SINGLETON = None
 
 
 def _get_segmenter():  # noqa: ANN202
-    """Lazy, cached Cellpose segmenter — loaded once per process."""
+    """Lazy, cached Cellpose segmenter — loaded once per process.
+
+    Uses ``glycoquant.compute.use_gpu()`` so the Railway GPU service
+    just works without any source changes; ``GLYCOQUANT_DEVICE=cuda``
+    in the Railway env var forces CUDA, otherwise we auto-detect.
+    """
     global _SEGMENTER_SINGLETON
     if _SEGMENTER_SINGLETON is None:
+        from glycoquant.compute import describe_device, use_gpu
         from glycoquant.segmentation import CellSegmenter
 
-        _SEGMENTER_SINGLETON = CellSegmenter(gpu=False)
+        print(f"[worker] initialising CellSegmenter on {describe_device()}")
+        _SEGMENTER_SINGLETON = CellSegmenter(gpu=use_gpu())
     return _SEGMENTER_SINGLETON
 
 
@@ -201,9 +208,16 @@ def _get_embedder():  # noqa: ANN202
     """Lazy, cached DINOv2 embedder — loaded once per process."""
     global _EMBEDDER_SINGLETON
     if _EMBEDDER_SINGLETON is None:
-        from glycoquant.features.deep_embedding import DinoV2Embedder
+        from glycoquant.compute import describe_device, resolve_device
+        from glycoquant.features.deep_embedding import (
+            DinoV2Embedder,
+            DinoV2Params,
+        )
 
-        _EMBEDDER_SINGLETON = DinoV2Embedder()
+        print(f"[worker] initialising DinoV2Embedder on {describe_device()}")
+        _EMBEDDER_SINGLETON = DinoV2Embedder(
+            params=DinoV2Params(device=resolve_device())
+        )
     return _EMBEDDER_SINGLETON
 
 
