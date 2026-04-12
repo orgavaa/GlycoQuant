@@ -1,14 +1,12 @@
 /**
  * LoadImagePanel — bundled dataset selector + file upload.
  *
- * Restyled for the Stitch "Quantitative Aesthetic": ghost-border
- * controls, 10px uppercase labels, primary-filled load button,
- * outline upload button. The Select dropdown uses a native <select>
- * instead of Radix to avoid shadcn styling conflicts with the Stitch
- * palette.
+ * Groups the 42 demo datasets by source (BBBC022 / RxRx1) using
+ * native <optgroup> elements so the dropdown is scannable. Each
+ * entry shows the well coordinate + condition tag.
  */
 import { useQuery } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { fetchDemoList, type DemoCondition } from "@/lib/api";
 
 interface LoadImagePanelProps {
@@ -31,6 +29,29 @@ export function LoadImagePanel({
 
   const conditions = demoQuery.data?.conditions ?? [];
 
+  // Group datasets by source prefix for <optgroup> labels
+  const groups = useMemo(() => {
+    const bbbc = conditions.filter((c) => c.name.startsWith("BBBC"));
+    const rxrx = conditions.filter((c) => c.name.startsWith("RxRx"));
+    const other = conditions.filter(
+      (c) => !c.name.startsWith("BBBC") && !c.name.startsWith("RxRx"),
+    );
+    const result: Array<{ label: string; items: DemoCondition[] }> = [];
+    if (bbbc.length > 0)
+      result.push({
+        label: `BBBC022 — Cell Painting (${bbbc.length} fields, WGA+phalloidin AGP)`,
+        items: bbbc,
+      });
+    if (rxrx.length > 0)
+      result.push({
+        label: `RxRx1 — Recursion (${rxrx.length} fields, WGA + phalloidin separate)`,
+        items: rxrx,
+      });
+    if (other.length > 0)
+      result.push({ label: `Other (${other.length})`, items: other });
+    return result;
+  }, [conditions]);
+
   const handleDemoSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const name = e.target.value;
     if (!name) return;
@@ -47,26 +68,40 @@ export function LoadImagePanel({
     <div className="space-y-6">
       {/* Bundled dataset selector */}
       <div className="space-y-3">
-        <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-          Reference dataset
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+            Reference datasets
+          </label>
+          {conditions.length > 0 && (
+            <span className="text-[10px] text-on-surface-variant tabular-nums">
+              {conditions.length} fields available
+            </span>
+          )}
+        </div>
         <p className="text-xs leading-snug text-on-surface-variant">
-          Cell Painting U-2 OS field from the Broad BBBC022 collection
-          (CC0). Real WGA-lectin glycocalyx staining in all five channels.
+          U-2 OS Cell Painting fields from two public collections. BBBC022
+          bundles WGA + phalloidin in one AGP channel; RxRx1 keeps them
+          separate, giving three real biological channels for the pipeline.
         </p>
         <select
           onChange={handleDemoSelect}
           disabled={demoQuery.isLoading || disabled}
           defaultValue=""
-          className="w-full bg-surface-container-lowest ghost-border px-3 py-2.5 text-sm text-on-surface appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+          className="w-full bg-surface-container-lowest ghost-border px-3 py-2.5 text-sm text-on-surface cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
         >
           <option value="" disabled>
-            {demoQuery.isLoading ? "Loading datasets…" : "Select a dataset"}
+            {demoQuery.isLoading
+              ? "Loading datasets…"
+              : `Select from ${conditions.length} fields`}
           </option>
-          {conditions.map((c) => (
-            <option key={c.name} value={c.name}>
-              {c.display_name || c.name}
-            </option>
+          {groups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.items.map((c) => (
+                <option key={c.name} value={c.name}>
+                  {c.display_name || c.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>

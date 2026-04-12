@@ -9,19 +9,18 @@
   ],
   "datasets": [
     {
-      "name": "BBBC022_U2OS_CellPainting",
-      "display_name": "Cell Painting — U-2 OS (BBBC022, plate 20585 / A01 / s5)",
+      "name": "BBBC022_A01_s5",
+      "display_name": "BBBC022 · A01 / s5 (DMSO control)",
       "source": "Broad BBBC022 — Cell Painting Pilot",
       "license": "CC0 / public domain",
-      "attribution": "Gustafsdottir SM et al. (2013) Multiplex Cytological Profiling Assay to Measure Diverse Cellular States. PLOS ONE 8:e80999. Distributed by the Broad Bioimage Benchmark Collection (BBBC022).",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
       "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
       "gene": "—",
       "ensembl_id": "",
       "cell_line": "U-2 OS (osteosarcoma)",
-      "description": "One U-2 OS field of view from the BBBC022 Cell Painting pilot screen — plate 20585, well A01 (corner / unperturbed control), site s5 (centre of the 3×3 imaging grid). Native 16-bit TIFFs at 520×696 resolution, ~156 thousand µm². Two slots (DAPI, glycocalyx-WGA) carry real biological signal; the actin slot also pulls the WGA+phalloidin AGP channel. YAP and paxillin slots are documented substitutions. This is the gold reference demo for exercising the GlycoQuant glycocalyx extractors against real WGA-lectin staining.",
+      "description": "Plate 20585, well A01 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
       "is_real_microscopy": true,
       "pixel_size_um": 0.656,
-      "pixel_size_note": "BBBC022 was acquired on an ImageXpress Micro at 20× — native pixel size 0.656 µm/px (Gustafsdottir 2013, Methods). Override in the sidebar if you re-acquire on different optics.",
       "native_image_size": [
         520,
         696
@@ -30,48 +29,2252 @@
         520,
         696
       ],
-      "crop_strategy": "No crop — 520×696 px = 341×457 µm at the 0.656 µm/px BBBC022 native sampling. Yields ~50–80 segmented cells; n≥30 trips real PCA on the composite mechano score (no weighted-sum fallback). First Cellpose-SAM pass on this field is ~6 min on CPU; subsequent runs hit the model singleton cache and are <30 s.",
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "A01",
+        "site": "s5"
+      },
       "slot_sources": {
         "dapi": {
-          "bbbc_channel": "w1 (Hoechst 33342)",
+          "bbbc_channel": "w1",
           "biological_identity": "Hoechst 33342 (DNA / nuclei)",
           "matches_labouesse_protocol": true
         },
         "glycocalyx": {
-          "bbbc_channel": "w4 (WGA + phalloidin AGP)",
-          "biological_identity": "WGA-lectin + phalloidin (AGP channel)",
-          "matches_labouesse_protocol": true,
-          "note": "Real WGA-lectin signal — the canonical glycocalyx marker. Cell Painting bundles WGA with phalloidin in a single AGP channel, so the same image also feeds the actin slot. Glycocalyx pericellular features are scientifically meaningful on this slot."
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
         },
         "yap": {
-          "bbbc_channel": "w2 (con A / ER)",
+          "bbbc_channel": "w2",
           "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false,
-          "note": "Real ER stain (concanavalin A), not anti-YAP. The YAP N/C ratio computed on this slot reflects ER nuclear-perinuclear intensity, not YAP/TAZ translocation, and should not be interpreted as mechanotransduction signal."
+          "matches_labouesse_protocol": false
         },
         "paxillin": {
-          "bbbc_channel": "w5 (MitoTracker Deep Red)",
+          "bbbc_channel": "w5",
           "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false,
-          "note": "Real mitochondrial stain, not anti-paxillin. Focal-adhesion features extracted from this slot reflect mitochondrial puncta morphometry, not adhesion biology."
+          "matches_labouesse_protocol": false
         },
         "actin": {
-          "bbbc_channel": "w4 (WGA + phalloidin AGP, duplicated)",
-          "biological_identity": "WGA-lectin + phalloidin (AGP channel, duplicated)",
-          "matches_labouesse_protocol": true,
-          "note": "Same AGP channel as the glycocalyx slot — Cell Painting does not separate WGA from phalloidin. Actin coherence and cortical-ratio features therefore reflect a mixture of WGA membrane staining and phalloidin F-actin and should be interpreted with that caveat."
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
         }
+      }
+    },
+    {
+      "name": "BBBC022_A02_s5",
+      "display_name": "BBBC022 · A02 / s5 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well A02 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "A02",
+        "site": "s5"
       },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_B01_s5",
+      "display_name": "BBBC022 · B01 / s5 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well B01 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "B01",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_B02_s5",
+      "display_name": "BBBC022 · B02 / s5 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well B02 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "B02",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_A23_s5",
+      "display_name": "BBBC022 · A23 / s5 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well A23 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "A23",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_A24_s5",
+      "display_name": "BBBC022 · A24 / s5 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well A24 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "A24",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_B23_s5",
+      "display_name": "BBBC022 · B23 / s5 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well B23 (DMSO control), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "B23",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_C05_s5",
+      "display_name": "BBBC022 · C05 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well C05 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "C05",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_D08_s5",
+      "display_name": "BBBC022 · D08 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well D08 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "D08",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_E03_s5",
+      "display_name": "BBBC022 · E03 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well E03 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "E03",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_F10_s5",
+      "display_name": "BBBC022 · F10 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well F10 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "F10",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_G07_s5",
+      "display_name": "BBBC022 · G07 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well G07 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "G07",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_H12_s5",
+      "display_name": "BBBC022 · H12 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well H12 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "H12",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_I06_s5",
+      "display_name": "BBBC022 · I06 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well I06 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "I06",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_J09_s5",
+      "display_name": "BBBC022 · J09 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well J09 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "J09",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_K04_s5",
+      "display_name": "BBBC022 · K04 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well K04 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "K04",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_L11_s5",
+      "display_name": "BBBC022 · L11 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well L11 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "L11",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_M08_s5",
+      "display_name": "BBBC022 · M08 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well M08 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "M08",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_N06_s5",
+      "display_name": "BBBC022 · N06 / s5 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well N06 (Compound-treated), site s5. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "N06",
+        "site": "s5"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_A01_s1",
+      "display_name": "BBBC022 · A01 / s1 (DMSO control)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well A01 (DMSO control), site s1. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "DMSO control",
       "bbbc_coordinate": {
         "plate": "20585",
         "well": "A01",
-        "site": "s5",
-        "channels": {
-          "dapi": "w1",
-          "glycocalyx": "w4",
-          "yap": "w2",
-          "paxillin": "w5",
-          "actin": "w4"
+        "site": "s1"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_C05_s9",
+      "display_name": "BBBC022 · C05 / s9 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well C05 (Compound-treated), site s9. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "C05",
+        "site": "s9"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "BBBC022_G07_s3",
+      "display_name": "BBBC022 · G07 / s3 (Compound-treated)",
+      "source": "Broad BBBC022 — Cell Painting Pilot",
+      "license": "CC0 / public domain",
+      "attribution": "Gustafsdottir SM et al. (2013) PLOS ONE 8:e80999",
+      "attribution_url": "https://bbbc.broadinstitute.org/BBBC022",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "Plate 20585, well G07 (Compound-treated), site s3. Native 16-bit, 520×696 px at 0.656 µm/px.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.656,
+      "native_image_size": [
+        520,
+        696
+      ],
+      "image_size": [
+        520,
+        696
+      ],
+      "condition": "Compound-treated",
+      "bbbc_coordinate": {
+        "plate": "20585",
+        "well": "G07",
+        "site": "s3"
+      },
+      "slot_sources": {
+        "dapi": {
+          "bbbc_channel": "w1",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP)",
+          "matches_labouesse_protocol": true
+        },
+        "yap": {
+          "bbbc_channel": "w2",
+          "biological_identity": "con A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "bbbc_channel": "w5",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "bbbc_channel": "w4",
+          "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
+          "matches_labouesse_protocol": true
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_B02_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · B02/s1 (DMSO control)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well B02, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "DMSO control",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_C05_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · C05/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well C05, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_D08_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · D08/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well D08, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_E11_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · E11/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well E11, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_F14_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · F14/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well F14, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_G17_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · G17/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well G17, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_H20_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · H20/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well H20, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_B02_s2",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · B02/s2 (DMSO control)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well B02, site s2. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "DMSO control",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate1_F14_s2",
+      "display_name": "RxRx1 · U2OS-01 · Plate1 · F14/s2 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate1, well F14, site s2. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate2_B02_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate2 · B02/s1 (DMSO control)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate2, well B02, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "DMSO control",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate2_D08_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate2 · D08/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate2, well D08, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate2_F14_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate2 · F14/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate2, well F14, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-01_Plate2_H20_s1",
+      "display_name": "RxRx1 · U2OS-01 · Plate2 · H20/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-01, Plate2, well H20, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate1_B02_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate1 · B02/s1 (DMSO control)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate1, well B02, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "DMSO control",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate1_D08_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate1 · D08/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate1, well D08, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate1_F14_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate1 · F14/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate1, well F14, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate1_H20_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate1 · H20/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate1, well H20, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate2_B02_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate2 · B02/s1 (DMSO control)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate2, well B02, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "DMSO control",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate2_D08_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate2 · D08/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate2, well D08, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
+        }
+      }
+    },
+    {
+      "name": "RxRx1_U2OS-02_Plate2_F14_s1",
+      "display_name": "RxRx1 · U2OS-02 · Plate2 · F14/s1 (Genetic perturbation)",
+      "source": "RxRx1 — Recursion Pharmaceuticals",
+      "license": "CC BY 4.0",
+      "attribution": "Taylor et al. (2019) RxRx1: A Dataset for Out-of-Distribution Generalization in Biological Microscopy",
+      "attribution_url": "https://www.rxrx.ai/rxrx1",
+      "gene": "—",
+      "ensembl_id": "",
+      "cell_line": "U-2 OS (osteosarcoma)",
+      "description": "U2OS-02, Plate2, well F14, site s1. 512×512 px, 6-channel Cell Painting. WGA (glycocalyx) and phalloidin (actin) are separate real channels.",
+      "is_real_microscopy": true,
+      "pixel_size_um": 0.65,
+      "native_image_size": [
+        512,
+        512
+      ],
+      "image_size": [
+        512,
+        512
+      ],
+      "condition": "Genetic perturbation",
+      "dataset_source": "rxrx1",
+      "slot_sources": {
+        "dapi": {
+          "channel": "w1 (Hoechst)",
+          "biological_identity": "Hoechst 33342 (DNA / nuclei)",
+          "matches_labouesse_protocol": true
+        },
+        "glycocalyx": {
+          "channel": "w6 (WGA)",
+          "biological_identity": "WGA-lectin (Golgi / glycocalyx)",
+          "matches_labouesse_protocol": true,
+          "note": "Real WGA-lectin — separate channel from phalloidin (unlike BBBC022 AGP bundle)."
+        },
+        "yap": {
+          "channel": "w2 (ConA)",
+          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
+          "matches_labouesse_protocol": false
+        },
+        "paxillin": {
+          "channel": "w5 (MitoTracker)",
+          "biological_identity": "MitoTracker Deep Red (mitochondria)",
+          "matches_labouesse_protocol": false
+        },
+        "actin": {
+          "channel": "w3 (Phalloidin)",
+          "biological_identity": "Phalloidin (F-actin cytoskeleton)",
+          "matches_labouesse_protocol": true,
+          "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
       }
     }

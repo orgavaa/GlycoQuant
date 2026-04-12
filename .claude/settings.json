@@ -42,7 +42,14 @@
       "Bash(unzip -q stitch.zip -d stitch_unpacked)",
       "Bash(mkdir -p models)",
       "Bash(curl -L -o models/channel_adaptive_dino_vitl16.pth \"https://cell-dino.llamameta.net/channel_adaptive_dino_vitl16_pretrain_cells-ef7c17ff.pth?Policy=eyJTdGF0ZW1lbnQiOlt7InVuaXF1ZV9oYXNoIjoibDB3bGVlOGFlcG94bTQ2NTM5ZWxvbjU0IiwiUmVzb3VyY2UiOiJodHRwczpcL1wvY2VsbC1kaW5vLmxsYW1hbWV0YS5uZXRcLyoiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NzYxNTU3Njd9fX1dfQ__&Signature=N6hL3d78hwJ2SGrwmE8xUBPMyeR4XzoXcg83Lqw9oRebcqiAiI-7Uvb-oPTBGn4O5zAPrlDec2lyJIcJUG522qzTlCqr1nVa-gBJmEGxYxcc0qD2yRseDcGgwq5kbK1gpnI4N-TOb9ciMICXoqOyH1vbiMysp6-bNVeZsday6mWW5RUrxFKaxcNH6cQ8zmCcPbTlcGjM8YBSEo-yJy6ct71aMBpLQ9DK8zTJqwJ16S45G2UNlhubpUdt0FhxeXbhYY2tJJOVPa-PpsgjfRSM0FU59jtyA3GpF7Qt%7ErJRyN4s7sySi6hnf6QlYL9EJn9ml7RyiGPBjGFq4KHi89fUIg__&Key-Pair-Id=K15QRJLYKIFSLZ&Download-Request-ID=957759226646973\")",
-      "Bash(.venv/Scripts/pip.exe install:*)"
+      "Bash(.venv/Scripts/pip.exe install:*)",
+      "Bash(.venv/Scripts/python.exe scripts/download_bbbc_batch.py)",
+      "Bash(curl -sI \"https://data.broadinstitute.org/bbbc/BBBC036/\")",
+      "WebFetch(domain:www.rxrx.ai)",
+      "Bash(curl -sI -H \"Range: bytes=0-1023\" \"https://storage.googleapis.com/rxrx/rxrx1/rxrx1-images.zip\")",
+      "Bash(.venv/Scripts/python.exe scripts/download_rxrx1_batch.py)",
+      "Bash(ls -1 data/demo/*.tiff)",
+      "Bash(du -sh data/demo/*.tiff)"
     ],
     "deny": [
       "Bash(rm -rf /)",

@@ -10,23 +10,19 @@
 #           --build-arg TORCH_VARIANT=cuda \
 #           -f backend/Dockerfile .
 #
-# Cell-DINO checkpoint: the channel-adaptive ViT-L/16 weights (~1.2 GB)
-# are downloaded at build time if CELL_DINO_CKPT_URL is provided. The
-# URL is the time-limited HTTPS link from the FAIR email. If not set,
-# the pipeline falls back to DINOv2-base at runtime.
+# Cell-DINO checkpoint: place the channel-adaptive ViT-L/16 weights
+# (~1.2 GB) at models/channel_adaptive_dino_vitl16.pth in the repo
+# root BEFORE building. The Dockerfile copies it into the image.
+# If the file is absent, the pipeline falls back to DINOv2-base.
 #
-#   docker build -t glycoquant-api \
-#       --build-arg CELL_DINO_CKPT_URL="https://cell-dino.llamameta.net/..." \
-#       -f backend/Dockerfile .
-#
-# On Railway: add CELL_DINO_CKPT_URL as a Build Arg and
-# GLYCOQUANT_CELL_DINO_CKPT=/app/models/channel_adaptive_dino_vitl16.pth
-# as a runtime env var.
+# To get the checkpoint:
+#   1. Accept the FAIR form at https://ai.meta.com/resources/models-and-libraries/cell-dino-downloads/
+#   2. Download channel_adaptive_dino_vitl16_pretrain_cells-ef7c17ff.pth
+#   3. Place at models/channel_adaptive_dino_vitl16.pth
 
 FROM python:3.11-slim-bookworm
 
 ARG TORCH_VARIANT=cpu
-ARG CELL_DINO_CKPT_URL=""
 
 # System deps for scikit-image / opencv / PyTorch
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -78,22 +74,14 @@ RUN pip install --upgrade pip && \
     fi && \
     pip install --prefer-binary -e ".[cell_dino]"
 
-# Download Cell-DINO checkpoint at build time if the URL is provided.
-# The FAIR-emailed URLs are time-limited — pass as a build arg, not an
-# env var, so it's consumed during build and not leaked into the image
-# metadata. If empty, the pipeline falls back to DINOv2-base at runtime.
-RUN mkdir -p /app/models && \
-    if [ -n "$CELL_DINO_CKPT_URL" ]; then \
-        echo "[build] downloading Cell-DINO checkpoint (~1.2 GB)..." && \
-        curl -L -o /app/models/channel_adaptive_dino_vitl16.pth "$CELL_DINO_CKPT_URL" && \
-        echo "[build] checkpoint saved ($(du -h /app/models/channel_adaptive_dino_vitl16.pth | cut -f1))" ; \
-    else \
-        echo "[build] no CELL_DINO_CKPT_URL provided; Cell-DINO will fall back to DINOv2-base" ; \
-    fi
+# Copy the Cell-DINO checkpoint if it exists in the repo.
+# The file is 1.2 GB and gitignored — place it at
+# models/channel_adaptive_dino_vitl16.pth before building.
+# If absent, the COPY uses a wildcard so the build doesn't fail.
+COPY model[s]/channel_adaptive_dino_vitl16.pt[h] /app/models/
 
-# Set the runtime env var so the worker picks up the checkpoint
-# automatically. If the file doesn't exist (URL wasn't provided),
-# the worker falls back to DINOv2-base gracefully.
+# Set the runtime env var. If the file wasn't copied (didn't exist
+# at build time), the worker falls back to DINOv2-base gracefully.
 ENV GLYCOQUANT_CELL_DINO_CKPT=/app/models/channel_adaptive_dino_vitl16.pth
 
 EXPOSE 8000
