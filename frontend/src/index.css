@@ -2,168 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
-  Design tokens mirrored from glycoquant/theme.py (light-mode techbio).
-  Values are in HSL so Tailwind's `hsl(var(--x))` pattern works.
-
-  Palette:
-    background:      #FFFFFF  -> 0 0% 100%
-    foreground:      #0F172A  -> 222 47% 11%         (slate-900)
-    card:            #FFFFFF
-    popover:         #FFFFFF
-    primary:         #0EA5E9  -> 199 89% 48%         (sky-500)
-    brand:           #0D9488  -> 174 77% 31%         (teal-600)
-    secondary:       #F1F5F9  -> 210 40% 96%         (slate-100)
-    muted:           #F8FAFC  -> 210 40% 98%         (slate-50)
-    muted-foreground:#475569  -> 215 16% 47%         (slate-600)
-    accent:          #E0F2FE  -> 204 94% 94%         (sky-100)
-    destructive:     #DC2626  -> 0 72% 51%           (red-600)
-    border:          #E2E8F0  -> 214 32% 91%         (slate-200)
-    input:           #E2E8F0
-    ring:            #0EA5E9
-    success:         #16A34A  -> 142 71% 45%         (green-600)
-    warning:         #EA580C  -> 21 90% 48%          (orange-600)
-*/
-
-@layer base {
-  /*
-    Stitch / Material 3 "Quantitative Aesthetic" palette.
-    Token values mirrored from stitch/glycoquant_lab_system/DESIGN.md and
-    UI_SCIENCE_GUIDELINES.md. Hex values are converted to HSL for the
-    shadcn primitive layer; the same hexes are also exposed as direct
-    Tailwind colour tokens (`bg-surface`, `text-on-surface`, etc.) in
-    tailwind.config.ts.
-
-    Hex → HSL conversions:
-      #f8fafb (surface)              → 200 14% 98%
-      #2a3437 (on-surface)           → 197 13% 19%
-      #343dff (primary)              → 237 100% 60%
-      #f9f6ff (on-primary)           → 260 100% 98%
-      #f0f4f6 (surface-container-low)→ 200 19% 95%
-      #e8eff1 (surface-container)    → 197 17% 93%
-      #d9e4e8 (surface-cont-highest) → 197 22% 88%
-      #a9b4b7 (outline-variant)      → 197 8%  69%
-      #566164 (on-surface-variant)   → 197 9%  37%
-      #9f403d (error)                → 2   45% 43%
-  */
-  :root {
-    --background: 200 14% 98%;        /* surface #f8fafb */
-    --foreground: 197 13% 19%;        /* on-surface #2a3437 */
-    --card: 0 0% 100%;                /* surface-container-lowest #ffffff */
-    --card-foreground: 197 13% 19%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 197 13% 19%;
-    --primary: 237 100% 60%;          /* #343dff — Stitch primary blue */
-    --primary-foreground: 260 100% 98%; /* on-primary #f9f6ff */
-    --brand: 237 100% 60%;            /* alias of primary so brand-coloured */
-    --brand-foreground: 260 100% 98%; /* shadcn components stay coherent */
-    --secondary: 200 19% 95%;         /* surface-container-low #f0f4f6 */
-    --secondary-foreground: 197 13% 19%;
-    --muted: 197 17% 93%;             /* surface-container #e8eff1 */
-    --muted-foreground: 197 9% 37%;   /* on-surface-variant #566164 */
-    --accent: 197 22% 88%;            /* surface-container-highest #d9e4e8 */
-    --accent-foreground: 197 13% 19%;
-    --destructive: 2 45% 43%;         /* error #9f403d */
-    --destructive-foreground: 0 100% 99%;
-    --success: 142 50% 36%;           /* kept restrained, not in Stitch palette */
-    --warning: 35 80% 45%;
-    --border: 197 8% 69%;             /* outline-variant #a9b4b7 — note: opacity */
-    --input: 197 8% 69%;              /* still applied via .ghost-border for strict spec */
-    --ring: 237 100% 60%;
-    --radius: 0.125rem;               /* Stitch sm = 2px, applied universally */
-  }
-
-  * {
-    @apply border-border;
-  }
-
-  html,
-  body,
-  #root {
-    height: 100%;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
-  }
-
-  /* Tabular numerics for every number in the UI — techbio look */
-  .tabular-nums,
-  .font-mono,
-  th,
-  td {
-    font-variant-numeric: tabular-nums;
-  }
+:root {
+  --bg: #0a0a0a;
+  --panel: #111;
+  --panel-hover: #1a1a1a;
+  --border: #333;
+  --text-primary: #eee;
+  --text-secondary: #888;
+  --text-muted: #555;
+  --accent: #343dff;
+  --ch-dapi: #4A90D9;
+  --ch-wga: #4CAF50;
+  --ch-yap: #E040FB;
+  --ch-pax: #FF9800;
+  --ch-actin: #B0BEC5;
 }
 
-@layer components {
-  /* Subtle hover elevation for card groups */
-  .card-hover {
-    @apply transition-all hover:border-slate-300 hover:shadow-sm;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Uppercase section label pattern */
-  .section-label {
-    @apply text-[0.7rem] uppercase tracking-[0.08em] font-semibold text-muted-foreground;
-  }
-
-  /*
-    Stitch "Ghost Border" — felt, not seen.
-    Per UI_SCIENCE_GUIDELINES §2: outline-variant (#a9b4b7) at 15% opacity.
-    Used everywhere a card or panel needs structure without a visible line.
-  */
-  .ghost-border {
-    border: 1px solid rgba(169, 180, 183, 0.15);
-  }
-  .ghost-border-b {
-    border-bottom: 1px solid rgba(169, 180, 183, 0.15);
-  }
-  .ghost-border-t {
-    border-top: 1px solid rgba(169, 180, 183, 0.15);
-  }
-  .ghost-border-l {
-    border-left: 1px solid rgba(169, 180, 183, 0.15);
-  }
-  .ghost-border-r {
-    border-right: 1px solid rgba(169, 180, 183, 0.15);
-  }
-
-  /* Material Symbols Outlined alignment helper */
-  .material-symbols-outlined {
-    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
-    vertical-align: middle;
-    font-size: 1.25rem;
-  }
-
-  /* Stitch label pattern: tiny, bold, uppercase, widest tracking */
-  .stitch-label {
-    @apply text-[10px] font-bold uppercase tracking-widest text-on-surface-variant;
-  }
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: ui-monospace, 'JetBrains Mono', 'Fira Code', monospace;
+  -webkit-font-smoothing: antialiased;
+  font-size: 13px;
 }
 
-/*
-  Stitch scrollbar: 4px wide, surface-container-low track, surface-container-highest thumb.
-  Spec: ::-webkit-scrollbar { width: 4px; ... }
-*/
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: #f0f4f6; /* surface-container-low */
-}
-::-webkit-scrollbar-thumb {
-  background: #d9e4e8; /* surface-container-highest */
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a9b4b7; /* outline-variant */
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Utility */
+.label { font-family: system-ui, sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
+.mono { font-variant-numeric: tabular-nums; }
