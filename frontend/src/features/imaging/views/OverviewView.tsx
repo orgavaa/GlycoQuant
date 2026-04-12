@@ -111,15 +111,6 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
   const topR = summary?.top_correlation_r;
   const topPair = summary?.top_correlation_pair;
 
-  // Derive a state label from the mechano score for each rep cell
-  const stateLabel = (score: number | undefined): string => {
-    if (typeof score !== "number" || !Number.isFinite(score)) return "Unmeasured";
-    if (score > 0.5) return "High activation";
-    if (score > 0) return "Moderate";
-    if (score > -0.5) return "Low activation";
-    return "Quiescent";
-  };
-
   return (
     <div className="flex min-h-[calc(100vh-3rem)]">
       {/* ============================================================ */}
@@ -354,7 +345,6 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
               representativeCells.map((cell, i) => {
                 const cellId = Number(cell.cell_id);
                 const score = cell.mechano_score;
-                const label = stateLabel(score);
                 return (
                   <button
                     key={cellId}
