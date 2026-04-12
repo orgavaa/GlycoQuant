@@ -45,7 +45,7 @@ export function ImagingTab({ view }: ImagingTabProps) {
   const [pending, setPending] = useState<PendingSource>(null);
   const [cellDiameter, setCellDiameter] = useState(80);
   const [pixelSizeUm, setPixelSizeUm] = useState(0.656); // BBBC022 default
-  const [includeDeepFeatures] = useState(false);
+  const [includeDeepFeatures, setIncludeDeepFeatures] = useState(false);
 
   const isRunning = job.isRunning || job.submit.isPending;
   const hasResult = job.isComplete && !!job.result;
@@ -109,6 +109,8 @@ export function ImagingTab({ view }: ImagingTabProps) {
       onCellDiameter={setCellDiameter}
       pixelSizeUm={pixelSizeUm}
       onPixelSizeUm={setPixelSizeUm}
+      includeDeepFeatures={includeDeepFeatures}
+      onIncludeDeepFeatures={setIncludeDeepFeatures}
       isRunning={isRunning}
       onRun={handleRun}
       progress={job.progress}
@@ -129,6 +131,8 @@ interface EmptyStateLoaderProps {
   onCellDiameter: (v: number) => void;
   pixelSizeUm: number;
   onPixelSizeUm: (v: number) => void;
+  includeDeepFeatures: boolean;
+  onIncludeDeepFeatures: (v: boolean) => void;
   isRunning: boolean;
   onRun: () => void;
   progress: { phase: string; pct: number; message: string } | null;
@@ -142,6 +146,8 @@ function EmptyStateLoader({
   onCellDiameter,
   pixelSizeUm,
   onPixelSizeUm,
+  includeDeepFeatures,
+  onIncludeDeepFeatures,
   isRunning,
   onRun,
   progress,
@@ -259,6 +265,28 @@ function EmptyStateLoader({
                 />
               </div>
             </div>
+
+            {/* Cell-DINO deep embeddings toggle */}
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeDeepFeatures}
+                onChange={(e) => onIncludeDeepFeatures(e.target.checked)}
+                disabled={isRunning}
+                className="mt-0.5 w-3.5 h-3.5 rounded-none border-outline-variant bg-transparent text-primary focus:ring-0"
+              />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface">
+                  Cell-DINO deep embeddings
+                </span>
+                <span className="text-[10px] leading-snug text-on-surface-variant">
+                  Channel-adaptive ViT-L/16 — processes all 5 channels
+                  independently and produces 5×1024 = 5,120 learned features
+                  per cell. Requires the FAIR checkpoint on the server.
+                  Slower on CPU.
+                </span>
+              </div>
+            </label>
 
             <Button
               onClick={onRun}

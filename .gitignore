@@ -67,3 +67,4 @@ CLAUDE*.md
 .continue/
 *.claude-session
 *.agent-session
+models/

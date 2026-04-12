@@ -292,8 +292,8 @@ def _get_embedder():  # noqa: ANN202
             )
 
             print(
-                f"[worker] initialising ChannelAdaptiveDinoEmbedder "
-                f"(Cell-DINO ViT-L/16) from {ckpt} on {describe_device()}"
+                f"[worker] initialising Cell-DINO ViT-L/16 "
+                f"(channel-adaptive) from {ckpt} on {describe_device()}"
             )
             _EMBEDDER_SINGLETON = ChannelAdaptiveDinoEmbedder(
                 params=ChannelAdaptiveDinoParams(
@@ -302,17 +302,21 @@ def _get_embedder():  # noqa: ANN202
                 )
             )
         else:
+            # Cell-DINO checkpoint not provisioned — fall back to
+            # DINOv2-base so CI and dev environments without the FAIR
+            # weights still produce deep features. The UI labels this
+            # as "Cell-DINO (fallback)" so the operator knows to
+            # provision the checkpoint for the real backbone.
             from glycoquant.features.deep_embedding import (
                 DinoV2Embedder,
                 DinoV2Params,
             )
 
-            if ckpt:
-                print(
-                    f"[worker] GLYCOQUANT_CELL_DINO_CKPT={ckpt} does not "
-                    f"exist; falling back to facebook/dinov2-base"
-                )
-            print(f"[worker] initialising DinoV2Embedder on {describe_device()}")
+            print(
+                f"[worker] Cell-DINO checkpoint not found "
+                f"(GLYCOQUANT_CELL_DINO_CKPT={'not set' if not ckpt else ckpt}); "
+                f"using DINOv2-base fallback on {describe_device()}"
+            )
             _EMBEDDER_SINGLETON = DinoV2Embedder(
                 params=DinoV2Params(device=resolve_device())
             )

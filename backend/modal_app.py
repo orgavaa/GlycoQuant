@@ -77,9 +77,9 @@ image = (
             "HF_HOME": f"{CACHE_MOUNT}/huggingface",
             "CELLPOSE_LOCAL_MODELS_PATH": f"{CACHE_MOUNT}/cellpose",
             "GLYCOQUANT_DEVICE": "cuda",
-            # Uncomment after uploading the Cell-DINO checkpoint to the
-            # glycoquant-models volume (see docs/CELL_DINO_SETUP.md):
-            # "GLYCOQUANT_CELL_DINO_CKPT": f"{CACHE_MOUNT}/cell_dino/channel_adaptive_dino_vitl16.pth",
+            # Cell-DINO checkpoint — uploaded via:
+            #   modal volume put glycoquant-models models/channel_adaptive_dino_vitl16.pth /cell_dino/channel_adaptive_dino_vitl16.pth
+            "GLYCOQUANT_CELL_DINO_CKPT": f"{CACHE_MOUNT}/cell_dino/channel_adaptive_dino_vitl16.pth",
         }
     )
     # Bundle the local source tree so the Modal container can
