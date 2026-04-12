@@ -11,9 +11,10 @@ interface Props {
   showSegmentation: boolean;
   activeOverlay: string | null;
   cells: CellFeatures[];
+  channelVisibility: Record<string, boolean>;
 }
 
-export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells }: Props) {
+export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells, channelVisibility }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
@@ -61,12 +62,13 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     return null;
   }, [result.segmentation_figure_json]);
 
-  // Build the list of visible channel PNG src URLs
+  // Build the list of visible channel PNG src URLs — only show toggled-on channels
   const visibleChannels = useMemo(() => {
     if (!result.channel_pngs) return [];
-    // Show all available channels — the additive blend (mix-blend-mode:screen) composites them
-    return Object.entries(result.channel_pngs);
-  }, [result.channel_pngs]);
+    return Object.entries(result.channel_pngs).filter(
+      ([name]) => channelVisibility[name] === true
+    );
+  }, [result.channel_pngs, channelVisibility]);
 
   // Resize observer
   useEffect(() => {

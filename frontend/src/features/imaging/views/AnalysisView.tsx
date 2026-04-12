@@ -38,6 +38,7 @@ export function AnalysisView({ result }: Props) {
           showSegmentation={showSeg}
           activeOverlay={activeOverlay}
           cells={cells}
+          channelVisibility={channelVis}
         />
       </div>
 
