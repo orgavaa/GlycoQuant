@@ -181,7 +181,10 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       }
       ctx.closePath();
 
-      // Overlay fill
+      const isSelected = poly.cellId === selectedCellId;
+      const isHovered = poly.cellId === hoveredCellId;
+
+      // Overlay fill (viridis/rdbu colormaps)
       if (overlayValues) {
         const val = overlayValues.map.get(poly.cellId);
         if (val != null) {
@@ -190,16 +193,19 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
         }
       }
 
-      // Segmentation outline
-      if (showSegmentation) {
-        if (poly.cellId === selectedCellId) {
-          ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 2;
-          if (!overlayValues) { ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fill(); }
-        } else if (poly.cellId === hoveredCellId) {
-          ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 1.5;
-        } else {
-          ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 0.8;
-        }
+      // Selected cell — always highlight regardless of segmentation toggle
+      if (isSelected) {
+        ctx.strokeStyle = "#facc15"; ctx.lineWidth = 2.5;
+        ctx.fillStyle = "rgba(250,204,21,0.12)"; ctx.fill();
+        ctx.stroke();
+      } else if (isHovered) {
+        // Hovered cell — bright glow so user knows it's interactive
+        ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 2;
+        ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fill();
+        ctx.stroke();
+      } else if (showSegmentation) {
+        // Normal segmentation outlines
+        ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 0.8;
         ctx.stroke();
       }
     }
@@ -257,18 +263,20 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       </div>
       {tooltip && (
         <div
-          className="fixed z-[100] pointer-events-none bg-white border border-gray-200 rounded-lg shadow-lg"
-          style={{ left: tooltip.x + 16, top: tooltip.y - 12, padding: "12px 16px", minWidth: 180 }}
+          className="fixed z-[100] pointer-events-none bg-gray-900/90 backdrop-blur-md border border-gray-700 rounded-lg shadow-2xl"
+          style={{ left: tooltip.x + 16, top: tooltip.y - 16, padding: "10px 14px", minWidth: 190 }}
         >
-          <div className="text-[13px] font-semibold text-gray-900 pb-2 mb-2 border-b border-gray-100">
+          <div className="text-[13px] font-semibold text-white pb-1.5 mb-1.5 border-b border-gray-700 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
             Cell {tooltip.cellId}
           </div>
           {tooltip.lines.map(m => (
-            <div key={m.l} className="flex justify-between gap-5 text-[12px] leading-[1.8]">
-              <span className="text-gray-400 font-medium">{m.l}</span>
-              <span className="text-gray-900 font-medium" style={{ fontFeatureSettings: "'tnum'" }}>{m.v}</span>
+            <div key={m.l} className="flex justify-between gap-4 text-[11px] leading-[1.7]">
+              <span className="text-gray-400">{m.l}</span>
+              <span className="text-white font-medium" style={{ fontFeatureSettings: "'tnum'" }}>{m.v}</span>
             </div>
           ))}
+          <div className="text-[9px] text-gray-500 mt-1.5 pt-1.5 border-t border-gray-700">Click to inspect</div>
         </div>
       )}
     </>

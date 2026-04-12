@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -19,7 +19,15 @@ export function AnalysisView({ result }: Props) {
     dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
   });
   const datasetLabel = useJobStore(s => s.latestDatasetLabel);
+  const selectedCellId = useJobStore(s => s.selectedCellId);
   const cells = useMemo(() => extractFeatures(result.features_df_json), [result.features_df_json]);
+
+  // Auto-open the rail when a cell is clicked
+  useEffect(() => {
+    if (selectedCellId != null) {
+      setRailOpen(true);
+    }
+  }, [selectedCellId]);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
@@ -44,7 +52,7 @@ export function AnalysisView({ result }: Props) {
       />
 
       {/* Caption bar (bottom) */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
+      <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
         <div className="bg-black/60 backdrop-blur-sm">
           <ImageCaption
             datasetLabel={datasetLabel}
@@ -64,7 +72,7 @@ export function AnalysisView({ result }: Props) {
         {railOpen ? "\u2715 Close" : "\u2190 Results"}
       </button>
 
-      {/* Sliding results panel — 60vw or 640px max */}
+      {/* Sliding results panel */}
       <div
         className={`absolute top-0 right-0 h-full z-20 transition-transform duration-300 ease-in-out ${
           railOpen ? "translate-x-0" : "translate-x-full"
@@ -73,14 +81,6 @@ export function AnalysisView({ result }: Props) {
       >
         <RightRail result={result} cells={cells} onClose={() => setRailOpen(false)} />
       </div>
-
-      {/* Click-away backdrop */}
-      {railOpen && (
-        <div
-          className="absolute inset-0 z-[15] cursor-pointer"
-          onClick={() => setRailOpen(false)}
-        />
-      )}
     </div>
   );
 }
