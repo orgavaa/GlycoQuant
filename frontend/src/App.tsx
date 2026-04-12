@@ -29,7 +29,7 @@ export default function App() {
   const isImagingView = IMAGING_VIEWS.includes(activeView);
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-body antialiased">
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-body antialiased">
       <AppHeader
         activeView={activeView}
         onChangeView={setActiveView}
@@ -52,7 +52,7 @@ export default function App() {
         activeView; legacy Tab 2/3 render full-bleed inside the same
         canvas.
       */}
-      <main className="pt-14 pr-64 min-h-screen">
+      <main className="pt-12 pr-56 min-h-screen">
         {isImagingView && (
           <ImagingTab
             view={activeView as Exclude<AppView, "prioritization" | "experiment">}

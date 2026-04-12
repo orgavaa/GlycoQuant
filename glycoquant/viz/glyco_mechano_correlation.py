@@ -169,32 +169,9 @@ def plot_glyco_mechano_correlation(
     """
     result = compute_glyco_mechano_correlation(df, method=method)
 
-    n_pairs = max(
-        1,
-        int(np.isfinite(result.r_matrix).sum()),
-    )
-    sig_threshold = 0.05 / n_pairs  # Bonferroni
-    annotations: list[dict] = []
-    if result.r_matrix.size > 0:
-        for i, g in enumerate(result.glyco_features):
-            for j, m in enumerate(result.mechano_features):
-                r = result.r_matrix[i, j]
-                p = result.p_matrix[i, j]
-                if not np.isfinite(r):
-                    continue
-                star = "*" if np.isfinite(p) and p < sig_threshold else ""
-                annotations.append(
-                    {
-                        "x": _short(m),
-                        "y": _short(g),
-                        "text": f"{r:+.2f}{star}",
-                        "showarrow": False,
-                        "font": {
-                            "size": 10,
-                            "color": "#FFFFFF" if abs(r) > 0.4 else "#2a3437",
-                        },
-                    }
-                )
+    # No cell annotations — hover shows the exact value instead.
+    # Cramming numbers into tiny heatmap cells is unreadable at
+    # the 320px rail width. Clean heatmap + hover is the pro pattern.
 
     title_parts = ["Glycocalyx ↔ mechanotransduction correlation"]
     if result.top_pair is not None:
@@ -245,10 +222,11 @@ def plot_glyco_mechano_correlation(
             colorbar={
                 "title": {
                     "text": "ρ",
-                    "font": {"color": "#566164", "size": 11},
+                    "font": {"color": "rgba(255,255,255,0.5)", "size": 10},
                 },
-                "tickfont": {"color": "#566164", "size": 10},
-                "len": 0.6,
+                "tickfont": {"color": "rgba(255,255,255,0.4)", "size": 9},
+                "len": 0.5,
+                "thickness": 10,
             },
             hovertemplate=(
                 "<b>%{y}</b> × <b>%{x}</b><br>"
@@ -259,20 +237,19 @@ def plot_glyco_mechano_correlation(
     layout = get_plotly_layout_template()
     layout.update(
         {
-            "title": {"text": title, "font": {"size": 13, "family": "Inter"}},
+            "title": {"text": title, "font": {"size": 12, "family": "Inter", "color": "rgba(255,255,255,0.6)"}},
             "xaxis": {
                 "tickangle": 45,
-                "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
+                "tickfont": {"size": 10, "color": "rgba(255,255,255,0.5)", "family": "Inter"},
             },
             "yaxis": {
-                "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
+                "tickfont": {"size": 10, "color": "rgba(255,255,255,0.5)", "family": "Inter"},
                 "autorange": "reversed",
             },
-            "margin": {"b": 100, "l": 120, "r": 60, "t": 50},
-            "height": max(400, 32 * len(result.glyco_features) + 150),
+            "margin": {"b": 80, "l": 100, "r": 50, "t": 40},
+            "height": max(350, 28 * len(result.glyco_features) + 120),
             "paper_bgcolor": "rgba(0,0,0,0)",
             "plot_bgcolor": "rgba(0,0,0,0)",
-            "annotations": annotations,
         }
     )
     fig.update_layout(**layout)
@@ -311,10 +288,10 @@ def plot_mechano_score_distribution(
     mean = float(finite.mean())
     fig.add_vline(
         x=mean,
-        line={"color": "#2a3437", "width": 2, "dash": "dash"},
+        line={"color": "rgba(255,255,255,0.6)", "width": 1.5, "dash": "dash"},
         annotation={
             "text": f"μ = {mean:+.2f}",
-            "font": {"color": "#2a3437", "size": 12, "family": "Inter"},
+            "font": {"color": "rgba(255,255,255,0.6)", "size": 11, "family": "Inter"},
             "yanchor": "bottom",
         },
     )
@@ -323,21 +300,22 @@ def plot_mechano_score_distribution(
         xaxis={
             "title": {
                 "text": "Mechano score",
-                "font": {"size": 12, "color": "#566164", "family": "Inter"},
+                "font": {"size": 10, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
             },
-            "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
-            "gridcolor": "rgba(169,180,183,0.15)",
+            "tickfont": {"size": 9, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
+            "gridcolor": "rgba(255,255,255,0.06)",
+            "zerolinecolor": "rgba(255,255,255,0.1)",
         },
         yaxis={
             "title": {
                 "text": "Cells",
-                "font": {"size": 12, "color": "#566164", "family": "Inter"},
+                "font": {"size": 10, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
             },
-            "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
-            "gridcolor": "rgba(169,180,183,0.15)",
+            "tickfont": {"size": 9, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
+            "gridcolor": "rgba(255,255,255,0.06)",
         },
-        margin={"b": 50, "l": 50, "r": 20, "t": 20},
-        height=280,
+        margin={"b": 40, "l": 40, "r": 15, "t": 10},
+        height=220,
         bargap=0.08,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
