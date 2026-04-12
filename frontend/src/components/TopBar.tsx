@@ -1,56 +1,34 @@
-export type ViewId = "overview" | "single" | "compare" | "prioritization" | "experiment";
-
-const TABS: { id: ViewId; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "single", label: "Single Cell" },
-  { id: "compare", label: "Compare" },
-  { id: "prioritization", label: "Ranking" },
-  { id: "experiment", label: "Experiment" },
-];
+export type ViewId = "analysis" | "ranking";
 
 interface TopBarProps {
   activeView: ViewId;
   onChangeView: (v: ViewId) => void;
-  hasResult: boolean;
 }
 
-export function TopBar({ activeView, onChangeView, hasResult }: TopBarProps) {
+export function TopBar({ activeView, onChangeView }: TopBarProps) {
   return (
-    <nav style={{
-      height: 40, background: "#0d0d0d", borderBottom: "1px solid #1a1a1a",
-      display: "flex", alignItems: "center", padding: "0 20px", gap: 40, flexShrink: 0, zIndex: 50,
-    }}>
-      <button onClick={() => onChangeView("overview")} style={{
-        background: "none", border: "none", color: "#eee", fontSize: 13, fontWeight: 600,
-        cursor: "pointer", fontFamily: "inherit",
-      }}>
-        GlycoQuant
-      </button>
-
-      <div style={{ display: "flex", gap: 28 }}>
-        {TABS.map(t => {
-          const isActive = t.id === activeView || (t.id === "overview" && activeView === "single");
-          const disabled = !hasResult && t.id !== "overview";
-          return (
-            <button key={t.id} onClick={() => !disabled && onChangeView(t.id)} disabled={disabled} style={{
-              background: "none", border: "none",
-              borderBottom: isActive ? "2px solid #4A90D9" : "2px solid transparent",
-              color: isActive ? "#eee" : disabled ? "#333" : "#555",
-              fontSize: 11, letterSpacing: 0.8, textTransform: "uppercase" as const,
-              cursor: disabled ? "not-allowed" : "pointer", padding: "12px 0", fontFamily: "inherit",
-            }}>
-              {t.label}
-            </button>
-          );
-        })}
+    <nav style={{ height: 52, background: "#fff", borderBottom: "1px solid #e8e8e8", display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, zIndex: 50 }}>
+      <span style={{ fontWeight: 700, fontSize: 15, color: "#111", letterSpacing: -0.3 }}>GlycoQuant</span>
+      <div style={{ display: "flex", gap: 32, marginLeft: 48 }}>
+        <NavTab label="Analysis" active={activeView === "analysis"} onClick={() => onChangeView("analysis")} />
+        <NavTab label="Ranking" active={activeView === "ranking"} onClick={() => onChangeView("ranking")} />
       </div>
-
       <div style={{ flex: 1 }} />
-      <button style={{
-        background: "#1a1a1a", border: "none", color: "#888", fontSize: 10,
-        letterSpacing: 0.8, textTransform: "uppercase" as const, padding: "6px 14px",
-        cursor: "pointer", fontFamily: "inherit", borderRadius: 3,
-      }}>Export</button>
+      <button style={{ fontFamily: "inherit", fontSize: 12, fontWeight: 500, color: "#999", background: "none", border: "1px solid #e8e8e8", borderRadius: 4, padding: "6px 14px", cursor: "pointer" }}>
+        Export &darr;
+      </button>
     </nav>
+  );
+}
+
+function NavTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      background: "none", border: "none", borderBottom: active ? "2px solid #2166ac" : "2px solid transparent",
+      color: active ? "#111" : "#999", fontSize: 13, fontWeight: 500, cursor: "pointer",
+      padding: "16px 0", fontFamily: "inherit",
+    }}>
+      {label}
+    </button>
   );
 }
