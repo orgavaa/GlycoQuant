@@ -11,6 +11,11 @@ interface PlotlyFigureProps {
   height?: number;
   /** When set, show an explicit "Download PNG" button above the plot. */
   downloadName?: string;
+  /** Callback fired after Plotly.react completes, giving the parent
+   *  a ref to the plot div for direct Plotly.restyle calls. */
+  onReady?: (plotDiv: HTMLDivElement) => void;
+  /** Callback fired when a trace point is clicked. */
+  onClick?: (event: Plotly.PlotMouseEvent) => void;
 }
 
 /**
@@ -24,6 +29,8 @@ export function PlotlyFigure({
   className,
   height,
   downloadName,
+  onReady,
+  onClick,
 }: PlotlyFigureProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -76,7 +83,16 @@ export function PlotlyFigure({
       ...((parsed.config as Record<string, unknown>) ?? {}),
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Plotly.react(ref.current, parsed.data as any, layout as any, config as any);
+    Plotly.react(ref.current, parsed.data as any, layout as any, config as any).then(() => {
+      if (ref.current && onReady) onReady(ref.current);
+    });
+
+    // Wire click handler if provided
+    const plotDiv = ref.current;
+    if (onClick && plotDiv) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (plotDiv as any).on("plotly_click", onClick);
+    }
 
     const handleResize = () => {
       if (ref.current) Plotly.Plots.resize(ref.current);
@@ -84,11 +100,15 @@ export function PlotlyFigure({
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
+      if (plotDiv && onClick) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (plotDiv as any).removeAllListeners?.("plotly_click");
+      }
       if (ref.current) {
         Plotly.purge(ref.current);
       }
     };
-  }, [figureJson, height]);
+  }, [figureJson, height, onReady, onClick]);
 
   if (!downloadName) {
     return <div ref={ref} className={className} style={{ width: "100%" }} />;

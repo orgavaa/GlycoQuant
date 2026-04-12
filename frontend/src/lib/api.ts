@@ -75,6 +75,10 @@ export interface JobResult {
   mechano_score_distribution_figure_json?: string | null;
   mechano_score_summary?: MechanoScoreSummary | null;
   hero_metrics: Record<string, number | null>;
+  /** Channel name → Plotly trace index for toggling channel visibility */
+  channel_trace_indices?: Record<string, number> | null;
+  /** Overlay name → list of Plotly trace indices for filled polygons */
+  overlay_trace_ranges?: Record<string, number[]> | null;
   has_deep_features: boolean;
   /**
    * Identifier of the deep-embedding backbone that produced the
@@ -281,6 +285,54 @@ export async function submitAnalyze(
     headers: { "Content-Type": "multipart/form-data" },
     // Uploads can exceed the default 30s timeout
     timeout: 120_000,
+  });
+  return data;
+}
+
+export interface CellCropsResponse {
+  cell_id: number;
+  crops: Record<string, string>;  // channel_name → "data:image/png;base64,..."
+  bbox: [number, number, number, number] | null;
+}
+
+export async function fetchCellCrops(
+  jobId: string,
+  cellId: number,
+): Promise<CellCropsResponse> {
+  const { data } = await api.get<CellCropsResponse>(
+    `/analysis/jobs/${jobId}/cells/${cellId}/crops`,
+  );
+  return data;
+}
+
+export interface EffectSize {
+  feature: string;
+  cohens_d: number;
+  p_value: number;
+  mean_a: number;
+  mean_b: number;
+  delta_pct: number;
+}
+
+export interface CompareResult {
+  job_id_a: string;
+  job_id_b: string;
+  n_cells_a: number;
+  n_cells_b: number;
+  effect_sizes: EffectSize[];
+  top_deltas: EffectSize[];
+  violin_features: string[];
+  violin_a: Record<string, number[]>;
+  violin_b: Record<string, number[]>;
+}
+
+export async function fetchCompare(
+  jobIdA: string,
+  jobIdB: string,
+): Promise<CompareResult> {
+  const { data } = await api.post<CompareResult>("/analysis/compare", {
+    job_id_a: jobIdA,
+    job_id_b: jobIdB,
   });
   return data;
 }

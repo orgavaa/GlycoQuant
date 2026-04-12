@@ -30,6 +30,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview" },
   { id: "single", label: "Single Cell" },
+  { id: "compare", label: "Compare" },
 ];
 
 export function AppHeader({

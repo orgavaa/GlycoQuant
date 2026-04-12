@@ -6,7 +6,8 @@
  *
  * Layout: 12-col grid, image cols 1-7 (dark), analytics cols 8-12.
  */
-import { useMemo, useState } from "react";
+import Plotly from "plotly.js-dist-min";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { useJobStore } from "@/lib/jobStore";
 import { fmt } from "@/lib/utils";
@@ -17,12 +18,65 @@ interface OverviewViewProps {
   datasetLabel: string | null;
 }
 
+const CHANNEL_COLORS: Record<string, string> = {
+  dapi: "#0000FF",
+  glycocalyx: "#00FF00",
+  yap: "#FF00FF",
+  paxillin: "#FF4500",
+  actin: "#FFBF00",
+};
+
+const CHANNEL_LABELS: Record<string, string> = {
+  dapi: "DAPI",
+  glycocalyx: "WGA",
+  yap: "YAP",
+  paxillin: "Paxillin",
+  actin: "Actin",
+};
+
 export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
   const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
   const [showAudit, setShowAudit] = useState(false);
   const [showSegmentation, setShowSegmentation] = useState(true);
   const [showGlycoOverlay, setShowGlycoOverlay] = useState(false);
   const [showMechanoOverlay, setShowMechanoOverlay] = useState(false);
+  const [activeChannel, setActiveChannel] = useState("actin");
+  const plotDivRef = useRef<HTMLDivElement | null>(null);
+
+  const channelIndices = result.channel_trace_indices ?? {};
+  const overlayRanges = result.overlay_trace_ranges ?? {};
+
+  const handlePlotReady = useCallback((div: HTMLDivElement) => {
+    plotDivRef.current = div;
+  }, []);
+
+  const switchChannel = useCallback(
+    (channelName: string) => {
+      const div = plotDivRef.current;
+      if (!div) return;
+      const allIndices = Object.values(channelIndices);
+      const selectedIdx = channelIndices[channelName];
+      if (selectedIdx === undefined) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const visibility = allIndices.map((idx) => idx === selectedIdx) as any;
+      Plotly.restyle(div, { visible: visibility }, allIndices);
+      setActiveChannel(channelName);
+    },
+    [channelIndices],
+  );
+
+  // Toggle per-cell feature overlays (glycocalyx score / mechano score)
+  const toggleOverlay = useCallback(
+    (overlayName: string, enabled: boolean) => {
+      const div = plotDivRef.current;
+      if (!div) return;
+      const indices = overlayRanges[overlayName];
+      if (!indices || indices.length === 0) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Plotly.restyle(div, { visible: enabled }, indices as any);
+    },
+    [overlayRanges],
+  );
 
   const summary = result.mechano_score_summary;
   const m = result.hero_metrics;
@@ -82,6 +136,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
               figureJson={result.segmentation_figure_json}
               height={Math.max(400, window.innerHeight - 56)}
               className="w-full h-full"
+              onReady={handlePlotReady}
             />
           </div>
         )}
@@ -129,26 +184,45 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
                 label="Glycocalyx Score"
                 enabled={showGlycoOverlay}
                 onToggle={() => {
-                  setShowGlycoOverlay((v) => !v);
-                  if (!showGlycoOverlay) setShowMechanoOverlay(false);
+                  const next = !showGlycoOverlay;
+                  setShowGlycoOverlay(next);
+                  toggleOverlay("glycocalyx", next);
+                  if (next) {
+                    setShowMechanoOverlay(false);
+                    toggleOverlay("mechano", false);
+                  }
                 }}
               />
               <OverlayToggle
                 label="Mechanotransduction"
                 enabled={showMechanoOverlay}
                 onToggle={() => {
-                  setShowMechanoOverlay((v) => !v);
-                  if (!showMechanoOverlay) setShowGlycoOverlay(false);
+                  const next = !showMechanoOverlay;
+                  setShowMechanoOverlay(next);
+                  toggleOverlay("mechano", next);
+                  if (next) {
+                    setShowGlycoOverlay(false);
+                    toggleOverlay("glycocalyx", false);
+                  }
                 }}
               />
             </div>
             <div className="mt-2 pt-2 border-t border-outline-variant/10">
               <div className="flex gap-1.5">
-                <div className="w-3 h-3" style={{ backgroundColor: "#0000FF" }} title="DAPI" />
-                <div className="w-3 h-3" style={{ backgroundColor: "#00FF00" }} title="WGA" />
-                <div className="w-3 h-3" style={{ backgroundColor: "#FF00FF" }} title="YAP" />
-                <div className="w-3 h-3" style={{ backgroundColor: "#FFBF00" }} title="Actin" />
-                <div className="w-3 h-3" style={{ backgroundColor: "#FF4500" }} title="FA" />
+                {Object.entries(CHANNEL_COLORS).map(([ch, color]) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    onClick={() => switchChannel(ch)}
+                    title={CHANNEL_LABELS[ch]}
+                    className={`w-4 h-4 transition-all ${
+                      activeChannel === ch
+                        ? "ring-2 ring-white ring-offset-1 ring-offset-black/50 scale-110"
+                        : "opacity-60 hover:opacity-100"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
               </div>
             </div>
           </div>

@@ -13,11 +13,13 @@
  * cell crop image URL from Stitch) stay as Stitch defaults.
  * The shell (top nav, right sidebar) is rendered by App.tsx.
  */
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { useJobStore } from "@/lib/jobStore";
 import { fmt } from "@/lib/utils";
-import type { JobResult } from "@/lib/api";
+import { fetchCellCrops, type JobResult } from "@/lib/api";
+import { useAnalysisJob } from "@/hooks/useAnalysisJob";
 
 interface SingleCellViewProps {
   result: JobResult;
@@ -38,6 +40,18 @@ export function SingleCellView({ result }: SingleCellViewProps) {
   const selectedCellId = useJobStore((s) => s.selectedCellId);
   const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
   const [activeTab, setActiveTab] = useState<EvidenceTab>("glycocalyx");
+  const [activeThumb, setActiveThumb] = useState<string>("glycocalyx");
+
+  // Fetch the job ID from the analysis hook for the crops endpoint
+  const job = useAnalysisJob();
+  const jobId = job.jobId;
+
+  // Fetch per-cell channel crops when a cell is selected
+  const cropsQuery = useQuery({
+    queryKey: ["cell-crops", jobId, selectedCellId],
+    queryFn: () => fetchCellCrops(jobId!, selectedCellId!),
+    enabled: !!jobId && selectedCellId != null,
+  });
 
   const rows: CellRow[] = useMemo(() => {
     try {
@@ -275,20 +289,61 @@ export function SingleCellView({ result }: SingleCellViewProps) {
           </div>
         </div>
 
-        {/* Main Image Canvas — zoomed to the selected cell.
-            We modify the Plotly figure's axis ranges client-side to
-            focus on the selected cell's region. The segmentation
-            figure stores cell_id in customdata per trace — we find
-            the matching trace, compute its bounding box from the
-            x/y coordinate arrays, and set the axis range to that
-            bbox with padding. This gives a "single cell crop" view
-            without needing the backend to stream per-cell PNGs. */}
-        <div className="flex-1 relative bg-slate-950 overflow-hidden [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
-          <PlotlyFigure
-            figureJson={zoomedFigureJson}
-            height={Math.max(300, window.innerHeight - 56 - 60)}
-            className="w-full h-full"
-          />
+        {/* Main Image Canvas — shows per-cell channel crops when
+            available, falls back to zoomed segmentation figure */}
+        <div className="flex-1 relative bg-slate-950 overflow-hidden flex flex-col items-center justify-center">
+          {cropsQuery.data?.crops && Object.keys(cropsQuery.data.crops).length > 0 ? (
+            <>
+              {/* Large active channel crop */}
+              <div className="flex-1 flex items-center justify-center p-6">
+                <img
+                  src={cropsQuery.data.crops[activeThumb] ?? Object.values(cropsQuery.data.crops)[0]}
+                  alt={`${activeThumb} channel crop`}
+                  className="max-w-[400px] max-h-[400px] w-auto h-auto object-contain border border-white/10"
+                  style={{ imageRendering: "pixelated" }}
+                />
+              </div>
+              {/* 5-channel thumbnail strip */}
+              <div className="flex gap-2 px-6 pb-4">
+                {Object.entries(cropsQuery.data.crops).map(([ch, src]) => (
+                  <button
+                    key={ch}
+                    type="button"
+                    onClick={() => setActiveThumb(ch)}
+                    className={`flex flex-col items-center gap-1 transition-all ${
+                      activeThumb === ch
+                        ? "ring-2 ring-primary ring-offset-2 ring-offset-black"
+                        : "opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img
+                      src={src}
+                      alt={ch}
+                      className="w-16 h-16 object-contain"
+                      style={{ imageRendering: "pixelated" }}
+                    />
+                    <span className="text-[9px] text-white/70 uppercase tracking-widest font-bold">
+                      {ch === "glycocalyx" ? "WGA" : ch === "paxillin" ? "Pax" : ch.toUpperCase()}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : cropsQuery.isLoading ? (
+            <div className="text-white/40 flex flex-col items-center gap-3">
+              <span className="material-symbols-outlined text-[32px] animate-spin">progress_activity</span>
+              <span className="text-[10px] uppercase tracking-widest">Loading cell crops</span>
+            </div>
+          ) : (
+            /* Fallback: zoomed segmentation figure */
+            <div className="w-full h-full [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
+              <PlotlyFigure
+                figureJson={zoomedFigureJson}
+                height={Math.max(300, window.innerHeight - 56 - 60)}
+                className="w-full h-full"
+              />
+            </div>
+          )}
         </div>
 
         {/* Viewer Bottom Controls */}

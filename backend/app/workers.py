@@ -214,6 +214,14 @@ def run_analysis_job(
         if channel_warnings:
             result.warnings = list(result.warnings) + channel_warnings
 
+        # Cache channels + masks for the per-cell crops endpoint.
+        # ~50 MB per job; fine for a demo with <10 concurrent jobs.
+        job = store.get(job_id)
+        if job is not None:
+            job.meta["_channels"] = channels
+            job.meta["_cell_mask"] = cell_mask
+            job.meta["_nuclear_mask"] = nuclear_mask
+
         store.update(
             job_id,
             status="complete",
@@ -378,7 +386,7 @@ def _build_result_payload(
         return None
 
     # Segmentation figure: build via the same overlay logic, serialized to JSON
-    seg_fig = _build_segmentation_figure(channels, cell_mask, nuclear_mask, features_df)
+    seg_fig, channel_trace_indices, overlay_trace_ranges = _build_segmentation_figure(channels, cell_mask, nuclear_mask, features_df)
 
     # Radial profile figure: re-run the assembler with radial profile inclusion
     radial_assembler = ProfileAssembler(
@@ -458,6 +466,8 @@ def _build_result_payload(
         cell_count=len(features_df),
         features_df_json=features_df.reset_index().to_json(orient="records"),
         segmentation_figure_json=seg_fig.to_json(),
+        channel_trace_indices=channel_trace_indices,
+        overlay_trace_ranges=overlay_trace_ranges,
         radial_profile_figure_json=radial_fig.to_json(),
         correlation_figure_json=corr_fig.to_json(),
         glyco_mechano_correlation_figure_json=glyco_mechano_fig.to_json(),
@@ -485,32 +495,91 @@ def _build_segmentation_figure(
     from glycoquant.theme import get_plotly_layout_template
     from glycoquant.viz import cell_outline_polygons
 
-    base = downsample_for_display(channels[_seg_channel(channels)]).astype(np.float32)
-    # Percentile contrast stretch so faint cytoplasmic channels render at a
-    # legible brightness — mirrors the HPA preview endpoint.
-    finite = base[np.isfinite(base)]
-    if finite.size:
-        lo, hi = np.percentile(finite, (1.0, 99.5))
-        if hi > lo:
-            base = np.clip((base - lo) / (hi - lo), 0.0, 1.0)
+    # Per-channel colorscales matched to biological identity
+    CHANNEL_COLORSCALES = {
+        "dapi": "Blues",
+        "glycocalyx": "Greens",
+        "yap": "Magenta",
+        "paxillin": "Oranges",
+        "actin": "Magma",
+    }
+    DEFAULT_CHANNEL = _seg_channel(channels)
+
+    # Render ALL 5 channels as separate Heatmap traces. Only the default
+    # is visible; the frontend swaps via Plotly.restyle.
+    channel_trace_indices: dict[str, int] = {}
+    first_channel_data = None
+    trace_idx = 0
+
+    for ch_name in ("dapi", "glycocalyx", "yap", "paxillin", "actin"):
+        if ch_name not in channels:
+            continue
+        ch_data = downsample_for_display(channels[ch_name]).astype(np.float32)
+        finite = ch_data[np.isfinite(ch_data)]
+        if finite.size:
+            lo, hi = np.percentile(finite, (1.0, 99.5))
+            if hi > lo:
+                ch_data = np.clip((ch_data - lo) / (hi - lo), 0.0, 1.0)
+        if first_channel_data is None:
+            first_channel_data = ch_data
+        channel_trace_indices[ch_name] = trace_idx
+        trace_idx += 1
+
+    base = first_channel_data if first_channel_data is not None else np.zeros((100, 100))
     h, w = base.shape[:2]
     scale_y = base.shape[0] / cell_mask.shape[0]
     scale_x = base.shape[1] / cell_mask.shape[1]
 
     fig = go.Figure()
-    fig.add_trace(
-        go.Heatmap(
-            z=base,
-            zmin=0.0,
-            zmax=1.0,
-            colorscale="Magma",
-            showscale=False,
-            hoverinfo="skip",
-        )
-    )
 
-    # Cell outlines — bright cyan on magma for maximum contrast
+    for ch_name in ("dapi", "glycocalyx", "yap", "paxillin", "actin"):
+        if ch_name not in channels:
+            continue
+        ch_data = downsample_for_display(channels[ch_name]).astype(np.float32)
+        finite = ch_data[np.isfinite(ch_data)]
+        if finite.size:
+            lo, hi = np.percentile(finite, (1.0, 99.5))
+            if hi > lo:
+                ch_data = np.clip((ch_data - lo) / (hi - lo), 0.0, 1.0)
+        fig.add_trace(
+            go.Heatmap(
+                z=ch_data,
+                zmin=0.0,
+                zmax=1.0,
+                colorscale=CHANNEL_COLORSCALES.get(ch_name, "Magma"),
+                showscale=False,
+                hoverinfo="skip",
+                visible=(ch_name == DEFAULT_CHANNEL),
+                name=f"channel_{ch_name}",
+            )
+        )
+
+    # Build a per-cell lookup for the 4 key metrics shown in hover tooltips
+    import math
+
+    def _val(cell_id: int, col: str) -> str:
+        """Fetch a feature value for hover display, '—' if missing."""
+        if col not in features_df.columns:
+            return "—"
+        try:
+            row = features_df.loc[float(cell_id)]
+            v = float(row[col])
+            if not math.isfinite(v):
+                return "—"
+            return f"{v:.2f}"
+        except (KeyError, TypeError, ValueError):
+            return "—"
+
+    # Cell outlines — bright cyan on magma for maximum contrast.
+    # Each trace carries 4 key metrics in customdata so the Plotly
+    # tooltip renders them on hover without any frontend change.
     for cell_id, contour in cell_outline_polygons(cell_mask).items():
+        glyco = _val(cell_id, "glycocalyx_pericellular_ratio")
+        yap = _val(cell_id, "yap_nc_ratio_size_corrected")
+        mechano = _val(cell_id, "mechano_score")
+        fa = _val(cell_id, "fa_mature_fraction")
+
+        n_pts = len(contour)
         fig.add_trace(
             go.Scatter(
                 x=contour[:, 1] * scale_x,
@@ -519,11 +588,104 @@ def _build_segmentation_figure(
                 fill="toself",
                 fillcolor="rgba(94, 234, 212, 0.10)",
                 line={"color": "#5EEAD4", "width": 1.6},
-                customdata=[cell_id] * len(contour),
-                hovertemplate=f"<b>Cell {cell_id}</b><extra></extra>",
+                customdata=[[cell_id, glyco, yap, mechano, fa]] * n_pts,
+                hovertemplate=(
+                    "<b>Cell %{customdata[0]}</b><br>"
+                    "Glycocalyx ratio: %{customdata[1]}<br>"
+                    "YAP N/C (corr): %{customdata[2]}<br>"
+                    "Mechano score: %{customdata[3]}<br>"
+                    "FA mature frac: %{customdata[4]}"
+                    "<extra></extra>"
+                ),
                 name=f"Cell {cell_id}",
                 showlegend=False,
                 legendgroup="cells",
+            )
+        )
+
+    # ------------------------------------------------------------------
+    # Per-cell heatmap fill overlays — two blocks of filled polygons,
+    # one colored by glycocalyx_pericellular_ratio (Viridis), one by
+    # mechano_score (RdBu centered on 0). Both start visible=False;
+    # the frontend toggles them via Plotly.restyle.
+    # ------------------------------------------------------------------
+
+    def _float_val(cell_id: int, col: str) -> float:
+        if col not in features_df.columns:
+            return float("nan")
+        try:
+            return float(features_df.loc[float(cell_id), col])
+        except (KeyError, TypeError, ValueError):
+            return float("nan")
+
+    # Collect feature values for colorscale normalization
+    all_glyco = [_float_val(cid, "glycocalyx_pericellular_ratio") for cid in cell_outline_polygons(cell_mask)]
+    all_mechano = [_float_val(cid, "mechano_score") for cid in cell_outline_polygons(cell_mask)]
+    finite_glyco = [v for v in all_glyco if math.isfinite(v)]
+    finite_mechano = [v for v in all_mechano if math.isfinite(v)]
+    glyco_min = min(finite_glyco) if finite_glyco else 0.0
+    glyco_max = max(finite_glyco) if finite_glyco else 1.0
+    mechano_abs = max(abs(min(finite_mechano)) if finite_mechano else 1.0,
+                      abs(max(finite_mechano)) if finite_mechano else 1.0)
+
+    # Viridis hex ramp for glycocalyx (5 stops)
+    VIRIDIS = ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"]
+    # RdBu for mechano (diverging, centered on 0)
+    RDBU = ["#b2182b", "#ef8a62", "#f7f7f7", "#67a9cf", "#2166ac"]
+
+    def _viridis_color(val: float, vmin: float, vmax: float) -> str:
+        if not math.isfinite(val) or vmax <= vmin:
+            return "rgba(100,100,100,0.2)"
+        t = max(0.0, min(1.0, (val - vmin) / (vmax - vmin)))
+        idx = min(int(t * (len(VIRIDIS) - 1)), len(VIRIDIS) - 2)
+        return VIRIDIS[idx]
+
+    def _rdbu_color(val: float, vabs: float) -> str:
+        if not math.isfinite(val) or vabs <= 0:
+            return "rgba(100,100,100,0.2)"
+        t = max(0.0, min(1.0, (val + vabs) / (2.0 * vabs)))
+        idx = min(int(t * (len(RDBU) - 1)), len(RDBU) - 2)
+        return RDBU[idx]
+
+    overlay_trace_ranges: dict[str, list[int]] = {"glycocalyx": [], "mechano": []}
+
+    # Glycocalyx fill overlay
+    for cell_id, contour in cell_outline_polygons(cell_mask).items():
+        val = _float_val(cell_id, "glycocalyx_pericellular_ratio")
+        color = _viridis_color(val, glyco_min, glyco_max)
+        trace_idx = len(fig.data)
+        overlay_trace_ranges["glycocalyx"].append(trace_idx)
+        fig.add_trace(
+            go.Scatter(
+                x=contour[:, 1] * scale_x,
+                y=contour[:, 0] * scale_y,
+                mode="lines",
+                fill="toself",
+                fillcolor=color.replace(")", ",0.5)").replace("rgb", "rgba") if "rgb" in color else color[:7] + "80",
+                line={"color": color, "width": 0.5},
+                hoverinfo="skip",
+                visible=False,
+                showlegend=False,
+            )
+        )
+
+    # Mechano fill overlay
+    for cell_id, contour in cell_outline_polygons(cell_mask).items():
+        val = _float_val(cell_id, "mechano_score")
+        color = _rdbu_color(val, mechano_abs)
+        trace_idx = len(fig.data)
+        overlay_trace_ranges["mechano"].append(trace_idx)
+        fig.add_trace(
+            go.Scatter(
+                x=contour[:, 1] * scale_x,
+                y=contour[:, 0] * scale_y,
+                mode="lines",
+                fill="toself",
+                fillcolor=color + "80",  # 50% opacity hex
+                line={"color": color, "width": 0.5},
+                hoverinfo="skip",
+                visible=False,
+                showlegend=False,
             )
         )
 
@@ -535,8 +697,8 @@ def _build_segmentation_figure(
             "margin": {"l": 0, "r": 0, "t": 0, "b": 0},
             "height": 560,
             "showlegend": False,
-            "plot_bgcolor": "#FFFFFF",
+            "plot_bgcolor": "#000000",
         }
     )
     fig.update_layout(**layout)
-    return fig
+    return fig, channel_trace_indices, overlay_trace_ranges

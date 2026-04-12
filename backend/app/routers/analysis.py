@@ -18,6 +18,9 @@ from fastapi.responses import StreamingResponse
 from backend.app.preview import composite_preview_png
 from backend.app.schemas import (
     AnalyzeResponse,
+    CompareRequest,
+    CompareResult,
+    EffectSize,
     JobStatusResponse,
 )
 from backend.app.workers import get_job_store, run_analysis_job
@@ -228,4 +231,132 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
         finished_at=job.finished_at.isoformat() if job.finished_at else None,
         result=job.result,
         error=job.error,
+    )
+
+
+@router.get("/jobs/{job_id}/cells/{cell_id}/crops")
+async def get_cell_crops(job_id: str, cell_id: int):
+    """Return base64-encoded channel crops for a single cell.
+
+    The raw channel arrays + cell mask are cached in the job's meta
+    dict by ``run_analysis_job``. If the job has expired from the
+    in-memory store or was run on Modal (where caching doesn't persist
+    back to Railway), returns 404.
+    """
+    store = get_job_store()
+    job = store.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    if job.status != "complete":
+        raise HTTPException(status_code=409, detail="Job not complete yet")
+
+    channels = job.meta.get("_channels")
+    cell_mask = job.meta.get("_cell_mask")
+    if channels is None or cell_mask is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Channel data not cached for this job (may have been run on Modal GPU)",
+        )
+
+    from backend.app.cell_crops import extract_cell_crops
+
+    result = extract_cell_crops(channels, cell_mask, cell_id)
+    if not result["crops"]:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cell {cell_id} not found in the segmentation mask",
+        )
+    return result
+
+
+@router.post("/compare", response_model=CompareResult)
+async def compare_jobs(req: CompareRequest) -> CompareResult:
+    """Compare two completed analysis jobs — Cohen's d + violin data."""
+    import math
+
+    import numpy as np
+    import pandas as pd
+    from scipy.stats import mannwhitneyu
+
+    store = get_job_store()
+    job_a = store.get(req.job_id_a)
+    job_b = store.get(req.job_id_b)
+    if job_a is None or job_b is None:
+        raise HTTPException(status_code=404, detail="One or both jobs not found")
+    if job_a.status != "complete" or job_b.status != "complete":
+        raise HTTPException(status_code=409, detail="Both jobs must be complete")
+    if not job_a.result or not job_b.result:
+        raise HTTPException(status_code=409, detail="Both jobs must have results")
+
+    df_a = pd.DataFrame(pd.read_json(job_a.result.features_df_json, orient="records"))
+    df_b = pd.DataFrame(pd.read_json(job_b.result.features_df_json, orient="records"))
+
+    # Features to compare — the curated mechano + glycocalyx panel
+    COMPARE_FEATURES = [
+        "glycocalyx_mean_intensity",
+        "glycocalyx_pericellular_ratio",
+        "glycocalyx_heterogeneity",
+        "glycocalyx_shannon_entropy",
+        "glycocalyx_haralick_contrast",
+        "glycocalyx_moran_i",
+        "yap_nc_ratio_size_corrected",
+        "yap_nuclear_intensity",
+        "fa_mature_fraction",
+        "fa_density_per_um2",
+        "actin_stress_fiber_coherence",
+        "actin_cortical_ratio",
+        "mechano_score",
+        "nuclear_aspect_ratio",
+        "nuclear_solidity",
+        "cell_area",
+    ]
+
+    available = [f for f in COMPARE_FEATURES if f in df_a.columns and f in df_b.columns]
+
+    effect_sizes: list[EffectSize] = []
+    violin_a: dict[str, list[float]] = {}
+    violin_b: dict[str, list[float]] = {}
+
+    for feat in available:
+        vals_a = df_a[feat].dropna().to_numpy(dtype=np.float64)
+        vals_b = df_b[feat].dropna().to_numpy(dtype=np.float64)
+        if len(vals_a) < 3 or len(vals_b) < 3:
+            continue
+
+        mean_a = float(np.mean(vals_a))
+        mean_b = float(np.mean(vals_b))
+        pooled_std = float(np.sqrt((np.var(vals_a) + np.var(vals_b)) / 2))
+        cohens_d = float((mean_b - mean_a) / pooled_std) if pooled_std > 0 else 0.0
+        try:
+            _, p = mannwhitneyu(vals_a, vals_b, alternative="two-sided")
+            p_val = float(p)
+        except ValueError:
+            p_val = 1.0
+        delta_pct = float((mean_b - mean_a) / abs(mean_a) * 100) if abs(mean_a) > 1e-9 else 0.0
+
+        effect_sizes.append(EffectSize(
+            feature=feat,
+            cohens_d=round(cohens_d, 3),
+            p_value=round(p_val, 6),
+            mean_a=round(mean_a, 4),
+            mean_b=round(mean_b, 4),
+            delta_pct=round(delta_pct, 1),
+        ))
+
+        # Violin data — send raw values (capped at 500 per condition for payload size)
+        violin_a[feat] = [float(v) for v in vals_a[:500] if math.isfinite(v)]
+        violin_b[feat] = [float(v) for v in vals_b[:500] if math.isfinite(v)]
+
+    top_deltas = sorted(effect_sizes, key=lambda e: abs(e.cohens_d), reverse=True)[:5]
+
+    return CompareResult(
+        job_id_a=req.job_id_a,
+        job_id_b=req.job_id_b,
+        n_cells_a=len(df_a),
+        n_cells_b=len(df_b),
+        effect_sizes=effect_sizes,
+        top_deltas=top_deltas,
+        violin_features=available,
+        violin_a=violin_a,
+        violin_b=violin_b,
     )

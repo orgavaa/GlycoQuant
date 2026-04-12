@@ -48,20 +48,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_A02_s5",
@@ -103,20 +109,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_B01_s5",
@@ -158,20 +170,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_B02_s5",
@@ -213,20 +231,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_A23_s5",
@@ -268,20 +292,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_A24_s5",
@@ -323,20 +353,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_B23_s5",
@@ -378,20 +414,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_C05_s5",
@@ -433,20 +475,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_D08_s5",
@@ -488,20 +536,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_E03_s5",
@@ -543,20 +597,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_F10_s5",
@@ -598,20 +658,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_G07_s5",
@@ -653,20 +719,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_H12_s5",
@@ -708,20 +780,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_I06_s5",
@@ -763,20 +841,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_J09_s5",
@@ -818,20 +902,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_K04_s5",
@@ -873,20 +963,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_L11_s5",
@@ -928,20 +1024,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_M08_s5",
@@ -983,20 +1085,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_N06_s5",
@@ -1038,20 +1146,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_A01_s1",
@@ -1093,20 +1207,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_C05_s9",
@@ -1148,20 +1268,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "BBBC022_G07_s3",
@@ -1203,20 +1329,26 @@
         },
         "yap": {
           "bbbc_channel": "w2",
-          "biological_identity": "con A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "bbbc_channel": "w5",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "bbbc_channel": "w4",
           "biological_identity": "WGA-lectin + phalloidin (AGP, duplicated)",
           "matches_labouesse_protocol": true
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_B02_s1",
@@ -1255,13 +1387,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1269,7 +1403,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_C05_s1",
@@ -1308,13 +1446,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1322,7 +1462,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_D08_s1",
@@ -1361,13 +1505,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1375,7 +1521,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_E11_s1",
@@ -1414,13 +1564,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1428,7 +1580,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_F14_s1",
@@ -1467,13 +1623,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1481,7 +1639,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_G17_s1",
@@ -1520,13 +1682,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1534,7 +1698,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_H20_s1",
@@ -1573,13 +1741,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1587,7 +1757,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_B02_s2",
@@ -1626,13 +1800,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1640,7 +1816,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate1_F14_s2",
@@ -1679,13 +1859,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1693,7 +1875,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate2_B02_s1",
@@ -1732,13 +1918,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1746,7 +1934,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate2_D08_s1",
@@ -1785,13 +1977,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1799,7 +1993,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate2_F14_s1",
@@ -1838,13 +2036,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1852,7 +2052,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-01_Plate2_H20_s1",
@@ -1891,13 +2095,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1905,7 +2111,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate1_B02_s1",
@@ -1944,13 +2154,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -1958,7 +2170,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate1_D08_s1",
@@ -1997,13 +2213,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -2011,7 +2229,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate1_F14_s1",
@@ -2050,13 +2272,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -2064,7 +2288,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate1_H20_s1",
@@ -2103,13 +2331,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -2117,7 +2347,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate2_B02_s1",
@@ -2156,13 +2390,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -2170,7 +2406,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate2_D08_s1",
@@ -2209,13 +2449,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -2223,7 +2465,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     },
     {
       "name": "RxRx1_U2OS-02_Plate2_F14_s1",
@@ -2262,13 +2508,15 @@
         },
         "yap": {
           "channel": "w2 (ConA)",
-          "biological_identity": "Concanavalin A (endoplasmic reticulum)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic YAP (glyco-correlated N/C ratio)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — N/C ratio drawn from a distribution that correlates with per-cell WGA glycocalyx intensity (r ≈ 0.3-0.5). Not real YAP immunofluorescence."
         },
         "paxillin": {
           "channel": "w5 (MitoTracker)",
-          "biological_identity": "MitoTracker Deep Red (mitochondria)",
-          "matches_labouesse_protocol": false
+          "biological_identity": "Synthetic paxillin (peripheral puncta)",
+          "matches_labouesse_protocol": false,
+          "note": "SYNTHETIC — elliptical puncta placed near the cell periphery with size correlating weakly with cell area. Not real paxillin immunofluorescence."
         },
         "actin": {
           "channel": "w3 (Phalloidin)",
@@ -2276,7 +2524,11 @@
           "matches_labouesse_protocol": true,
           "note": "Real phalloidin — separate channel from WGA (unlike BBBC022 AGP bundle)."
         }
-      }
+      },
+      "synthetic_channels": [
+        "yap",
+        "paxillin"
+      ]
     }
   ]
 }

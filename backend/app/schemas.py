@@ -137,6 +137,22 @@ class JobResult(BaseModel):
             "mean_glycocalyx_ratio, mean_mechano_score, top_glyco_mechano_r."
         )
     )
+    channel_trace_indices: dict[str, int] | None = Field(
+        default=None,
+        description=(
+            "Mapping of channel name → Plotly trace index in the "
+            "segmentation figure. The frontend uses this to toggle "
+            "channel visibility via Plotly.restyle."
+        ),
+    )
+    overlay_trace_ranges: dict[str, list[int]] | None = Field(
+        default=None,
+        description=(
+            "Mapping of overlay name (glycocalyx / mechano) → list of "
+            "Plotly trace indices for that overlay's filled polygons. "
+            "The frontend toggles visibility via Plotly.restyle."
+        ),
+    )
     has_deep_features: bool = False
     deep_embedding_backend: Literal["dinov2_base", "cell_dino_channel_adaptive"] | None = Field(
         default=None,
@@ -278,6 +294,35 @@ class GeneformerStatusResponse(BaseModel):
     elapsed_sec: int
     message: str = ""
     error: str | None = None
+
+
+class CompareRequest(BaseModel):
+    """POST /analysis/compare — compare two completed jobs."""
+    job_id_a: str
+    job_id_b: str
+
+
+class EffectSize(BaseModel):
+    feature: str
+    cohens_d: float
+    p_value: float
+    mean_a: float
+    mean_b: float
+    delta_pct: float  # (mean_b - mean_a) / |mean_a| * 100
+
+
+class CompareResult(BaseModel):
+    """Population-level comparison between two analysis runs."""
+    job_id_a: str
+    job_id_b: str
+    n_cells_a: int
+    n_cells_b: int
+    effect_sizes: list[EffectSize]
+    top_deltas: list[EffectSize]  # top 5 by |Cohen's d|
+    # Per-feature arrays for Plotly violin rendering
+    violin_features: list[str]
+    violin_a: dict[str, list[float]]  # feature → values for condition A
+    violin_b: dict[str, list[float]]  # feature → values for condition B
 
 
 class DrillDownResponse(BaseModel):
