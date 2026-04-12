@@ -1,41 +1,42 @@
 /**
  * RightRail — 320px fixed panel. Content swaps by context.
- * Overview mode: hero metrics + heatmap + histogram + rep cells.
- * Single cell mode: crops + state summary + features.
+ * Overview mode: hero metrics + heatmap + histogram + top cells.
+ * Single cell mode: cell header + summary + radar + feature groups.
  */
 import { useMemo } from "react";
-import { PlotlyChart } from "./PlotlyChart";
+import { HeroMetrics } from "./HeroMetrics";
+import { PlotlyDark } from "./PlotlyDark";
+import { RadarChart } from "./RadarChart";
+import { FeatureGroup } from "./FeatureGroup";
+import { CellSummary } from "./CellSummary";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
-
-import type { ViewId } from "./TopBar";
-
-interface RightRailProps {
-  result: JobResult;
-  onDeselectCell: () => void;
-  activeView: ViewId;
-  onChangeView: (v: ViewId) => void;
-  hasResult: boolean;
-}
+import { FEATURE_GROUPS, RADAR_AXES } from "@/types";
+import { useState } from "react";
 
 interface CellRow {
   cell_id: number;
   [key: string]: number | undefined;
 }
 
+interface RightRailProps {
+  result: JobResult;
+  onDeselectCell: () => void;
+}
+
 function fmt(v: number | null | undefined, decimals = 2): string {
-  if (v == null || !Number.isFinite(v)) return "—";
+  if (v == null || !Number.isFinite(v)) return "\u2014";
   return v.toFixed(decimals);
 }
 
-const VIEW_TABS: { id: ViewId; label: string; icon: string }[] = [
-  { id: "overview", label: "Overview", icon: "🔬" },
-  { id: "single", label: "Single Cell", icon: "🎯" },
-  { id: "compare", label: "Compare", icon: "⚖️" },
-];
+function fmtSigned(v: number | null | undefined): string {
+  if (v == null || !Number.isFinite(v)) return "\u2014";
+  return (v >= 0 ? "+" : "") + v.toFixed(2);
+}
 
-export function RightRail({ result, onDeselectCell, activeView, onChangeView, hasResult }: RightRailProps) {
+export function RightRail({ result, onDeselectCell }: RightRailProps) {
   const selectedCellId = useJobStore((s) => s.selectedCellId);
+  const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
 
   const rows: CellRow[] = useMemo(() => {
     try {
@@ -44,6 +45,36 @@ export function RightRail({ result, onDeselectCell, activeView, onChangeView, ha
       return [];
     }
   }, [result.features_df_json]);
+
+  // Population statistics for z-scores and normalization
+  const popStats = useMemo(() => {
+    const stats: Record<string, { mean: number; std: number; min: number; max: number; median: number }> = {};
+    if (rows.length === 0) return stats;
+    // Collect all numeric feature keys (excluding cell_id and deep_*)
+    const keys = Object.keys(rows[0]).filter(
+      (k) => k !== "cell_id" && !k.startsWith("deep_"),
+    );
+    for (const key of keys) {
+      const vals = rows
+        .map((r) => r[key])
+        .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+      if (vals.length === 0) continue;
+      const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const std = Math.sqrt(
+        vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length,
+      );
+      const sorted = [...vals].sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      stats[key] = {
+        mean,
+        std: std || 1,
+        min: sorted[0],
+        max: sorted[sorted.length - 1],
+        median,
+      };
+    }
+    return stats;
+  }, [rows]);
 
   const selectedCell = useMemo(
     () =>
@@ -56,221 +87,212 @@ export function RightRail({ result, onDeselectCell, activeView, onChangeView, ha
   const summary = result.mechano_score_summary;
   const m = result.hero_metrics;
 
-  // Top 3 cells by mechano score
+  // Top 3 cells by |mechano_score|
   const topCells = useMemo(() => {
     const scored = rows.filter(
       (r) => typeof r.mechano_score === "number" && Number.isFinite(r.mechano_score),
     );
     return [...scored]
-      .sort((a, b) => (b.mechano_score ?? 0) - (a.mechano_score ?? 0))
+      .sort((a, b) => Math.abs(b.mechano_score ?? 0) - Math.abs(a.mechano_score ?? 0))
       .slice(0, 3);
   }, [rows]);
 
-  // Single cell mode
+  // Single Cell Mode
   if (selectedCell) {
+    const zScore = (key: string): number => {
+      const s = popStats[key];
+      const v = selectedCell[key];
+      if (!s || typeof v !== "number" || !Number.isFinite(v)) return 0;
+      return (v - s.mean) / s.std;
+    };
+
+    const metricColor = (key: string): string => {
+      const z = zScore(key);
+      if (z > 1) return "#4CAF50";
+      if (z < -1) return "#f44336";
+      return "#eee";
+    };
+
+    // Radar values normalized to [0, 1] within population
+    const radarValues = RADAR_AXES.map((axis) => {
+      const s = popStats[axis.key];
+      const v = selectedCell[axis.key];
+      if (!s || typeof v !== "number" || !Number.isFinite(v)) return 0.5;
+      const range = s.max - s.min;
+      if (range === 0) return 0.5;
+      return (v - s.min) / range;
+    });
+
+    // Build feature groups with z-scores
+    const featureGroupEntries = FEATURE_GROUPS.map((group) => {
+      const features = group.features
+        .filter((f) => selectedCell[f] !== undefined)
+        .map((f) => ({
+          name: f,
+          value: selectedCell[f] ?? 0,
+          zScore: zScore(f),
+        }));
+      return { ...group, features };
+    }).filter((g) => g.features.length > 0);
+
+    // Population medians for CellSummary
+    const popMedians: Record<string, number> = {};
+    for (const [k, v] of Object.entries(popStats)) {
+      popMedians[k] = v.median;
+    }
+
     return (
-      <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#333] overflow-y-auto h-full flex flex-col">
-        <ViewTabs activeView={activeView} onChangeView={onChangeView} hasResult={hasResult} />
-        <div className="flex-1 p-4 space-y-5 overflow-y-auto">
-        <button
-          type="button"
-          onClick={onDeselectCell}
-          className="text-[10px] text-[#888] hover:text-[#ccc] uppercase tracking-[0.08em] transition-colors"
-        >
-          ← Back to overview
-        </button>
+      <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#222] overflow-y-auto h-full">
+        <div className="p-4 space-y-4">
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={onDeselectCell}
+            className="text-[10px] text-[#666] hover:text-[#ccc] transition-colors"
+          >
+            &larr; Overview
+          </button>
 
-        <div>
-          <div className="label mb-1">Individual profile</div>
-          <div className="text-2xl font-bold mono">
-            C-{String(selectedCellId).padStart(4, "0")}
+          {/* Cell header */}
+          <div>
+            <div className="text-[18px] font-bold mono text-[#eee]">
+              Cell #{selectedCellId}
+            </div>
+            <CellSummary cell={selectedCell} populationMedians={popMedians} />
           </div>
-        </div>
 
-        {/* State summary */}
-        <p className="text-[11px] text-[#888] leading-relaxed italic border-l-2 border-[#333] pl-3">
-          {generateStateSummary(selectedCell)}
-        </p>
-
-        {/* Key metrics grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <MetricBlock label="Mechano" value={fmt(selectedCell.mechano_score)} accent />
-          <MetricBlock label="Glyco ratio" value={fmt(selectedCell.glycocalyx_pericellular_ratio)} />
-          <MetricBlock label="YAP N/C" value={fmt(selectedCell.yap_nc_ratio_size_corrected)} />
-          <MetricBlock label="FA mature" value={fmt(selectedCell.fa_mature_fraction)} />
-          <MetricBlock label="Actin coher" value={fmt(selectedCell.actin_stress_fiber_coherence, 3)} />
-          <MetricBlock label="Cell area" value={fmt(selectedCell.cell_area, 0)} />
-        </div>
-
-        {/* All features — collapsible */}
-        <details className="group">
-          <summary className="label cursor-pointer hover:text-[#ccc] transition-colors">
-            All features ({Object.keys(selectedCell).length - 1})
-          </summary>
-          <div className="mt-2 max-h-[300px] overflow-y-auto space-y-0.5">
-            {Object.entries(selectedCell)
-              .filter(([k]) => k !== "cell_id" && !k.startsWith("deep_"))
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([k, v]) => (
-                <div key={k} className="flex justify-between text-[10px] py-0.5 border-b border-[#1a1a1a]">
-                  <span className="text-[#888] truncate mr-2">{k}</span>
-                  <span className="mono text-[#eee]">
-                    {typeof v === "number" && Number.isFinite(v) ? v.toFixed(3) : "—"}
-                  </span>
+          {/* Key metrics — 4 columns */}
+          <div className="grid grid-cols-4 gap-1">
+            {[
+              { label: "GLYCO", key: "glycocalyx_pericellular_ratio", format: fmt },
+              { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: fmt },
+              { label: "MECHANO", key: "mechano_score", format: fmtSigned },
+              { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | undefined) => v != null && Number.isFinite(v) ? (v * 100).toFixed(0) + "%" : "\u2014" },
+            ].map((m) => (
+              <div key={m.key} className="text-center">
+                <div
+                  className="text-[18px] font-bold mono leading-none"
+                  style={{ color: metricColor(m.key) }}
+                >
+                  {m.format(selectedCell[m.key])}
                 </div>
-              ))}
+                <div className="label mt-1">{m.label}</div>
+              </div>
+            ))}
           </div>
-        </details>
-      </div>
+
+          {/* Radar chart */}
+          <div className="flex justify-center">
+            <RadarChart values={radarValues} size={180} />
+          </div>
+
+          {/* Feature groups */}
+          <div className="space-y-1">
+            {featureGroupEntries.map((group, i) => (
+              <FeatureGroup
+                key={group.name}
+                groupName={group.name}
+                features={group.features}
+                defaultOpen={i === 0}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Overview mode
+  // Overview Mode
   return (
-    <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#333] overflow-y-auto h-full flex flex-col">
-      <ViewTabs activeView={activeView} onChangeView={onChangeView} hasResult={hasResult} />
-      <div className="flex-1 p-4 space-y-6 overflow-y-auto">
-      {/* Hero metrics */}
-      <div className="space-y-4">
-        <HeroMetric label="Cells analyzed" value={String(result.cell_count)} />
-        <HeroMetric label="Mean mechano" value={fmt(m.mean_mechano_score)} />
-        <HeroMetric
-          label="Top glyco↔mechano |r|"
-          value={fmt(summary?.top_correlation_r)}
+    <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#222] overflow-y-auto h-full">
+      <div className="p-4 space-y-6">
+        {/* Hero metrics */}
+        <HeroMetrics
+          metrics={[
+            { label: "CELLS", value: String(result.cell_count) },
+            { label: "MECHANO", value: fmtSigned(m.mean_mechano_score) },
+            {
+              label: "GLYCO\u2194MECH",
+              value: summary?.top_correlation_r != null
+                ? `r=${fmt(summary.top_correlation_r)}`
+                : "\u2014",
+            },
+          ]}
         />
-      </div>
 
-      {/* Heatmap */}
-      {result.glyco_mechano_correlation_figure_json && (
-        <div>
-          <div className="label mb-2">Glyco ↔ mechano correlation</div>
-          <PlotlyChart
-            figureJson={result.glyco_mechano_correlation_figure_json}
-            height={220}
-          />
-          {summary?.top_correlation_pair && (
-            <div className="text-[9px] text-[#666] mono mt-1">
-              {summary.top_correlation_pair[0]} × {summary.top_correlation_pair[1]}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Score distribution */}
-      {result.mechano_score_distribution_figure_json && (
-        <div>
-          <div className="label mb-2">Score distribution</div>
-          <PlotlyChart
-            figureJson={result.mechano_score_distribution_figure_json}
-            height={100}
-          />
-        </div>
-      )}
-
-      {/* Representative cells */}
-      {topCells.length > 0 && (
-        <div>
-          <div className="label mb-2">Top cells by mechano score</div>
-          <div className="space-y-1">
-            {topCells.map((cell, i) => (
-              <button
-                key={cell.cell_id}
-                type="button"
-                onClick={() => useJobStore.getState().setSelectedCellId(Number(cell.cell_id))}
-                className="w-full flex items-center justify-between py-1.5 px-2 bg-[#1a1a1a] hover:bg-[#222] transition-colors text-[10px]"
-              >
-                <span className="text-[#888]">#{i + 1} · cell {cell.cell_id}</span>
-                <span className="mono text-[#eee]">{fmt(cell.mechano_score)}</span>
-              </button>
-            ))}
+        {/* Glyco-mechano heatmap */}
+        {result.glyco_mechano_correlation_figure_json && (
+          <div>
+            <PlotlyDark
+              figureJson={result.glyco_mechano_correlation_figure_json}
+              height={240}
+              title={
+                summary?.top_correlation_pair
+                  ? `top |r| = ${fmt(summary.top_correlation_r)} \u2014 ${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]}`
+                  : undefined
+              }
+            />
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Score distribution */}
+        {result.mechano_score_distribution_figure_json && (
+          <div>
+            <div className="label mb-1">Score distribution</div>
+            <PlotlyDark
+              figureJson={result.mechano_score_distribution_figure_json}
+              height={80}
+            />
+          </div>
+        )}
+
+        {/* Top deviating cells */}
+        {topCells.length > 0 && (
+          <div>
+            <div className="label mb-2">Top deviating cells</div>
+            <div className="space-y-1">
+              {topCells.map((cell) => (
+                <button
+                  key={cell.cell_id}
+                  type="button"
+                  onClick={() => setSelectedCellId(Number(cell.cell_id))}
+                  className="w-full text-left py-1.5 px-2 hover:bg-[#1a1a1a] transition-colors text-[11px] mono"
+                >
+                  <span className="text-[#888]">#{cell.cell_id}</span>
+                  <span className="ml-2 text-[#eee]">
+                    mechano {fmtSigned(cell.mechano_score)}
+                  </span>
+                  <span className="ml-2 text-[#666]">
+                    glyco {fmt(cell.glycocalyx_pericellular_ratio)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Full correlation audit — collapsed */}
+        <CorrelationAudit figureJson={result.correlation_figure_json} />
       </div>
     </div>
   );
 }
 
-function ViewTabs({
-  activeView,
-  onChangeView,
-  hasResult,
-}: {
-  activeView: ViewId;
-  onChangeView: (v: ViewId) => void;
-  hasResult: boolean;
-}) {
-  return (
-    <div className="flex border-b border-[#333] shrink-0">
-      {VIEW_TABS.map((tab) => {
-        const active = tab.id === activeView || (tab.id === "overview" && activeView === "single");
-        const disabled = !hasResult;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => !disabled && onChangeView(tab.id)}
-            disabled={disabled}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 transition-colors text-center ${
-              active
-                ? "bg-[#1a1a1a] text-white border-b border-[#343dff]"
-                : disabled
-                  ? "text-[#444] cursor-not-allowed"
-                  : "text-[#888] hover:bg-[#1a1a1a] hover:text-[#ccc]"
-            }`}
-          >
-            <span className="text-[13px]">{tab.icon}</span>
-            <span className="text-[9px] uppercase tracking-[0.08em]">{tab.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function HeroMetric({ label, value }: { label: string; value: string }) {
+function CorrelationAudit({ figureJson }: { figureJson: string }) {
+  const [open, setOpen] = useState(false);
   return (
     <div>
-      <div className="label">{label}</div>
-      <div className="text-2xl font-bold mono mt-0.5">{value}</div>
-      <div className="h-px bg-[#333] mt-2" />
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between py-1"
+      >
+        <span className="label">Full correlation audit</span>
+        <span className="text-[8px] text-[#666]">{open ? "\u25be" : "\u25b8"}</span>
+      </button>
+      {open && (
+        <PlotlyDark figureJson={figureJson} height={400} />
+      )}
     </div>
   );
-}
-
-function MetricBlock({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
-  return (
-    <div className="bg-[#1a1a1a] p-2">
-      <div className="text-[9px] text-[#888] uppercase tracking-[0.08em]">{label}</div>
-      <div className={`text-lg font-bold mono mt-0.5 ${accent ? "text-[#343dff]" : "text-[#eee]"}`}>
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function generateStateSummary(cell: CellRow): string {
-  const parts: string[] = [];
-  const glyco = cell.glycocalyx_pericellular_ratio;
-  if (typeof glyco === "number") {
-    parts.push(glyco > 1.5 ? "High glycocalyx" : glyco < 0.8 ? "Low glycocalyx" : "Moderate glycocalyx");
-  }
-  const yap = cell.yap_nc_ratio_size_corrected;
-  if (typeof yap === "number") {
-    parts.push(yap > 1.5 ? "nuclear YAP" : yap < 0.8 ? "cytoplasmic YAP" : "balanced YAP");
-  }
-  const fa = cell.fa_mature_fraction;
-  if (typeof fa === "number") {
-    parts.push(fa > 0.5 ? "mature adhesions" : "nascent adhesions");
-  }
-  return parts.length > 0 ? parts.join(", ") + "." : "Insufficient data.";
 }

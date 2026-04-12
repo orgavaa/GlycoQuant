@@ -1,6 +1,6 @@
 /**
  * MicroscopyCanvas — the core instrument. HTML Canvas element with
- * multi-layer rendering, mouse interaction, and real-time compositing.
+ * multi-layer rendering, mouse interaction, zoom-to-cell, and real-time compositing.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,16 +14,25 @@ import {
   CHANNEL_LUTS,
   type ChannelEntry,
 } from "@/lib/canvas/compositer";
-import type { CellPolygon, FeatureFillState } from "@/lib/canvas/polygons";
+import { extractPolygons, type FeatureFillState } from "@/lib/canvas/polygons";
 import type { TooltipData } from "@/lib/canvas/tooltip";
+import type { CellPolygon, CanvasTransform } from "@/types";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
+import {
+  IDENTITY_TRANSFORM,
+  computeZoomToCell,
+  animateTransform,
+} from "@/lib/canvas/transform";
 
 interface MicroscopyCanvasProps {
   result: JobResult;
   showSegmentation: boolean;
   activeOverlay: string | null;
   channelVisibility: Record<string, boolean>;
+  showScaleBar?: boolean;
+  showCellLabels?: boolean;
+  onHoveredCellChange?: (cellId: number | null) => void;
 }
 
 interface CellRow {
@@ -31,20 +40,31 @@ interface CellRow {
   [key: string]: number | undefined;
 }
 
+function fmt(v: number | undefined | null, d = 2): string {
+  if (v == null || !Number.isFinite(v)) return "\u2014";
+  return v.toFixed(d);
+}
+
 export function MicroscopyCanvas({
   result,
   showSegmentation,
   activeOverlay,
   channelVisibility,
+  showScaleBar = true,
+  showCellLabels = false,
+  onHoveredCellChange,
 }: MicroscopyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
   const selectedCellId = useJobStore((s) => s.selectedCellId);
+  const animCancelRef = useRef<(() => void) | null>(null);
 
   const [channelBitmaps, setChannelBitmaps] = useState<Map<string, ImageBitmap>>(new Map());
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const [, setHoveredCellId] = useState<number | null>(null);
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
+  const [zoomTransform, setZoomTransform] = useState<CanvasTransform>(IDENTITY_TRANSFORM);
 
   // Parse per-cell features from JobResult
   const rows: CellRow[] = useMemo(() => {
@@ -55,39 +75,11 @@ export function MicroscopyCanvas({
     }
   }, [result.features_df_json]);
 
-  // Build cell polygons from the Plotly segmentation figure's Scatter traces
-  const polygons: CellPolygon[] = useMemo(() => {
-    try {
-      const fig = JSON.parse(result.segmentation_figure_json);
-      const traces = fig.data as Array<{
-        x?: number[];
-        y?: number[];
-        customdata?: Array<number | number[]>;
-        type?: string;
-      }>;
-      const polys: CellPolygon[] = [];
-      for (const trace of traces) {
-        if (trace.type === "heatmap" || !trace.x || !trace.y || !trace.customdata) continue;
-        const cd = trace.customdata[0];
-        const cellId = Array.isArray(cd) ? cd[0] : cd;
-        if (typeof cellId !== "number") continue;
-        const vertices: [number, number][] = [];
-        for (let i = 0; i < trace.x.length; i++) {
-          const x = trace.x[i];
-          const y = trace.y[i];
-          if (typeof x === "number" && typeof y === "number") {
-            vertices.push([x, y]);
-          }
-        }
-        if (vertices.length >= 3) {
-          polys.push({ cellId, vertices });
-        }
-      }
-      return polys;
-    } catch {
-      return [];
-    }
-  }, [result.segmentation_figure_json]);
+  // Build cell polygons from segmentation figure
+  const polygons: CellPolygon[] = useMemo(
+    () => extractPolygons(result.segmentation_figure_json),
+    [result.segmentation_figure_json],
+  );
 
   // Decode channel PNGs into ImageBitmaps on mount
   useEffect(() => {
@@ -103,12 +95,11 @@ export function MicroscopyCanvas({
     });
   }, [result.channel_pngs]);
 
-  // Get image dimensions from the first channel bitmap or the Plotly figure
+  // Get image dimensions
   const imageSize = useMemo(() => {
     for (const bmp of channelBitmaps.values()) {
       return { w: bmp.width, h: bmp.height };
     }
-    // Fallback: parse from Plotly figure layout
     try {
       const fig = JSON.parse(result.segmentation_figure_json);
       const xRange = fig.layout?.xaxis?.range;
@@ -119,8 +110,8 @@ export function MicroscopyCanvas({
           h: Math.abs(yRange[1] - yRange[0]),
         };
       }
-    } catch {}
-    return { w: 696, h: 520 }; // BBBC022 default
+    } catch { /* empty */ }
+    return { w: 696, h: 520 };
   }, [channelBitmaps, result.segmentation_figure_json]);
 
   // Build feature fill state
@@ -131,8 +122,7 @@ export function MicroscopyCanvas({
         ? "glycocalyx_pericellular_ratio"
         : "mechano_score";
     const values = new Map<number, number>();
-    let min = Infinity,
-      max = -Infinity;
+    let min = Infinity, max = -Infinity;
     for (const row of rows) {
       const v = row[featureName];
       if (typeof v === "number" && Number.isFinite(v)) {
@@ -145,7 +135,7 @@ export function MicroscopyCanvas({
     return {
       featureName,
       values,
-      colormap: activeOverlay === "glyco" ? "viridis" : "rdbu",
+      colormap: activeOverlay === "glyco" ? "viridis" as const : "rdbu" as const,
       min,
       max,
     };
@@ -158,9 +148,46 @@ export function MicroscopyCanvas({
       bitmap: channelBitmaps.get(name) ?? null,
       visible: channelVisibility[name] ?? true,
       brightness: 1,
-      lut: CHANNEL_LUTS[name] ?? [200, 200, 200],
+      lut: CHANNEL_LUTS[name] ?? [200, 200, 200] as [number, number, number],
     }));
   }, [channelBitmaps, channelVisibility]);
+
+  // Zoom-to-cell animation when selectedCellId changes
+  useEffect(() => {
+    // Cancel previous animation
+    if (animCancelRef.current) {
+      animCancelRef.current();
+      animCancelRef.current = null;
+    }
+
+    if (selectedCellId != null) {
+      const target = computeZoomToCell(
+        selectedCellId,
+        polygons,
+        imageSize.w,
+        imageSize.h,
+        canvasSize.w,
+        canvasSize.h,
+      );
+      if (target) {
+        animCancelRef.current = animateTransform(
+          zoomTransform,
+          target,
+          300,
+          setZoomTransform,
+        );
+      }
+    } else {
+      // Zoom back out
+      animCancelRef.current = animateTransform(
+        zoomTransform,
+        IDENTITY_TRANSFORM,
+        300,
+        setZoomTransform,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCellId, polygons, imageSize, canvasSize.w, canvasSize.h]);
 
   // Resize observer
   useEffect(() => {
@@ -181,11 +208,14 @@ export function MicroscopyCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = canvasSize.w * window.devicePixelRatio;
-    canvas.height = canvasSize.h * window.devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvasSize.w * dpr;
+    canvas.height = canvasSize.h * dpr;
     canvas.style.width = `${canvasSize.w}px`;
     canvas.style.height = `${canvasSize.h}px`;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const pixelSizeUm = result.pixel_size_um;
 
     const state: RenderState = {
       channels: { entries: channelEntries },
@@ -194,11 +224,15 @@ export function MicroscopyCanvas({
       featureFill,
       tooltip,
       selectedCellId,
-      pixelSizeUm: 0.656,
+      pixelSizeUm: pixelSizeUm ?? 0.656,
       canvasWidth: canvasSize.w,
       canvasHeight: canvasSize.h,
       imageWidth: imageSize.w,
       imageHeight: imageSize.h,
+      zoomTransform,
+      dimOthers: selectedCellId != null,
+      showScaleBar,
+      showCellLabels,
     };
 
     render(ctx, state);
@@ -211,6 +245,10 @@ export function MicroscopyCanvas({
     tooltip,
     selectedCellId,
     imageSize,
+    zoomTransform,
+    showScaleBar,
+    showCellLabels,
+    result,
   ]);
 
   // Mouse handlers
@@ -221,6 +259,7 @@ export function MicroscopyCanvas({
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
 
+      const pixelSizeUm = result.pixel_size_um;
       const state: RenderState = {
         channels: { entries: channelEntries },
         polygons,
@@ -228,24 +267,31 @@ export function MicroscopyCanvas({
         featureFill,
         tooltip: null,
         selectedCellId,
-        pixelSizeUm: 0.656,
+        pixelSizeUm: pixelSizeUm ?? 0.656,
         canvasWidth: canvasSize.w,
         canvasHeight: canvasSize.h,
         imageWidth: imageSize.w,
         imageHeight: imageSize.h,
+        zoomTransform,
+        dimOthers: selectedCellId != null,
+        showScaleBar,
+        showCellLabels,
       };
 
       const [ix, iy] = screenToImage(sx, sy, state);
       const cellId = hitTestCell(polygons, ix, iy);
 
+      setHoveredCellId(cellId);
+      onHoveredCellChange?.(cellId);
+
       if (cellId != null) {
         const row = rows.find((r) => Number(r.cell_id) === cellId);
         const metrics = row
           ? [
-              { label: "Glyco ratio", value: fmt(row.glycocalyx_pericellular_ratio) },
+              { label: "glyco", value: fmt(row.glycocalyx_pericellular_ratio) },
               { label: "YAP N/C", value: fmt(row.yap_nc_ratio_size_corrected) },
-              { label: "Mechano", value: fmt(row.mechano_score) },
-              { label: "FA mature", value: fmt(row.fa_mature_fraction) },
+              { label: "mechano", value: fmtSigned(row.mechano_score) },
+              { label: "FA mature", value: fmtPct(row.fa_mature_fraction) },
             ]
           : [];
         setTooltip({ x: sx, y: sy, cellId, metrics });
@@ -253,7 +299,7 @@ export function MicroscopyCanvas({
         setTooltip(null);
       }
     },
-    [polygons, rows, channelEntries, showSegmentation, featureFill, selectedCellId, canvasSize, imageSize],
+    [polygons, rows, channelEntries, showSegmentation, featureFill, selectedCellId, canvasSize, imageSize, zoomTransform, showScaleBar, showCellLabels, onHoveredCellChange, result],
   );
 
   const handleClick = useCallback(
@@ -263,6 +309,7 @@ export function MicroscopyCanvas({
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
 
+      const pixelSizeUm = result.pixel_size_um;
       const state: RenderState = {
         channels: { entries: channelEntries },
         polygons,
@@ -270,25 +317,32 @@ export function MicroscopyCanvas({
         featureFill,
         tooltip: null,
         selectedCellId,
-        pixelSizeUm: 0.656,
+        pixelSizeUm: pixelSizeUm ?? 0.656,
         canvasWidth: canvasSize.w,
         canvasHeight: canvasSize.h,
         imageWidth: imageSize.w,
         imageHeight: imageSize.h,
+        zoomTransform,
+        dimOthers: selectedCellId != null,
+        showScaleBar,
+        showCellLabels,
       };
 
       const [ix, iy] = screenToImage(sx, sy, state);
       const cellId = hitTestCell(polygons, ix, iy);
       setSelectedCellId(cellId);
     },
-    [polygons, channelEntries, showSegmentation, featureFill, selectedCellId, canvasSize, imageSize, setSelectedCellId],
+    [polygons, channelEntries, showSegmentation, featureFill, selectedCellId, canvasSize, imageSize, setSelectedCellId, zoomTransform, showScaleBar, showCellLabels, result],
   );
 
-  const handleMouseLeave = useCallback(() => setTooltip(null), []);
+  const handleMouseLeave = useCallback(() => {
+    setTooltip(null);
+    setHoveredCellId(null);
+    onHoveredCellChange?.(null);
+  }, [onHoveredCellChange]);
 
   // Fallback: if no channel PNGs, render the Plotly figure
   if (!result.channel_pngs || channelBitmaps.size === 0) {
-    // Import PlotlyChart dynamically for fallback
     return (
       <div ref={containerRef} className="flex-1 bg-black relative overflow-hidden">
         <FallbackPlotly figureJson={result.segmentation_figure_json} />
@@ -310,15 +364,36 @@ export function MicroscopyCanvas({
 }
 
 function FallbackPlotly({ figureJson }: { figureJson: string }) {
-  const { PlotlyChart } = require("@/components/PlotlyChart");
-  return (
-    <div className="w-full h-full [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
-      <PlotlyChart figureJson={figureJson} height={window.innerHeight - 80} />
-    </div>
-  );
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    import("plotly.js-dist-min").then((Plotly) => {
+      let parsed: { data: unknown; layout: unknown };
+      try { parsed = JSON.parse(figureJson); } catch { return; }
+      const layout = {
+        ...(parsed.layout as Record<string, unknown>),
+        autosize: true,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: { color: "#888" },
+        margin: { l: 0, r: 0, t: 0, b: 0 },
+        xaxis: { visible: false },
+        yaxis: { visible: false },
+      };
+      const config = { displayModeBar: false, displaylogo: false, responsive: true };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Plotly.default.react(ref.current!, parsed.data as any, layout as any, config as any);
+    });
+  }, [figureJson]);
+  return <div ref={ref} className="w-full h-full" />;
 }
 
-function fmt(v: number | undefined | null, d = 2): string {
-  if (v == null || !Number.isFinite(v)) return "—";
-  return v.toFixed(d);
+function fmtSigned(v: number | undefined | null): string {
+  if (v == null || !Number.isFinite(v)) return "\u2014";
+  return (v >= 0 ? "+" : "") + v.toFixed(2);
+}
+
+function fmtPct(v: number | undefined | null): string {
+  if (v == null || !Number.isFinite(v)) return "\u2014";
+  return (v * 100).toFixed(0) + "%";
 }

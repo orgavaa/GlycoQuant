@@ -92,6 +92,8 @@ export interface JobResult {
    */
   deep_embedding_backend?: DeepEmbeddingBackend | null;
   warnings?: string[];
+  /** Physical pixel size in microns. Drives FA maturation bins and µm metrics. */
+  pixel_size_um?: number;
 }
 
 export interface JobStatusResponse {

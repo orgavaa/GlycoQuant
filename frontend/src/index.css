@@ -6,11 +6,11 @@
   --bg: #0a0a0a;
   --panel: #111;
   --panel-hover: #1a1a1a;
-  --border: #333;
+  --border: #222;
   --text-primary: #eee;
   --text-secondary: #888;
   --text-muted: #555;
-  --accent: #343dff;
+  --accent: #00ffff;
   --ch-dapi: #4A90D9;
   --ch-wga: #4CAF50;
   --ch-yap: #E040FB;
@@ -24,7 +24,7 @@ html, body, #root {
   height: 100%;
   background: var(--bg);
   color: var(--text-primary);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-size: 13px;
 }
@@ -34,5 +34,15 @@ html, body, #root {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 /* Utility */
-.label { font-family: system-ui, sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
-.mono { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.label {
+  font-family: system-ui, sans-serif;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+}
+.mono {
+  font-family: ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

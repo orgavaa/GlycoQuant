@@ -54,7 +54,11 @@
       "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz.glyco_mechano_correlation import plot_mechano_score_distribution\")",
       "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz.glyco_mechano_correlation import plot_mechano_score_distribution; print\\('ok'\\)\")",
       "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz import plot_correlation_map, plot_glyco_mechano_correlation, plot_mechano_score_distribution; print\\('all viz modules ok'\\)\")",
-      "Bash(.venv/Scripts/python.exe -c \"from backend.app.workers import _build_channel_pngs; print\\('ok'\\)\")"
+      "Bash(.venv/Scripts/python.exe -c \"from backend.app.workers import _build_channel_pngs; print\\('ok'\\)\")",
+      "Read(//mnt/skills/public/**)",
+      "Bash(ls -la /c/Users/uzanv/Documents/GlycoQuant/frontend/*.config.* /c/Users/uzanv/Documents/GlycoQuant/frontend/tsconfig.json)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s http://localhost:5174)"
     ],
     "deny": [
       "Bash(rm -rf /)",

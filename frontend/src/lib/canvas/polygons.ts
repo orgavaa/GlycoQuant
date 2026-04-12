@@ -1,15 +1,13 @@
 /**
- * Cell polygon drawing + point-in-polygon hit-testing.
+ * Cell polygon drawing + point-in-polygon hit-testing + colormaps.
  */
+import type { CellPolygon } from "@/types";
 
-export interface CellPolygon {
-  cellId: number;
-  vertices: [number, number][]; // [x, y] pairs in image coordinates
-}
+export type { CellPolygon };
 
 export interface FeatureFillState {
   featureName: string;
-  values: Map<number, number>; // cellId → value
+  values: Map<number, number>; // cellId -> value
   colormap: "viridis" | "rdbu";
   min: number;
   max: number;
@@ -24,12 +22,12 @@ const VIRIDIS = [
   [253, 231, 37],
 ];
 
-// RdBu diverging 5-stop
+// RdBu diverging 5-stop (dark midpoint for black canvas)
 const RDBU = [
   [178, 24, 43],
-  [239, 138, 98],
-  [247, 247, 247],
-  [103, 169, 207],
+  [200, 100, 80],
+  [80, 80, 80],
+  [80, 130, 180],
   [33, 102, 172],
 ];
 
@@ -49,25 +47,43 @@ function interpolateColor(
   ];
 }
 
+function drawPath(ctx: CanvasRenderingContext2D, vertices: [number, number][]) {
+  ctx.beginPath();
+  ctx.moveTo(vertices[0][0], vertices[0][1]);
+  for (let i = 1; i < vertices.length; i++) {
+    ctx.lineTo(vertices[i][0], vertices[i][1]);
+  }
+  ctx.closePath();
+}
+
 export function drawPolygons(
   ctx: CanvasRenderingContext2D,
   polygons: CellPolygon[],
   selectedCellId: number | null,
+  hoveredCellId: number | null,
+  dimOthers: boolean,
 ): void {
   for (const poly of polygons) {
     if (poly.vertices.length < 3) continue;
 
-    ctx.beginPath();
-    ctx.moveTo(poly.vertices[0][0], poly.vertices[0][1]);
-    for (let i = 1; i < poly.vertices.length; i++) {
-      ctx.lineTo(poly.vertices[i][0], poly.vertices[i][1]);
-    }
-    ctx.closePath();
+    drawPath(ctx, poly.vertices);
 
     if (poly.cellId === selectedCellId) {
-      ctx.strokeStyle = "#FFD700";
-      ctx.lineWidth = 2.5;
+      // Selected: white ring + subtle fill
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 2;
+    } else if (poly.cellId === hoveredCellId) {
+      // Hovered: bright cyan
+      ctx.strokeStyle = "rgba(0,255,255,0.8)";
+      ctx.lineWidth = 2;
+    } else if (dimOthers) {
+      // Dimmed when another cell is selected
+      ctx.strokeStyle = "rgba(0,255,255,0.1)";
+      ctx.lineWidth = 0.5;
     } else {
+      // Default
       ctx.strokeStyle = "rgba(0,255,255,0.4)";
       ctx.lineWidth = 1;
     }
@@ -91,16 +107,50 @@ export function drawFeatureFills(
     const t = (val - fill.min) / range;
     const [r, g, b] = interpolateColor(stops, t);
 
-    ctx.beginPath();
-    ctx.moveTo(poly.vertices[0][0], poly.vertices[0][1]);
-    for (let i = 1; i < poly.vertices.length; i++) {
-      ctx.lineTo(poly.vertices[i][0], poly.vertices[i][1]);
-    }
-    ctx.closePath();
-
-    ctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},0.45)`;
+    drawPath(ctx, poly.vertices);
+    ctx.fillStyle = `rgba(${r | 0},${g | 0},${b | 0},0.6)`;
     ctx.fill();
+    ctx.strokeStyle = "rgba(0,255,255,0.3)";
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
   }
+}
+
+/**
+ * Draw a thin vertical colorbar on the right edge of the canvas.
+ */
+export function drawColorbar(
+  ctx: CanvasRenderingContext2D,
+  fill: FeatureFillState,
+  canvasWidth: number,
+  canvasHeight: number,
+): void {
+  const stops = fill.colormap === "viridis" ? VIRIDIS : RDBU;
+  const barW = 10;
+  const barH = 150;
+  const x = canvasWidth - barW - 40;
+  const y = (canvasHeight - barH) / 2;
+
+  // Draw gradient bar
+  for (let i = 0; i < barH; i++) {
+    const t = 1 - i / barH; // top = max, bottom = min
+    const [r, g, b] = interpolateColor(stops, t);
+    ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
+    ctx.fillRect(x, y + i, barW, 1);
+  }
+
+  // Labels
+  ctx.font = "9px ui-monospace, monospace";
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.textAlign = "left";
+  ctx.fillText(fill.max.toFixed(2), x + barW + 4, y + 8);
+  ctx.fillText(fill.min.toFixed(2), x + barW + 4, y + barH);
+
+  // Feature name
+  const shortName = fill.featureName
+    .replace("glycocalyx_pericellular_ratio", "glyco ratio")
+    .replace("mechano_score", "mechano");
+  ctx.fillText(shortName, x + barW + 4, y - 6);
 }
 
 /**
@@ -112,7 +162,10 @@ export function hitTestCell(
   x: number,
   y: number,
 ): number | null {
+  // First pass: bounding box check
   for (const poly of polygons) {
+    const bb = poly.bbox;
+    if (x < bb.x || x > bb.x + bb.width || y < bb.y || y > bb.y + bb.height) continue;
     if (pointInPolygon(x, y, poly.vertices)) {
       return poly.cellId;
     }
@@ -128,13 +181,75 @@ function pointInPolygon(
   let inside = false;
   const n = vertices.length;
   for (let i = 0, j = n - 1; i < n; j = i++) {
-    const xi = vertices[i][0],
-      yi = vertices[i][1];
-    const xj = vertices[j][0],
-      yj = vertices[j][1];
+    const xi = vertices[i][0], yi = vertices[i][1];
+    const xj = vertices[j][0], yj = vertices[j][1];
     if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
       inside = !inside;
     }
   }
   return inside;
+}
+
+/**
+ * Parse Plotly segmentation figure JSON into CellPolygon[].
+ */
+export function extractPolygons(segFigureJson: string): CellPolygon[] {
+  try {
+    const fig = JSON.parse(segFigureJson);
+    const traces = fig.data as Array<{
+      x?: number[];
+      y?: number[];
+      customdata?: Array<number | number[]>;
+      type?: string;
+    }>;
+    const polys: CellPolygon[] = [];
+    for (const trace of traces) {
+      if (trace.type === "heatmap" || !trace.x || !trace.y || !trace.customdata) continue;
+      const cd = trace.customdata[0];
+      const cellId = Array.isArray(cd) ? cd[0] : cd;
+      if (typeof cellId !== "number") continue;
+      const vertices: [number, number][] = [];
+      for (let i = 0; i < trace.x.length; i++) {
+        const x = trace.x[i];
+        const y = trace.y[i];
+        if (typeof x === "number" && typeof y === "number") {
+          vertices.push([x, y]);
+        }
+      }
+      if (vertices.length >= 3) {
+        // Compute centroid and bounding box
+        let cx = 0, cy = 0;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const [vx, vy] of vertices) {
+          cx += vx; cy += vy;
+          if (vx < minX) minX = vx;
+          if (vy < minY) minY = vy;
+          if (vx > maxX) maxX = vx;
+          if (vy > maxY) maxY = vy;
+        }
+        cx /= vertices.length;
+        cy /= vertices.length;
+        polys.push({
+          cellId,
+          vertices,
+          centroid: [cx, cy],
+          bbox: { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+        });
+      }
+    }
+    return polys;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parse features_df_json into cell feature rows.
+ */
+export function parseFeatures(featuresJson: string): Record<string, number | undefined>[] {
+  try {
+    return JSON.parse(featuresJson);
+  } catch {
+    return [];
+  }
 }
