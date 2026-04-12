@@ -50,30 +50,65 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     return { map, isSigned: activeOverlay === "mechano" };
   }, [activeOverlay, cells]);
 
-  const ranges = useMemo(() => {
+  // Extract image dimensions and axis ranges from the Plotly figure
+  const figInfo = useMemo(() => {
     try {
       const fig = JSON.parse(result.segmentation_figure_json);
       const xr = fig.layout?.xaxis?.range as [number, number] | undefined;
       const yr = fig.layout?.yaxis?.range as [number, number] | undefined;
-      if (xr && yr) return { xRange: xr, yRange: yr };
+      // Find the heatmap trace to get image dimensions
+      let imgW = 0, imgH = 0;
+      for (const t of (fig.data as Record<string, unknown>[])) {
+        if (t.type === "heatmap" && Array.isArray(t.z)) {
+          imgH = (t.z as unknown[][]).length;
+          imgW = (t.z as unknown[][])[0]?.length ?? 0;
+          break;
+        }
+      }
+      if (xr && yr) return { xRange: xr, yRange: yr, imgW, imgH };
+      // Fallback: use image dims
+      if (imgW && imgH) return { xRange: [0, imgW] as [number, number], yRange: [imgH, 0] as [number, number], imgW, imgH };
     } catch { /* empty */ }
     return null;
   }, [result.segmentation_figure_json]);
 
-  // Render Plotly
+  // Render Plotly — the image fills the container, no aspect ratio lock
   useEffect(() => {
     if (!plotRef.current) return;
     let parsed: { data: unknown[]; layout: Record<string, unknown> };
     try { parsed = JSON.parse(result.segmentation_figure_json); } catch { return; }
+
+    const backendXaxis = (parsed.layout?.xaxis as Record<string, unknown>) ?? {};
+    const backendYaxis = (parsed.layout?.yaxis as Record<string, unknown>) ?? {};
+
     const layout = {
-      ...parsed.layout, autosize: true, width: undefined, height: undefined,
-      paper_bgcolor: "#000", plot_bgcolor: "#000",
+      ...parsed.layout,
+      autosize: true,
+      width: undefined,
+      height: undefined,
+      paper_bgcolor: "#000",
+      plot_bgcolor: "#000",
       margin: { l: 0, r: 0, t: 0, b: 0 },
-      xaxis: { ...(parsed.layout.xaxis as object ?? {}), visible: false, showgrid: false, constrain: "domain" },
-      yaxis: { ...(parsed.layout.yaxis as object ?? {}), visible: false, showgrid: false, scaleanchor: "x", constrain: "domain" },
+      xaxis: {
+        ...backendXaxis,
+        visible: false,
+        showgrid: false,
+      },
+      yaxis: {
+        ...backendYaxis,
+        visible: false,
+        showgrid: false,
+        scaleanchor: "x",
+      },
     };
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Plotly.react(plotRef.current, parsed.data as any, layout as any, { displayModeBar: false, displaylogo: false, responsive: true, staticPlot: true } as any);
+    Plotly.react(plotRef.current, parsed.data as any, layout as any, {
+      displayModeBar: false,
+      displaylogo: false,
+      responsive: true,
+      staticPlot: true,
+    } as any);
     return () => { if (plotRef.current) Plotly.purge(plotRef.current); };
   }, [result.segmentation_figure_json]);
 
@@ -91,32 +126,33 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     return () => obs.disconnect();
   }, []);
 
+  // Coordinate transforms: image coords ↔ screen coords
   const getTransform = useCallback(() => {
-    if (!ranges) return null;
-    const imgW = ranges.xRange[1] - ranges.xRange[0];
-    const imgH = Math.abs(ranges.yRange[1] - ranges.yRange[0]);
+    if (!figInfo) return null;
+    const imgW = figInfo.xRange[1] - figInfo.xRange[0];
+    const imgH = Math.abs(figInfo.yRange[1] - figInfo.yRange[0]);
     const scale = Math.min(size.w / imgW, size.h / imgH);
     const offsetX = (size.w - imgW * scale) / 2;
     const offsetY = (size.h - imgH * scale) / 2;
-    const yFlip = ranges.yRange[0] > ranges.yRange[1];
+    const yFlip = figInfo.yRange[0] > figInfo.yRange[1];
     return { scale, offsetX, offsetY, yFlip };
-  }, [ranges, size]);
+  }, [figInfo, size]);
 
   const toScreen = useCallback((x: number, y: number): [number, number] => {
-    const t = getTransform(); if (!t || !ranges) return [0, 0];
+    const t = getTransform(); if (!t || !figInfo) return [0, 0];
     return [
-      (x - ranges.xRange[0]) * t.scale + t.offsetX,
-      t.yFlip ? (ranges.yRange[0] - y) * t.scale + t.offsetY : (y - ranges.yRange[0]) * t.scale + t.offsetY,
+      (x - figInfo.xRange[0]) * t.scale + t.offsetX,
+      t.yFlip ? (figInfo.yRange[0] - y) * t.scale + t.offsetY : (y - figInfo.yRange[0]) * t.scale + t.offsetY,
     ];
-  }, [getTransform, ranges]);
+  }, [getTransform, figInfo]);
 
   const toImage = useCallback((sx: number, sy: number): [number, number] => {
-    const t = getTransform(); if (!t || !ranges) return [0, 0];
+    const t = getTransform(); if (!t || !figInfo) return [0, 0];
     return [
-      (sx - t.offsetX) / t.scale + ranges.xRange[0],
-      t.yFlip ? ranges.yRange[0] - (sy - t.offsetY) / t.scale : (sy - t.offsetY) / t.scale + ranges.yRange[0],
+      (sx - t.offsetX) / t.scale + figInfo.xRange[0],
+      t.yFlip ? figInfo.yRange[0] - (sy - t.offsetY) / t.scale : (sy - t.offsetY) / t.scale + figInfo.yRange[0],
     ];
-  }, [getTransform, ranges]);
+  }, [getTransform, figInfo]);
 
   // Draw canvas overlay
   useEffect(() => {
@@ -127,7 +163,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     canvas.style.width = `${size.w}px`; canvas.style.height = `${size.h}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size.w, size.h);
-    if (!ranges || polygons.length === 0) return;
+    if (!figInfo || polygons.length === 0) return;
 
     for (const poly of polygons) {
       if (poly.vertices.length < 3) continue;
@@ -174,7 +210,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       ctx.font = "600 10px Inter, sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.textAlign = "center";
       ctx.fillText("50 \u00b5m", bx + barPx / 2, by - 8);
     }
-  }, [size, polygons, showSegmentation, activeOverlay, overlayValues, selectedCellId, hoveredCellId, ranges, toScreen, getTransform, result.pixel_size_um]);
+  }, [size, polygons, showSegmentation, activeOverlay, overlayValues, selectedCellId, hoveredCellId, figInfo, toScreen, getTransform, result.pixel_size_um]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return;
