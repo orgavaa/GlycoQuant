@@ -1,6 +1,3 @@
-/**
- * PlotlyDark — dark-styled Plotly chart wrapper for the right rail.
- */
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useRef } from "react";
 
@@ -17,14 +14,23 @@ export function PlotlyDark({ figureJson, height = 200 }: PlotlyDarkProps) {
     let parsed: { data: unknown; layout: Record<string, unknown> };
     try { parsed = JSON.parse(figureJson); } catch { return; }
 
+    const existingLayout = parsed.layout || {};
     const layout = {
-      ...parsed.layout,
+      ...existingLayout,
       height, autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-      font: { family: "ui-monospace, 'JetBrains Mono', monospace", color: "#888", size: 9 },
-      margin: { l: 60, r: 16, t: 12, b: 40 },
-      xaxis: { ...(parsed.layout.xaxis ?? {}), gridcolor: "rgba(255,255,255,0.05)", tickfont: { size: 8, color: "#666" } },
-      yaxis: { ...(parsed.layout.yaxis ?? {}), gridcolor: "rgba(255,255,255,0.05)", tickfont: { size: 8, color: "#666" } },
+      font: { family: "'Inter', sans-serif", color: "#999", size: 10 },
+      margin: { l: 70, r: 16, t: 16, b: 50 },
+      xaxis: {
+        ...(existingLayout.xaxis as object ?? {}),
+        gridcolor: "rgba(255,255,255,0.06)",
+        tickfont: { size: 9, color: "#888", family: "'Inter', sans-serif" },
+      },
+      yaxis: {
+        ...(existingLayout.yaxis as object ?? {}),
+        gridcolor: "rgba(255,255,255,0.06)",
+        tickfont: { size: 9, color: "#888", family: "'Inter', sans-serif" },
+      },
     };
     const config = { displayModeBar: false, displaylogo: false, responsive: true };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

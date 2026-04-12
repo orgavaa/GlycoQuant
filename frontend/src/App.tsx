@@ -1,6 +1,3 @@
-/**
- * App — The Instrument shell.
- */
 import { useState } from "react";
 import { TopBar, type ViewId } from "@/components/TopBar";
 import { StatusBar } from "@/components/StatusBar";
@@ -20,7 +17,6 @@ export default function App() {
     <div style={{
       height: "100vh", display: "flex", flexDirection: "column",
       background: "#0a0a0a", color: "#eee", overflow: "hidden",
-      fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
     }}>
       <TopBar activeView={activeView} onChangeView={setActiveView} hasResult={hasResult} />
 

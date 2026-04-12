@@ -1,7 +1,10 @@
 /**
  * MicroscopyImage — hybrid Plotly + Canvas overlay.
- * Plotly renders the segmentation figure (the microscopy image).
- * A transparent Canvas on top handles hover/click/fills.
+ * Plotly renders the segmentation figure (the actual microscopy image).
+ * A transparent Canvas on top handles hover highlight, click selection, scale bar.
+ *
+ * Key fix: Plotly has pointer-events:none so mouse events go to the canvas.
+ * The canvas sits above Plotly in z-order and handles all interaction.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Plotly from "plotly.js-dist-min";
@@ -9,37 +12,45 @@ import { extractPolygons, hitTestPolygons, type CellFeatures, fmt, fmtSigned } f
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 
-interface MicroscopyImageProps {
+const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+
+interface Props {
   result: JobResult;
   showSegmentation: boolean;
   activeOverlay: string | null;
   cells: CellFeatures[];
 }
 
-export function MicroscopyImage({ result, showSegmentation, activeOverlay, cells }: MicroscopyImageProps) {
+export function MicroscopyImage({ result, showSegmentation, cells }: Props) {
   const plotRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const selectedCellId = useJobStore(s => s.selectedCellId);
   const [hoveredCellId, setHoveredCellId] = useState<number | null>(null);
-  const [containerSize, setContainerSize] = useState({ w: 800, h: 600 });
-  const [tooltipData, setTooltipData] = useState<{ x: number; y: number; cellId: number; metrics: { label: string; value: string }[] } | null>(null);
+  const [size, setSize] = useState({ w: 800, h: 600 });
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; cellId: number; lines: { l: string; v: string }[] } | null>(null);
 
-  // Extract polygons
   const polygons = useMemo(() => extractPolygons(result.segmentation_figure_json), [result.segmentation_figure_json]);
 
-  // Cell lookup map
   const cellMap = useMemo(() => {
     const m = new Map<number, CellFeatures>();
     for (const c of cells) m.set(Number(c.cell_id), c);
     return m;
   }, [cells]);
 
-  // Get Plotly layout ranges for coordinate mapping
-  const plotRanges = useRef<{ xRange: [number, number]; yRange: [number, number] } | null>(null);
+  // Parse axis ranges from the Plotly layout once
+  const ranges = useMemo(() => {
+    try {
+      const fig = JSON.parse(result.segmentation_figure_json);
+      const xr = fig.layout?.xaxis?.range as [number, number] | undefined;
+      const yr = fig.layout?.yaxis?.range as [number, number] | undefined;
+      if (xr && yr) return { xRange: xr, yRange: yr };
+    } catch { /* empty */ }
+    return null;
+  }, [result.segmentation_figure_json]);
 
-  // Render Plotly figure
+  // Render Plotly figure — fills the container, no axes, no toolbar
   useEffect(() => {
     if (!plotRef.current) return;
     let parsed: { data: unknown[]; layout: Record<string, unknown> };
@@ -47,19 +58,12 @@ export function MicroscopyImage({ result, showSegmentation, activeOverlay, cells
 
     const layout = {
       ...parsed.layout,
-      autosize: true,
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
+      autosize: true, width: undefined, height: undefined,
+      paper_bgcolor: "#000", plot_bgcolor: "#000",
       margin: { l: 0, r: 0, t: 0, b: 0 },
-      xaxis: { ...((parsed.layout.xaxis as Record<string, unknown>) ?? {}), visible: false, showgrid: false },
-      yaxis: { ...((parsed.layout.yaxis as Record<string, unknown>) ?? {}), visible: false, showgrid: false, scaleanchor: "x" },
+      xaxis: { ...(parsed.layout.xaxis as object ?? {}), visible: false, showgrid: false },
+      yaxis: { ...(parsed.layout.yaxis as object ?? {}), visible: false, showgrid: false, scaleanchor: "x" },
     };
-
-    // Store axis ranges for coordinate mapping
-    const xr = (parsed.layout.xaxis as Record<string, unknown>)?.range as [number, number] | undefined;
-    const yr = (parsed.layout.yaxis as Record<string, unknown>)?.range as [number, number] | undefined;
-    if (xr && yr) plotRanges.current = { xRange: xr, yRange: yr };
-
     const config = { displayModeBar: false, displaylogo: false, responsive: true, staticPlot: true };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Plotly.react(plotRef.current, parsed.data as any, layout as any, config as any);
@@ -67,19 +71,60 @@ export function MicroscopyImage({ result, showSegmentation, activeOverlay, cells
     return () => { if (plotRef.current) Plotly.purge(plotRef.current); };
   }, [result.segmentation_figure_json]);
 
+  // Resize on plotly after container changes
+  useEffect(() => {
+    if (plotRef.current) {
+      Plotly.Plots.resize(plotRef.current);
+    }
+  }, [size]);
+
   // Resize observer
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const obs = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect;
-      setContainerSize({ w: Math.floor(width), h: Math.floor(height) });
+      if (width > 0 && height > 0) setSize({ w: Math.floor(width), h: Math.floor(height) });
     });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
-  // Draw Canvas overlay
+  // Coordinate mapping helpers
+  const getTransform = useCallback(() => {
+    if (!ranges) return null;
+    const imgW = ranges.xRange[1] - ranges.xRange[0];
+    const imgH = Math.abs(ranges.yRange[1] - ranges.yRange[0]);
+    const scaleX = size.w / imgW;
+    const scaleY = size.h / imgH;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (size.w - imgW * scale) / 2;
+    const offsetY = (size.h - imgH * scale) / 2;
+    const yFlip = ranges.yRange[0] > ranges.yRange[1];
+    return { scale, offsetX, offsetY, yFlip, imgW, imgH };
+  }, [ranges, size]);
+
+  const toScreen = useCallback((x: number, y: number): [number, number] => {
+    const t = getTransform();
+    if (!t) return [0, 0];
+    const sx = (x - ranges!.xRange[0]) * t.scale + t.offsetX;
+    const sy = t.yFlip
+      ? (ranges!.yRange[0] - y) * t.scale + t.offsetY
+      : (y - ranges!.yRange[0]) * t.scale + t.offsetY;
+    return [sx, sy];
+  }, [getTransform, ranges]);
+
+  const toImage = useCallback((sx: number, sy: number): [number, number] => {
+    const t = getTransform();
+    if (!t || !ranges) return [0, 0];
+    const ix = (sx - t.offsetX) / t.scale + ranges.xRange[0];
+    const iy = t.yFlip
+      ? ranges.yRange[0] - (sy - t.offsetY) / t.scale
+      : (sy - t.offsetY) / t.scale + ranges.yRange[0];
+    return [ix, iy];
+  }, [getTransform, ranges]);
+
+  // Draw canvas overlay
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -87,32 +132,14 @@ export function MicroscopyImage({ result, showSegmentation, activeOverlay, cells
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = containerSize.w * dpr;
-    canvas.height = containerSize.h * dpr;
-    canvas.style.width = `${containerSize.w}px`;
-    canvas.style.height = `${containerSize.h}px`;
+    canvas.width = size.w * dpr;
+    canvas.height = size.h * dpr;
+    canvas.style.width = `${size.w}px`;
+    canvas.style.height = `${size.h}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, size.w, size.h);
 
-    // Coordinate mapping: image coords → screen coords
-    const ranges = plotRanges.current;
     if (!ranges || polygons.length === 0) return;
-
-    const imgW = ranges.xRange[1] - ranges.xRange[0];
-    const imgH = Math.abs(ranges.yRange[1] - ranges.yRange[0]);
-    const scaleX = containerSize.w / imgW;
-    const scaleY = containerSize.h / imgH;
-    const scale = Math.min(scaleX, scaleY);
-    const offsetX = (containerSize.w - imgW * scale) / 2;
-    const offsetY = (containerSize.h - imgH * scale) / 2;
-    const yFlip = ranges.yRange[0] > ranges.yRange[1]; // Plotly often inverts Y
-
-    function toScreen(x: number, y: number): [number, number] {
-      const sx = (x - ranges!.xRange[0]) * scale + offsetX;
-      const sy = yFlip
-        ? (ranges!.yRange[0] - y) * scale + offsetY
-        : (y - ranges!.yRange[0]) * scale + offsetY;
-      return [sx, sy];
-    }
 
     // Draw segmentation outlines
     if (showSegmentation) {
@@ -129,120 +156,101 @@ export function MicroscopyImage({ result, showSegmentation, activeOverlay, cells
 
         if (poly.cellId === selectedCellId) {
           ctx.strokeStyle = "rgba(255,255,255,0.9)";
-          ctx.lineWidth = 2;
-          ctx.fillStyle = "rgba(255,255,255,0.05)";
+          ctx.lineWidth = 2.5;
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
           ctx.fill();
         } else if (poly.cellId === hoveredCellId) {
-          ctx.strokeStyle = "rgba(0,255,255,0.8)";
+          ctx.strokeStyle = "rgba(0,255,255,0.85)";
           ctx.lineWidth = 2;
         } else {
-          ctx.strokeStyle = "rgba(0,255,255,0.35)";
+          ctx.strokeStyle = "rgba(0,255,255,0.3)";
           ctx.lineWidth = 1;
         }
         ctx.stroke();
       }
     }
 
-    // Draw scale bar
-    const pixelSizeUm = result.pixel_size_um ?? 0.656;
-    if (pixelSizeUm > 0) {
+    // Scale bar
+    const t = getTransform();
+    const pxUm = result.pixel_size_um ?? 0.656;
+    if (t && pxUm > 0) {
       const barUm = 50;
-      const barPx = (barUm / pixelSizeUm) * scale;
-      const bx = containerSize.w - barPx - 20;
-      const by = containerSize.h - 16;
+      const barPx = (barUm / pxUm) * t.scale;
+      const bx = size.w - barPx - 24;
+      const by = size.h - 20;
       ctx.fillStyle = "#fff";
       ctx.fillRect(bx, by, barPx, 2);
-      ctx.fillRect(bx, by - 3, 1, 8);
-      ctx.fillRect(bx + barPx - 1, by - 3, 1, 8);
-      ctx.font = "9px ui-monospace, monospace";
+      ctx.fillRect(bx, by - 4, 1, 10);
+      ctx.fillRect(bx + barPx - 1, by - 4, 1, 10);
+      ctx.font = `600 10px ${FONT}`;
       ctx.fillStyle = "rgba(255,255,255,0.7)";
       ctx.textAlign = "center";
-      ctx.fillText(`${barUm} \u00b5m`, bx + barPx / 2, by - 6);
+      ctx.fillText(`${barUm} \u00b5m`, bx + barPx / 2, by - 8);
     }
-  }, [containerSize, polygons, showSegmentation, activeOverlay, selectedCellId, hoveredCellId, result.pixel_size_um]);
+  }, [size, polygons, showSegmentation, selectedCellId, hoveredCellId, ranges, toScreen, getTransform, result.pixel_size_um]);
 
-  // Mouse handlers — convert screen coords to image coords for hit testing
-  const screenToImage = useCallback((sx: number, sy: number): [number, number] => {
-    const ranges = plotRanges.current;
-    if (!ranges) return [0, 0];
-    const imgW = ranges.xRange[1] - ranges.xRange[0];
-    const imgH = Math.abs(ranges.yRange[1] - ranges.yRange[0]);
-    const scaleX = containerSize.w / imgW;
-    const scaleY = containerSize.h / imgH;
-    const scale = Math.min(scaleX, scaleY);
-    const offsetX = (containerSize.w - imgW * scale) / 2;
-    const offsetY = (containerSize.h - imgH * scale) / 2;
-    const yFlip = ranges.yRange[0] > ranges.yRange[1];
-    const ix = (sx - offsetX) / scale + ranges.xRange[0];
-    const iy = yFlip
-      ? ranges.yRange[0] - (sy - offsetY) / scale
-      : (sy - offsetY) / scale + ranges.yRange[0];
-    return [ix, iy];
-  }, [containerSize]);
-
+  // Mouse handlers
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     const sx = e.clientX - rect.left;
     const sy = e.clientY - rect.top;
-    const [ix, iy] = screenToImage(sx, sy);
+    const [ix, iy] = toImage(sx, sy);
     const cid = hitTestPolygons(polygons, ix, iy);
     setHoveredCellId(cid);
 
     if (cid != null) {
       const cell = cellMap.get(cid);
-      const metrics = cell ? [
-        { label: "glyco", value: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
-        { label: "YAP N/C", value: fmt(cell.yap_nc_ratio_size_corrected as number | null) },
-        { label: "mechano", value: fmtSigned(cell.mechano_score as number | null) },
-        { label: "FA mature", value: cell.fa_mature_fraction != null && Number.isFinite(cell.fa_mature_fraction) ? ((cell.fa_mature_fraction as number) * 100).toFixed(0) + "%" : "\u2014" },
+      const lines = cell ? [
+        { l: "glyco", v: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
+        { l: "YAP N/C", v: fmt(cell.yap_nc_ratio_size_corrected as number | null) },
+        { l: "mechano", v: fmtSigned(cell.mechano_score as number | null) },
+        { l: "FA mature", v: cell.fa_mature_fraction != null && Number.isFinite(cell.fa_mature_fraction) ? ((cell.fa_mature_fraction as number) * 100).toFixed(0) + "%" : "\u2014" },
       ] : [];
-      setTooltipData({ x: sx, y: sy, cellId: cid, metrics });
+      setTooltip({ x: sx, y: sy, cellId: cid, lines });
     } else {
-      setTooltipData(null);
+      setTooltip(null);
     }
-  }, [polygons, cellMap, screenToImage]);
+  }, [polygons, cellMap, toImage]);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
-    const [ix, iy] = screenToImage(sx, sy);
-    const cid = hitTestPolygons(polygons, ix, iy);
-    setSelectedCellId(cid);
-  }, [polygons, screenToImage, setSelectedCellId]);
+    const [ix, iy] = toImage(e.clientX - rect.left, e.clientY - rect.top);
+    setSelectedCellId(hitTestPolygons(polygons, ix, iy));
+  }, [polygons, toImage, setSelectedCellId]);
 
   return (
-    <div ref={containerRef} style={{ width: "100%", height: "100%", position: "relative", background: "#000" }}>
-      {/* Plotly layer — the microscopy image */}
-      <div ref={plotRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+    <div ref={containerRef} style={{ width: "100%", height: "100%", position: "relative", background: "#000", overflow: "hidden" }}>
+      {/* Plotly layer — pointer-events disabled so canvas gets the events */}
+      <div ref={plotRef} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
 
-      {/* Canvas overlay — hover/click/segmentation strokes */}
+      {/* Canvas overlay — on top, receives all mouse events */}
       <canvas
         ref={canvasRef}
-        style={{ position: "absolute", inset: 0, cursor: "crosshair", zIndex: 5 }}
+        style={{ position: "absolute", inset: 0, zIndex: 2, cursor: "crosshair" }}
         onMouseMove={handleMouseMove}
         onClick={handleClick}
-        onMouseLeave={() => { setHoveredCellId(null); setTooltipData(null); }}
+        onMouseLeave={() => { setHoveredCellId(null); setTooltip(null); }}
       />
 
-      {/* Tooltip */}
-      {tooltipData && (
+      {/* Tooltip — HTML div for text clarity */}
+      {tooltip && (
         <div style={{
-          position: "absolute", zIndex: 20, pointerEvents: "none",
-          left: tooltipData.x + 14, top: tooltipData.y - 40,
-          background: "rgba(0,0,0,0.92)", border: "1px solid #333",
-          borderRadius: 3, padding: "10px 14px",
-          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+          position: "absolute", zIndex: 30, pointerEvents: "none",
+          left: Math.min(tooltip.x + 16, size.w - 180),
+          top: Math.max(tooltip.y - 50, 8),
+          background: "rgba(0,0,0,0.92)", border: "1px solid rgba(255,255,255,0.15)",
+          borderRadius: 4, padding: "10px 14px", fontFamily: FONT,
+          minWidth: 150,
         }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: "#eee", marginBottom: 6 }}>
-            Cell {tooltipData.cellId}
+            Cell {tooltip.cellId}
           </div>
-          {tooltipData.metrics.map(m => (
-            <div key={m.label} style={{ fontSize: 10, color: "#888", lineHeight: 1.8, display: "flex", justifyContent: "space-between", gap: 16 }}>
-              <span>{m.label}</span>
-              <span style={{ color: "#eee" }}>{m.value}</span>
+          {tooltip.lines.map(m => (
+            <div key={m.l} style={{ fontSize: 11, color: "#999", lineHeight: 1.8, display: "flex", justifyContent: "space-between", gap: 20 }}>
+              <span>{m.l}</span>
+              <span style={{ color: "#eee", fontWeight: 500 }}>{m.v}</span>
             </div>
           ))}
         </div>

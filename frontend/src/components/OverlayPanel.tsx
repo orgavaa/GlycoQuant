@@ -1,6 +1,3 @@
-/**
- * OverlayPanel — floating controls, top-left of canvas.
- */
 import { useState } from "react";
 
 const CHANNELS = [
@@ -30,12 +27,13 @@ export function OverlayPanel({
 
   return (
     <div style={{
-      position: "absolute", top: 16, left: 16, width: 130,
-      background: "rgba(17,17,17,0.88)", backdropFilter: "blur(8px)",
-      borderRadius: 3, padding: 12, zIndex: 10,
-      opacity: hovered ? 0.95 : 0.3, transition: "opacity 200ms",
+      position: "absolute", top: 16, left: 16, width: 150,
+      background: "rgba(13,13,13,0.92)", backdropFilter: "blur(12px)",
+      borderRadius: 6, padding: "14px 16px", zIndex: 10,
+      opacity: hovered ? 1 : 0.35, transition: "opacity 200ms",
+      border: "1px solid rgba(255,255,255,0.06)",
     }}>
-      <div style={labelStyle}>Overlays</div>
+      <div style={sectionLabelStyle}>Overlays</div>
 
       <Toggle label="Seg" active={showSegmentation} onClick={onToggleSegmentation} color="#0ff" />
       <Toggle label="Glyco" active={activeOverlay === "glyco"}
@@ -43,27 +41,29 @@ export function OverlayPanel({
       <Toggle label="Mechano" active={activeOverlay === "mechano"}
         onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")} color="#E040FB" />
 
-      <div onClick={() => setShowAdv(v => !v)}
-        style={{ fontSize: 9, color: "#555", cursor: "pointer", padding: "4px 0" }}>
+      <div onClick={() => setShowAdv(v => !v)} style={{
+        fontSize: 11, color: "#666", cursor: "pointer", padding: "6px 0", marginTop: 4,
+      }}>
         {showAdv ? "\u25be" : "\u25b8"} Advanced
       </div>
 
-      <div style={labelStyle}>Channels</div>
-      <div style={{ display: "flex", gap: 5 }}>
+      <div style={{ ...sectionLabelStyle, marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        Channels
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
         {CHANNELS.map(ch => {
           const vis = channelVisibility[ch.name] ?? false;
           return (
-            <div key={ch.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-              <div
-                onClick={() => onToggleChannel(ch.name)}
-                style={{
-                  width: 20, height: 20, borderRadius: 2, cursor: "pointer",
-                  background: ch.color, opacity: vis ? 1 : 0.2,
-                  boxShadow: vis ? `0 0 6px ${ch.color}` : "none",
-                  transition: "opacity 0.15s, box-shadow 0.15s",
-                }}
-              />
-              <span style={{ fontSize: 8, color: "#555" }}>{ch.abbr}</span>
+            <div key={ch.name} onClick={() => onToggleChannel(ch.name)} style={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer",
+            }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: 3, background: ch.color,
+                opacity: vis ? 1 : 0.15,
+                boxShadow: vis ? `0 0 8px ${ch.color}` : "none",
+                transition: "opacity 0.15s, box-shadow 0.15s",
+              }} />
+              <span style={{ fontSize: 9, color: "#666", fontWeight: 500 }}>{ch.abbr}</span>
             </div>
           );
         })}
@@ -72,23 +72,26 @@ export function OverlayPanel({
   );
 }
 
-const labelStyle: React.CSSProperties = {
-  fontSize: 9, textTransform: "uppercase", letterSpacing: 1.5, color: "#555", marginBottom: 8,
+const sectionLabelStyle: React.CSSProperties = {
+  fontSize: 10, textTransform: "uppercase", letterSpacing: 1.2, color: "#666",
+  marginBottom: 10, fontWeight: 600,
 };
 
 function Toggle({ label, active, onClick, color }: {
   label: string; active: boolean; onClick: () => void; color?: string;
 }) {
   return (
-    <div onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", cursor: "pointer" }}>
+    <div onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 10, padding: "5px 0", cursor: "pointer",
+    }}>
       <div style={{
-        width: 10, height: 10, borderRadius: "50%",
-        border: `1.5px solid ${active ? (color ?? "#0ff") : "#444"}`,
+        width: 12, height: 12, borderRadius: "50%",
+        border: `2px solid ${active ? (color ?? "#0ff") : "#444"}`,
         background: active ? (color ?? "#0ff") : "transparent",
         boxShadow: active ? `0 0 6px ${color ?? "#0ff"}` : "none",
-        flexShrink: 0,
+        flexShrink: 0, transition: "all 0.15s",
       }} />
-      <span style={{ fontSize: 11, color: active ? "#ccc" : "#999" }}>{label}</span>
+      <span style={{ fontSize: 12, color: active ? "#ddd" : "#888", fontWeight: active ? 500 : 400 }}>{label}</span>
     </div>
   );
 }

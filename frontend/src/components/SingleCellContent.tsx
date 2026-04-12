@@ -1,12 +1,7 @@
-/**
- * SingleCellContent — right rail when a cell is selected.
- * Cell header + summary + key metrics + radar + feature groups.
- */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { RadarChart, RADAR_AXES } from "./RadarChart";
 import { useJobStore } from "@/lib/jobStore";
 import { type CellFeatures, computePopStats, fmt, fmtSigned } from "@/lib/canvas/extract";
-import { useState } from "react";
 
 interface SingleCellContentProps {
   cell: CellFeatures;
@@ -23,7 +18,6 @@ const FEATURE_GROUPS = [
 
 export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
-
   const popStats = useMemo(() => computePopStats(cells), [cells]);
 
   const zScore = (key: string): number => {
@@ -40,7 +34,6 @@ export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
     return "#eee";
   };
 
-  // Radar values normalized to [0, 1] within population
   const radarValues = RADAR_AXES.map(axis => {
     const s = popStats[axis.key];
     const v = cell[axis.key];
@@ -49,7 +42,6 @@ export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
     return range === 0 ? 0.5 : (v - s.min) / range;
   });
 
-  // Plain-English summary
   const summary = useMemo(() => {
     const parts: string[] = [];
     const glyco = cell.glycocalyx_pericellular_ratio;
@@ -67,7 +59,6 @@ export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
     return parts.length > 0 ? parts.join(", ") : "unremarkable phenotype";
   }, [cell, popStats]);
 
-  // Feature groups
   const featureGroups = useMemo(() => {
     const allKeys = Object.keys(cell).filter(k => k !== "cell_id" && !k.startsWith("deep_"));
     return FEATURE_GROUPS.map(g => {
@@ -83,24 +74,20 @@ export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
 
   return (
     <>
-      {/* Back link */}
-      <div
-        onClick={() => setSelectedCellId(null)}
-        style={{ fontSize: 11, color: "#4A90D9", cursor: "pointer", marginBottom: 12 }}
-      >
-        &larr; Overview
+      <div onClick={() => setSelectedCellId(null)} style={{
+        fontSize: 12, color: "#4A90D9", cursor: "pointer", marginBottom: 16, fontWeight: 500,
+      }}>
+        &larr; Back to Overview
       </div>
 
-      {/* Cell header */}
-      <div style={{ fontSize: 18, fontWeight: 600, color: "#eee", marginBottom: 4, fontFamily: "ui-monospace, monospace" }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#eee", marginBottom: 4 }}>
         Cell #{cell.cell_id}
       </div>
-      <div style={{ fontSize: 11, color: "#888", fontStyle: "italic", marginBottom: 16 }}>
+      <div style={{ fontSize: 12, color: "#888", fontStyle: "italic", marginBottom: 20 }}>
         {summary}
       </div>
 
-      {/* Key metrics */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
         {[
           { label: "GLYCO", key: "glycocalyx_pericellular_ratio", format: fmt },
           { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: fmt },
@@ -108,21 +95,19 @@ export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
           { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | null | undefined) =>
             v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
         ].map(mi => (
-          <div key={mi.key}>
-            <div style={{ fontSize: 20, fontWeight: 600, color: metricColor(mi.key), fontFamily: "ui-monospace, monospace" }}>
+          <div key={mi.key} style={{ background: "#1a1a1a", borderRadius: 4, padding: "12px 10px" }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: metricColor(mi.key), fontVariantNumeric: "tabular-nums" }}>
               {mi.format(cell[mi.key] as number | null | undefined)}
             </div>
-            <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: "#555" }}>{mi.label}</div>
+            <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1, color: "#666", marginTop: 4, fontWeight: 500 }}>{mi.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Radar chart */}
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-        <RadarChart values={radarValues} size={160} />
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+        <RadarChart values={radarValues} size={170} />
       </div>
 
-      {/* Feature groups */}
       {featureGroups.map((g, gi) => (
         <FeatureGroup key={g.name} name={g.name} features={g.features} defaultOpen={gi === 0} />
       ))}
@@ -131,37 +116,35 @@ export function SingleCellContent({ cell, cells }: SingleCellContentProps) {
 }
 
 function FeatureGroup({ name, features, defaultOpen }: {
-  name: string;
-  features: { name: string; value: number; zScore: number }[];
-  defaultOpen: boolean;
+  name: string; features: { name: string; value: number; zScore: number }[]; defaultOpen: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ marginBottom: 8 }}>
+    <div style={{ marginBottom: 10 }}>
       <div onClick={() => setOpen(v => !v)} style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        cursor: "pointer", padding: "4px 0",
+        cursor: "pointer", padding: "6px 0",
       }}>
-        <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1.5, color: "#555" }}>
+        <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 1.2, color: "#666", fontWeight: 600 }}>
           {name} ({features.length})
         </span>
-        <span style={{ fontSize: 10, color: "#555" }}>{open ? "\u25be" : "\u25b8"}</span>
+        <span style={{ fontSize: 12, color: "#555" }}>{open ? "\u25be" : "\u25b8"}</span>
       </div>
       {open && features.map(f => {
         const zColor = f.zScore > 1 ? "#4CAF50" : f.zScore < -1 ? "#ef5350" : "#555";
-        const zBg = f.zScore > 1 ? "rgba(76,175,80,0.15)" : f.zScore < -1 ? "rgba(239,83,80,0.15)" : "transparent";
+        const zBg = f.zScore > 1 ? "rgba(76,175,80,0.12)" : f.zScore < -1 ? "rgba(239,83,80,0.12)" : "transparent";
         return (
           <div key={f.name} style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "3px 0", fontSize: 10, borderBottom: "1px solid #1a1a1a",
+            padding: "4px 0", fontSize: 11, borderBottom: "1px solid #1a1a1a",
           }}>
             <span style={{ color: "#888", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: 8 }}>{f.name}</span>
-            <span style={{ color: "#ddd", fontWeight: 500, fontFamily: "ui-monospace, monospace", width: 60, textAlign: "right", flexShrink: 0 }}>
+            <span style={{ color: "#ddd", fontWeight: 500, fontVariantNumeric: "tabular-nums", width: 60, textAlign: "right", flexShrink: 0 }}>
               {Number.isFinite(f.value) ? f.value.toFixed(3) : "\u2014"}
             </span>
             <span style={{
-              width: 50, textAlign: "right", fontSize: 9, padding: "1px 4px", borderRadius: 2, flexShrink: 0,
-              color: zColor, background: zBg, fontFamily: "ui-monospace, monospace",
+              width: 52, textAlign: "right", fontSize: 10, padding: "2px 4px", borderRadius: 3, flexShrink: 0,
+              color: zColor, background: zBg, fontVariantNumeric: "tabular-nums",
             }}>
               z={Number.isFinite(f.zScore) ? (f.zScore >= 0 ? "+" : "") + f.zScore.toFixed(1) : "\u2014"}
             </span>

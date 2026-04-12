@@ -1,6 +1,3 @@
-/**
- * RightRail — 320px fixed panel. Switches between overview and single-cell content.
- */
 import { useMemo } from "react";
 import { OverviewContent } from "./OverviewContent";
 import { SingleCellContent } from "./SingleCellContent";
@@ -23,10 +20,9 @@ export function RightRail({ result, cells }: RightRailProps) {
 
   return (
     <div style={{
-      width: 320, flexShrink: 0, background: "#111",
+      width: 340, flexShrink: 0, background: "#111",
       borderLeft: "1px solid #1a1a1a", overflowY: "auto", height: "100%",
-      padding: "20px 16px",
-      fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+      padding: "24px 20px",
     }}>
       {selectedCell ? (
         <SingleCellContent cell={selectedCell} cells={cells} />
