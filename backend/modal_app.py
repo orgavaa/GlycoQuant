@@ -98,17 +98,10 @@ image = (
 # Extended image for Axis B (Geneformer on-demand). Keeps the Tab 1
 # analysis image lean — Geneformer only pays the pip-install cost
 # when its function is actually invoked.
-image_with_geneformer = (
-    image
-    .apt_install("git", "git-lfs")
-    .pip_install(
-        "geneformer @ git+https://huggingface.co/ctheodoris/Geneformer",
-        "anndata",
-        "scanpy",
-        "cellxgene-census",
-        "loompy",
-    )
-)
+# Geneformer image — disabled for now. The HF repo is too large to
+# clone inside Modal's build sandbox. Re-enable when a PyPI release
+# or a smaller wheel is available. Cell-DINO does NOT need this.
+image_with_geneformer = image
 
 app = modal.App(APP_NAME)
 
