@@ -75,6 +75,8 @@ export interface JobResult {
   mechano_score_distribution_figure_json?: string | null;
   mechano_score_summary?: MechanoScoreSummary | null;
   hero_metrics: Record<string, number | null>;
+  /** Base64 PNG per channel with LUT applied — for additive compositing */
+  channel_pngs?: Record<string, string> | null;
   /** Channel name → Plotly trace index for toggling channel visibility */
   channel_trace_indices?: Record<string, number> | null;
   /** Overlay name → list of Plotly trace indices for filled polygons */

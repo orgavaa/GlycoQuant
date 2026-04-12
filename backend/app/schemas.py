@@ -137,6 +137,14 @@ class JobResult(BaseModel):
             "mean_glycocalyx_ratio, mean_mechano_score, top_glyco_mechano_r."
         )
     )
+    channel_pngs: dict[str, str] | None = Field(
+        default=None,
+        description=(
+            "Base64-encoded PNG per channel with channel-specific LUT "
+            "applied. The frontend stacks these with mix-blend-mode:screen "
+            "for additive compositing."
+        ),
+    )
     channel_trace_indices: dict[str, int] | None = Field(
         default=None,
         description=(

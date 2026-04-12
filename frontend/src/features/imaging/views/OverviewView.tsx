@@ -40,8 +40,25 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
   const [showSegmentation, setShowSegmentation] = useState(true);
   const [showGlycoOverlay, setShowGlycoOverlay] = useState(false);
   const [showMechanoOverlay, setShowMechanoOverlay] = useState(false);
-  const [activeChannel, setActiveChannel] = useState("actin");
+  const [showFaOverlay, setShowFaOverlay] = useState(false);
+  const [showYapOverlay, setShowYapOverlay] = useState(false);
+  const [showRingOverlay, setShowRingOverlay] = useState(false);
+  const [, setActiveChannel] = useState("actin");
   const plotDivRef = useRef<HTMLDivElement | null>(null);
+
+  // Channel PNG compositing state
+  const channelPngs = result.channel_pngs ?? null;
+  const [channelVisibility, setChannelVisibility] = useState<Record<string, boolean>>({
+    dapi: true,
+    glycocalyx: true,
+    yap: false,
+    paxillin: false,
+    actin: true,
+  });
+  // Brightness/contrast per channel — sliders will be added in the
+  // overlay controls panel. For now, default to 1.0 (no adjustment).
+  const [channelBrightness] = useState<Record<string, number>>({});
+  const [channelContrast] = useState<Record<string, number>>({});
 
   const channelIndices = result.channel_trace_indices ?? {};
   const overlayRanges = result.overlay_trace_ranges ?? {};
@@ -116,18 +133,49 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
       {/* ============================================================ */}
       {/* Left: Microscopy Canvas — fills all available space            */}
       {/* ============================================================ */}
-      <section className="flex-1 relative h-[calc(100vh-3rem)] bg-[#0a0a0a] overflow-hidden group">
-        {/* Plotly segmentation figure — toggleable via overlay controls.
-            Uses a fixed pixel height matching the viewport minus the nav
-            so the Plotly figure fills the entire dark canvas without
-            clipping or scrollbars. */}
+      <section className="flex-1 relative h-[calc(100vh-3.5rem)] bg-black overflow-hidden group">
+        {/* Layer 1: Channel PNG stack with additive compositing.
+            Each channel is a separate <img> with mix-blend-mode:screen
+            so they blend like real fluorescence. Toggle visibility per
+            channel via the chip strip. Brightness/contrast via CSS filter. */}
+        {channelPngs && (
+          <div className="absolute inset-0 z-0">
+            {Object.entries(channelPngs).map(([ch, src]) => (
+              <img
+                key={ch}
+                src={src}
+                alt={ch}
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{
+                  mixBlendMode: "screen",
+                  opacity: channelVisibility[ch] ? 1 : 0,
+                  transition: "opacity 100ms",
+                  filter: `brightness(${channelBrightness[ch] ?? 1}) contrast(${channelContrast[ch] ?? 1})`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Layer 2: Plotly polygon overlays ON TOP of the image stack.
+            Segmentation contours + feature fills + hover tooltips.
+            Background is transparent so the channel PNGs show through. */}
         {showSegmentation && (
-          <div className="absolute inset-0 [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
+          <div className="absolute inset-0 z-[1] [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
             <PlotlyFigure
               figureJson={result.segmentation_figure_json}
               height={Math.max(400, window.innerHeight - 56)}
               className="w-full h-full"
               onReady={handlePlotReady}
+              onClick={(event) => {
+                const cd = event.points?.[0]?.customdata;
+                if (Array.isArray(cd) && cd[0] != null) {
+                  const cellId = Number(cd[0]);
+                  if (Number.isFinite(cellId)) {
+                    setSelectedCellId(cellId);
+                  }
+                }
+              }}
             />
           </div>
         )}
@@ -197,6 +245,33 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
                   }
                 }}
               />
+              <OverlayToggle
+                label="FA Detection"
+                enabled={showFaOverlay}
+                onToggle={() => {
+                  const next = !showFaOverlay;
+                  setShowFaOverlay(next);
+                  toggleOverlay("fa_overlay", next);
+                }}
+              />
+              <OverlayToggle
+                label="YAP Compartment"
+                enabled={showYapOverlay}
+                onToggle={() => {
+                  const next = !showYapOverlay;
+                  setShowYapOverlay(next);
+                  toggleOverlay("yap_compartment", next);
+                }}
+              />
+              <OverlayToggle
+                label="Pericellular Ring"
+                enabled={showRingOverlay}
+                onToggle={() => {
+                  const next = !showRingOverlay;
+                  setShowRingOverlay(next);
+                  toggleOverlay("pericellular_ring", next);
+                }}
+              />
             </div>
             <div className="mt-1 pt-2 border-t border-white/10">
               <div className="flex gap-1.5">
@@ -204,12 +279,21 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
                   <button
                     key={ch}
                     type="button"
-                    onClick={() => switchChannel(ch)}
+                    onClick={() => {
+                      // Toggle this channel's visibility in the PNG stack
+                      setChannelVisibility((prev) => ({
+                        ...prev,
+                        [ch]: !prev[ch],
+                      }));
+                      setActiveChannel(ch);
+                      // Also switch the Plotly heatmap if available
+                      switchChannel(ch);
+                    }}
                     title={CHANNEL_LABELS[ch]}
                     className={`w-4 h-4 transition-all ${
-                      activeChannel === ch
+                      channelVisibility[ch]
                         ? "ring-2 ring-white ring-offset-1 ring-offset-black/50 scale-110"
-                        : "opacity-60 hover:opacity-100"
+                        : "opacity-30 hover:opacity-60"
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -233,26 +317,22 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
           )}
         </div>
 
-        {/* Magnification + dataset — bottom */}
-        <div className="absolute bottom-6 left-6 flex items-end gap-1 px-3 py-2 bg-black/70 backdrop-blur-md border border-white/10 z-10">
-          <div className="w-1 h-8 bg-on-surface/10 rounded-full relative overflow-hidden">
-            <div className="absolute bottom-0 left-0 w-full h-[62%] bg-primary" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-on-surface-variant leading-none">
-              Magnification
-            </span>
-            <span className="text-sm font-headline font-bold text-on-surface leading-tight">20.0x</span>
-          </div>
+        {/* Scale bar — bottom-right, always visible */}
+        <div className="absolute bottom-5 right-5 z-10 flex flex-col items-end gap-1">
+          <div className="w-[80px] h-[3px] bg-white" />
+          <span className="text-[9px] font-bold text-white/80 tracking-wider">
+            50 µm
+          </span>
         </div>
 
+        {/* Dataset chip — bottom-left */}
         {datasetLabel && (
-          <div className="absolute bottom-6 right-6 flex items-end gap-3 px-3 py-2 bg-black/70 backdrop-blur-md border border-white/10 z-10">
+          <div className="absolute bottom-5 left-5 flex items-end gap-3 px-3 py-2 bg-black/70 backdrop-blur-md border border-white/10 z-10">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-widest leading-none">
+              <span className="text-[9px] font-bold uppercase text-white/50 tracking-widest leading-none">
                 {datasetLabel}
               </span>
-              <span className="text-sm font-headline font-bold text-on-surface leading-tight tabular-nums">
+              <span className="text-xs font-headline font-bold text-white leading-tight tabular-nums">
                 {result.cell_count} cells
               </span>
             </div>

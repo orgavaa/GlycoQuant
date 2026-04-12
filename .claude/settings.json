@@ -53,7 +53,8 @@
       "Bash(.venv/Scripts/python.exe scripts/synthesize_mechano_channels.py)",
       "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz.glyco_mechano_correlation import plot_mechano_score_distribution\")",
       "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz.glyco_mechano_correlation import plot_mechano_score_distribution; print\\('ok'\\)\")",
-      "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz import plot_correlation_map, plot_glyco_mechano_correlation, plot_mechano_score_distribution; print\\('all viz modules ok'\\)\")"
+      "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz import plot_correlation_map, plot_glyco_mechano_correlation, plot_mechano_score_distribution; print\\('all viz modules ok'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"from backend.app.workers import _build_channel_pngs; print\\('ok'\\)\")"
     ],
     "deny": [
       "Bash(rm -rf /)",

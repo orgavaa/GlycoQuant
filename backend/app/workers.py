@@ -385,6 +385,9 @@ def _build_result_payload(
             return float(features_df[col].mean())
         return None
 
+    # Channel PNGs for additive compositing in the frontend
+    channel_pngs = _build_channel_pngs(channels)
+
     # Segmentation figure: build via the same overlay logic, serialized to JSON
     seg_fig, channel_trace_indices, overlay_trace_ranges = _build_segmentation_figure(channels, cell_mask, nuclear_mask, features_df)
 
@@ -468,6 +471,7 @@ def _build_result_payload(
         segmentation_figure_json=seg_fig.to_json(),
         channel_trace_indices=channel_trace_indices,
         overlay_trace_ranges=overlay_trace_ranges,
+        channel_pngs=channel_pngs,
         radial_profile_figure_json=radial_fig.to_json(),
         correlation_figure_json=corr_fig.to_json(),
         glyco_mechano_correlation_figure_json=glyco_mechano_fig.to_json(),
@@ -479,6 +483,62 @@ def _build_result_payload(
             embedder_backend if include_deep_features else None
         ),
     )
+
+
+def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
+    """Render each channel as a base64 PNG with a channel-specific LUT.
+
+    The frontend stacks these as <img> elements with mix-blend-mode:screen
+    for additive compositing — the standard microscopy channel display.
+    """
+    import base64
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    from glycoquant.io import downsample_for_display
+
+    # Channel-specific RGB LUT colors (applied as a tint on grayscale)
+    LUTS: dict[str, tuple[int, int, int]] = {
+        "dapi": (74, 144, 217),      # Blue
+        "glycocalyx": (76, 175, 80),  # Green
+        "yap": (224, 64, 251),        # Magenta
+        "paxillin": (255, 152, 0),    # Orange
+        "actin": (200, 200, 200),     # Light gray (structural)
+    }
+
+    result: dict[str, str] = {}
+    for ch_name in ("dapi", "glycocalyx", "yap", "paxillin", "actin"):
+        if ch_name not in channels:
+            continue
+        ch = downsample_for_display(channels[ch_name]).astype(np.float32)
+        # Percentile contrast stretch
+        finite = ch[np.isfinite(ch)]
+        if finite.size:
+            lo, hi = np.percentile(finite, (1.0, 99.5))
+            if hi > lo:
+                ch = np.clip((ch - lo) / (hi - lo), 0.0, 1.0)
+            else:
+                ch = np.zeros_like(ch)
+        else:
+            ch = np.zeros_like(ch)
+
+        # Apply LUT: grayscale × RGB tint → 3-channel uint8
+        r_tint, g_tint, b_tint = LUTS.get(ch_name, (200, 200, 200))
+        h, w = ch.shape
+        rgb = np.zeros((h, w, 3), dtype=np.uint8)
+        rgb[:, :, 0] = np.clip(ch * r_tint, 0, 255).astype(np.uint8)
+        rgb[:, :, 1] = np.clip(ch * g_tint, 0, 255).astype(np.uint8)
+        rgb[:, :, 2] = np.clip(ch * b_tint, 0, 255).astype(np.uint8)
+
+        img = Image.fromarray(rgb, "RGB")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        result[ch_name] = f"data:image/png;base64,{b64}"
+
+    return result
 
 
 def _build_segmentation_figure(
@@ -695,6 +755,144 @@ def _build_segmentation_figure(
             )
         )
 
+    # ------------------------------------------------------------------
+    # Layer 4a: FA detection overlay — colored by maturation class
+    # ------------------------------------------------------------------
+    FA_MATURATION_COLORS = {
+        "nascent": "rgba(0,188,212,0.7)",      # cyan
+        "focal_complex": "rgba(255,235,59,0.7)", # yellow
+        "mature": "rgba(255,152,0,0.8)",         # orange
+        "fibrillar": "rgba(244,67,54,0.8)",      # red
+    }
+    overlay_trace_ranges["fa_overlay"] = []
+
+    if "paxillin" in channels:
+        from glycoquant.features import FocalAdhesionParams, detect_focal_adhesions
+
+        fa_params = FocalAdhesionParams(pixel_size_um=0.656)
+        for cell_id in cell_outline_polygons(cell_mask):
+            regions = detect_focal_adhesions(
+                channels["paxillin"], cell_mask, cell_id, fa_params
+            )
+            for region in regions:
+                major_um = region.axis_major_length * fa_params.pixel_size_um
+                if major_um < fa_params.nascent_max_um:
+                    color = FA_MATURATION_COLORS["nascent"]
+                elif major_um < fa_params.focal_complex_max_um:
+                    color = FA_MATURATION_COLORS["focal_complex"]
+                elif major_um < fa_params.mature_max_um:
+                    color = FA_MATURATION_COLORS["mature"]
+                else:
+                    color = FA_MATURATION_COLORS["fibrillar"]
+
+                cy, cx = region.centroid
+                r_major = region.axis_major_length / 2 * scale_y
+                r_minor = max(1, region.axis_minor_length / 2 * scale_x)
+
+                # Draw as a small circle/ellipse marker at the FA centroid
+                trace_idx = len(fig.data)
+                overlay_trace_ranges["fa_overlay"].append(trace_idx)
+                fig.add_trace(
+                    go.Scatter(
+                        x=[cx * scale_x],
+                        y=[cy * scale_y],
+                        mode="markers",
+                        marker={
+                            "size": max(4, min(12, r_major * 2)),
+                            "color": color,
+                            "symbol": "diamond" if major_um >= fa_params.mature_max_um else "circle",
+                            "line": {"width": 0.5, "color": "rgba(255,255,255,0.3)"},
+                        },
+                        hovertemplate=(
+                            f"FA · cell {cell_id}<br>"
+                            f"major axis: {major_um:.1f} µm<br>"
+                            f"area: {region.area * fa_params.pixel_size_um**2:.1f} µm²"
+                            "<extra></extra>"
+                        ),
+                        visible=False,
+                        showlegend=False,
+                    )
+                )
+
+    # ------------------------------------------------------------------
+    # Layer 4b: YAP compartment overlay — nuclear/cytoplasmic outlines
+    # ------------------------------------------------------------------
+    overlay_trace_ranges["yap_compartment"] = []
+
+    from glycoquant.viz import nuclear_outline_polygons
+    from skimage.measure import regionprops
+
+    for cell_id, nuc_contour in nuclear_outline_polygons(nuclear_mask).items():
+        # Nuclear outline in magenta
+        trace_idx = len(fig.data)
+        overlay_trace_ranges["yap_compartment"].append(trace_idx)
+        fig.add_trace(
+            go.Scatter(
+                x=nuc_contour[:, 1] * scale_x,
+                y=nuc_contour[:, 0] * scale_y,
+                mode="lines",
+                line={"color": "rgba(224,64,251,0.6)", "width": 1.5},
+                hoverinfo="skip",
+                visible=False,
+                showlegend=False,
+            )
+        )
+
+        # N/C ratio label at nuclear centroid
+        nuc_props = regionprops((nuclear_mask == cell_id).astype(np.uint8))
+        if nuc_props:
+            ncy, ncx = nuc_props[0].centroid
+            yap_val = _val(cell_id, "yap_nc_ratio_size_corrected")
+            trace_idx = len(fig.data)
+            overlay_trace_ranges["yap_compartment"].append(trace_idx)
+            fig.add_trace(
+                go.Scatter(
+                    x=[ncx * scale_x],
+                    y=[ncy * scale_y],
+                    mode="text",
+                    text=[yap_val],
+                    textfont={"size": 8, "color": "rgba(224,64,251,0.8)"},
+                    hoverinfo="skip",
+                    visible=False,
+                    showlegend=False,
+                )
+            )
+
+    # ------------------------------------------------------------------
+    # Layer 4c: Pericellular ring overlay — WGA measurement region
+    # ------------------------------------------------------------------
+    overlay_trace_ranges["pericellular_ring"] = []
+
+    from scipy.ndimage import binary_dilation
+
+    for cell_id, contour in cell_outline_polygons(cell_mask).items():
+        this_cell = cell_mask == cell_id
+        # Build the outer ring boundary (dilated cell edge)
+        ring_width = max(3, int(round(0.1 * np.sqrt(float(this_cell.sum()) / np.pi) * 2)))
+        dilated = binary_dilation(this_cell, iterations=ring_width)
+        ring_mask = dilated & ~this_cell
+
+        # Find the ring outer contour
+        from skimage.measure import find_contours
+        ring_contours = find_contours(ring_mask.astype(np.float32), 0.5)
+        if ring_contours:
+            outer = max(ring_contours, key=len)
+            trace_idx = len(fig.data)
+            overlay_trace_ranges["pericellular_ring"].append(trace_idx)
+            fig.add_trace(
+                go.Scatter(
+                    x=outer[:, 1] * scale_x,
+                    y=outer[:, 0] * scale_y,
+                    mode="lines",
+                    fill="toself",
+                    fillcolor="rgba(76,175,80,0.15)",
+                    line={"color": "rgba(76,175,80,0.4)", "width": 1},
+                    hoverinfo="skip",
+                    visible=False,
+                    showlegend=False,
+                )
+            )
+
     layout = get_plotly_layout_template()
     layout.update(
         {
@@ -703,7 +901,7 @@ def _build_segmentation_figure(
             "margin": {"l": 0, "r": 0, "t": 0, "b": 0},
             "height": 560,
             "showlegend": False,
-            "plot_bgcolor": "#000000",
+            "plot_bgcolor": "rgba(0,0,0,0)",
         }
     )
     fig.update_layout(**layout)
