@@ -81,6 +81,11 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     const backendXaxis = (parsed.layout?.xaxis as Record<string, unknown>) ?? {};
     const backendYaxis = (parsed.layout?.yaxis as Record<string, unknown>) ?? {};
 
+    // Remove any scaleanchor the backend may have set — we want the
+    // image to stretch and fill the entire container with zero black bars.
+    const { scaleanchor: _sa, scaleratio: _sr, constrain: _c, ...cleanYaxis } = backendYaxis as Record<string, unknown>;
+    const { constrain: _cx, ...cleanXaxis } = backendXaxis as Record<string, unknown>;
+
     const layout = {
       ...parsed.layout,
       autosize: true,
@@ -90,15 +95,15 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       plot_bgcolor: "#000",
       margin: { l: 0, r: 0, t: 0, b: 0 },
       xaxis: {
-        ...backendXaxis,
+        ...cleanXaxis,
         visible: false,
         showgrid: false,
       },
       yaxis: {
-        ...backendYaxis,
+        ...cleanYaxis,
         visible: false,
         showgrid: false,
-        scaleanchor: "x",
+        // NO scaleanchor — let the image fill the full viewport
       },
     };
 
@@ -127,30 +132,30 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
   }, []);
 
   // Coordinate transforms: image coords ↔ screen coords
+  // Since we removed scaleanchor, image stretches to fill — use independent X/Y scales
   const getTransform = useCallback(() => {
     if (!figInfo) return null;
     const imgW = figInfo.xRange[1] - figInfo.xRange[0];
     const imgH = Math.abs(figInfo.yRange[1] - figInfo.yRange[0]);
-    const scale = Math.min(size.w / imgW, size.h / imgH);
-    const offsetX = (size.w - imgW * scale) / 2;
-    const offsetY = (size.h - imgH * scale) / 2;
+    const scaleX = size.w / imgW;
+    const scaleY = size.h / imgH;
     const yFlip = figInfo.yRange[0] > figInfo.yRange[1];
-    return { scale, offsetX, offsetY, yFlip };
+    return { scaleX, scaleY, yFlip };
   }, [figInfo, size]);
 
   const toScreen = useCallback((x: number, y: number): [number, number] => {
     const t = getTransform(); if (!t || !figInfo) return [0, 0];
     return [
-      (x - figInfo.xRange[0]) * t.scale + t.offsetX,
-      t.yFlip ? (figInfo.yRange[0] - y) * t.scale + t.offsetY : (y - figInfo.yRange[0]) * t.scale + t.offsetY,
+      (x - figInfo.xRange[0]) * t.scaleX,
+      t.yFlip ? (figInfo.yRange[0] - y) * t.scaleY : (y - figInfo.yRange[0]) * t.scaleY,
     ];
   }, [getTransform, figInfo]);
 
   const toImage = useCallback((sx: number, sy: number): [number, number] => {
     const t = getTransform(); if (!t || !figInfo) return [0, 0];
     return [
-      (sx - t.offsetX) / t.scale + figInfo.xRange[0],
-      t.yFlip ? figInfo.yRange[0] - (sy - t.offsetY) / t.scale : (sy - t.offsetY) / t.scale + figInfo.yRange[0],
+      sx / t.scaleX + figInfo.xRange[0],
+      t.yFlip ? figInfo.yRange[0] - sy / t.scaleY : sy / t.scaleY + figInfo.yRange[0],
     ];
   }, [getTransform, figInfo]);
 
@@ -199,11 +204,11 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       }
     }
 
-    // Scale bar
+    // Scale bar — use X scale since bar is horizontal
     const t = getTransform();
     const pxUm = result.pixel_size_um ?? 0.656;
     if (t && pxUm > 0) {
-      const barPx = (50 / pxUm) * t.scale;
+      const barPx = (50 / pxUm) * t.scaleX;
       const bx = size.w - barPx - 24, by = size.h - 20;
       ctx.fillStyle = "#fff"; ctx.fillRect(bx, by, barPx, 2);
       ctx.fillRect(bx, by - 4, 1, 10); ctx.fillRect(bx + barPx - 1, by - 4, 1, 10);
