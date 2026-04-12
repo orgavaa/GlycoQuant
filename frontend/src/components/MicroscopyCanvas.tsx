@@ -69,8 +69,8 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       ...parsed.layout, autosize: true, width: undefined, height: undefined,
       paper_bgcolor: "#000", plot_bgcolor: "#000",
       margin: { l: 0, r: 0, t: 0, b: 0 },
-      xaxis: { ...(parsed.layout.xaxis as object ?? {}), visible: false, showgrid: false },
-      yaxis: { ...(parsed.layout.yaxis as object ?? {}), visible: false, showgrid: false, scaleanchor: "x" },
+      xaxis: { ...(parsed.layout.xaxis as object ?? {}), visible: false, showgrid: false, constrain: "domain" },
+      yaxis: { ...(parsed.layout.yaxis as object ?? {}), visible: false, showgrid: false, scaleanchor: "x", constrain: "domain" },
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Plotly.react(plotRef.current, parsed.data as any, layout as any, { displayModeBar: false, displaylogo: false, responsive: true, staticPlot: true } as any);

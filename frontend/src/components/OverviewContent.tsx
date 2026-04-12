@@ -29,7 +29,7 @@ export function OverviewContent({ result, cells }: Props) {
   const glycoMechR = m.top_glyco_mechano_r ?? summary?.top_correlation_r ?? null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Hero metrics */}
       <Card>
         <HeroMetrics metrics={[
@@ -39,15 +39,15 @@ export function OverviewContent({ result, cells }: Props) {
         ]} />
       </Card>
 
-      {/* Glyco-Mechano correlation heatmap — generous height for readability */}
+      {/* Glyco-Mechano correlation heatmap */}
       {result.glyco_mechano_correlation_figure_json && (
         <PlotlyCard
-          title="Glycocalyx \u2194 Mechanotransduction"
+          title={"Glycocalyx \u2194 Mechanotransduction"}
           subtitle={summary?.top_correlation_pair
             ? `top |r| = ${fmt(summary.top_correlation_r)} \u2014 ${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]}`
             : undefined}
           figureJson={result.glyco_mechano_correlation_figure_json}
-          maxHeight={320}
+          maxHeight={360}
         />
       )}
 
@@ -56,14 +56,14 @@ export function OverviewContent({ result, cells }: Props) {
         <PlotlyCard
           title="Score distribution"
           figureJson={result.mechano_score_distribution_figure_json}
-          maxHeight={200}
+          maxHeight={220}
         />
       )}
 
       {/* Top deviating cells */}
       {topCells.length > 0 && (
         <Card>
-          <div className="text-[10px] font-semibold text-gray-400 tracking-[1.5px] uppercase mb-2">
+          <div className="text-[11px] font-semibold text-gray-400 tracking-[1px] uppercase mb-3">
             Top deviating cells
           </div>
           <TopCells cells={topCells} onClick={id => setSelectedCellId(id)} />
@@ -81,12 +81,12 @@ function CorrelationAudit({ figureJson }: { figureJson: string }) {
   return (
     <Card>
       <div onClick={() => setOpen(v => !v)} className="flex items-center justify-between cursor-pointer">
-        <span className="text-[10px] font-semibold text-gray-400 tracking-[1.5px] uppercase">Full correlation audit</span>
-        <span className="text-[12px] text-gray-300">{open ? "\u25BE" : "\u25B8"}</span>
+        <span className="text-[11px] font-semibold text-gray-400 tracking-[1px] uppercase">Full correlation audit</span>
+        <span className="text-[14px] text-gray-300">{open ? "\u25BE" : "\u25B8"}</span>
       </div>
       {open && (
-        <div className="mt-3">
-          <PlotlyInline figureJson={figureJson} maxHeight={420} />
+        <div className="mt-4">
+          <PlotlyInline figureJson={figureJson} maxHeight={480} />
         </div>
       )}
     </Card>
@@ -105,14 +105,16 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
 
     const layout = {
       ...parsed.layout,
+      // Strip backend title — our Card header handles it
+      title: undefined,
       height: maxHeight,
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "#fff",
       font: { family: "Inter, sans-serif", color: "#9ca3af", size: 10 },
-      margin: { l: 48, r: 16, t: 8, b: 44, pad: 2 },
-      xaxis: { ...backendXaxis, gridcolor: "#f3f4f6", tickfont: { size: 9, family: "Inter" } },
-      yaxis: { ...backendYaxis, gridcolor: "#f3f4f6", tickfont: { size: 9, family: "Inter" } },
+      margin: { l: 52, r: 20, t: 6, b: 48, pad: 2 },
+      xaxis: { ...backendXaxis, gridcolor: "#f3f4f6", tickfont: { size: 10, family: "Inter" } },
+      yaxis: { ...backendYaxis, gridcolor: "#f3f4f6", tickfont: { size: 10, family: "Inter" } },
     };
 
     const data = (parsed.data as Record<string, unknown>[]).map(trace => {
@@ -121,9 +123,9 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
           ...trace,
           colorbar: {
             ...(trace.colorbar as Record<string, unknown>),
-            thickness: 12,
-            len: 0.85,
-            tickfont: { size: 9, color: "#9ca3af" },
+            thickness: 14,
+            len: 0.9,
+            tickfont: { size: 10, color: "#9ca3af" },
             outlinewidth: 0,
           },
         };

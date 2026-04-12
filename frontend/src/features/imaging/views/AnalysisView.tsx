@@ -23,7 +23,7 @@ export function AnalysisView({ result }: Props) {
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      {/* ── Full-bleed microscopy image ── */}
+      {/* Full-bleed microscopy image */}
       <div className="absolute inset-0">
         <MicroscopyCanvas
           result={result}
@@ -33,7 +33,7 @@ export function AnalysisView({ result }: Props) {
         />
       </div>
 
-      {/* ── Overlay controls (top-left) ── */}
+      {/* Overlay controls (top-left) */}
       <OverlayPanel
         showSegmentation={showSeg}
         onToggleSegmentation={() => setShowSeg(v => !v)}
@@ -43,7 +43,7 @@ export function AnalysisView({ result }: Props) {
         onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
       />
 
-      {/* ── Caption bar (bottom-left) ── */}
+      {/* Caption bar (bottom) */}
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <div className="bg-black/60 backdrop-blur-sm">
           <ImageCaption
@@ -54,25 +54,27 @@ export function AnalysisView({ result }: Props) {
         </div>
       </div>
 
-      {/* ── Rail toggle button (right edge) ── */}
+      {/* Rail toggle button */}
       <button
         onClick={() => setRailOpen(v => !v)}
-        className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md px-3 py-2 text-[12px] font-medium text-gray-700 hover:bg-white transition-colors"
+        className={`absolute top-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md px-3 py-2 text-[12px] font-medium text-gray-700 hover:bg-white transition-all duration-300 ${
+          railOpen ? "right-[calc(min(640px,60vw)+16px)]" : "right-4"
+        }`}
       >
-        {railOpen ? "Close panel \u2192" : "\u2190 Results"}
+        {railOpen ? "\u2715 Close" : "\u2190 Results"}
       </button>
 
-      {/* ── Sliding results rail ── */}
+      {/* Sliding results panel — 60vw or 640px max */}
       <div
         className={`absolute top-0 right-0 h-full z-20 transition-transform duration-300 ease-in-out ${
           railOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ width: "min(520px, 50vw)" }}
+        style={{ width: "min(640px, 60vw)" }}
       >
         <RightRail result={result} cells={cells} onClose={() => setRailOpen(false)} />
       </div>
 
-      {/* ── Click-away backdrop when rail is open ── */}
+      {/* Click-away backdrop */}
       {railOpen && (
         <div
           className="absolute inset-0 z-[15] cursor-pointer"

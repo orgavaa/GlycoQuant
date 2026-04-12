@@ -9,7 +9,7 @@ interface PlotlyCardProps {
   maxHeight?: number;
 }
 
-export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 280 }: PlotlyCardProps) {
+export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 300 }: PlotlyCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,12 +23,18 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 280 }: Plo
 
     const layout: Record<string, unknown> = {
       ...parsed.layout,
+      // Strip the backend's title + annotations — we render our own via React
+      title: undefined,
+      annotations: (parsed.layout?.annotations as unknown[] ?? []).filter(
+        (a: unknown) => !(a as Record<string, unknown>)?.text?.toString().includes("correlation")
+          && !(a as Record<string, unknown>)?.text?.toString().includes("top |")
+      ),
       height: maxHeight,
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "#ffffff",
       font: { family: "Inter, sans-serif", color: "#6b7280", size: 11 },
-      margin: { l: 48, r: 16, t: 8, b: 44, pad: 2 },
+      margin: { l: 52, r: 20, t: 6, b: 48, pad: 2 },
       xaxis: {
         ...backendXaxis,
         gridcolor: "#f3f4f6",
@@ -55,34 +61,34 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 280 }: Plo
       },
     };
 
-    // Handle coloraxis (used by some Plotly heatmaps)
+    // Handle coloraxis
     if (parsed.layout?.coloraxis) {
       const ca = parsed.layout.coloraxis as Record<string, unknown>;
       layout.coloraxis = {
         ...ca,
         colorbar: {
           ...((ca.colorbar as Record<string, unknown>) ?? {}),
-          thickness: 12,
-          len: 0.85,
-          tickfont: { size: 9, family: "Inter, sans-serif", color: "#9ca3af" },
+          thickness: 14,
+          len: 0.9,
+          tickfont: { size: 10, family: "Inter, sans-serif", color: "#9ca3af" },
           outlinewidth: 0,
-          xpad: 4,
+          xpad: 6,
         },
       };
     }
 
-    // Style per-trace colorbars (heatmaps)
+    // Style per-trace colorbars
     const data = (parsed.data as Record<string, unknown>[]).map(trace => {
       if (trace.type === "heatmap" && trace.colorbar) {
         return {
           ...trace,
           colorbar: {
             ...(trace.colorbar as Record<string, unknown>),
-            thickness: 12,
-            len: 0.85,
-            tickfont: { size: 9, family: "Inter, sans-serif", color: "#9ca3af" },
+            thickness: 14,
+            len: 0.9,
+            tickfont: { size: 10, family: "Inter, sans-serif", color: "#9ca3af" },
             outlinewidth: 0,
-            xpad: 4,
+            xpad: 6,
           },
         };
       }
@@ -113,8 +119,8 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 280 }: Plo
 
   return (
     <Card>
-      {title && <h3 className="text-[13px] font-semibold text-gray-900 mb-0.5">{title}</h3>}
-      {subtitle && <p className="text-[11px] text-gray-400 mb-2 leading-snug">{subtitle}</p>}
+      {title && <h3 className="text-[14px] font-semibold text-gray-900 mb-0.5">{title}</h3>}
+      {subtitle && <p className="text-[11px] text-gray-400 mb-3 leading-snug">{subtitle}</p>}
       <div ref={containerRef} className="w-full overflow-hidden">
         <div ref={ref} className="w-full" />
       </div>
