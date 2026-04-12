@@ -6,15 +6,18 @@ import { useState } from "react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayControls } from "@/components/OverlayControls";
 import { RightRail } from "@/components/RightRail";
+import type { ViewId } from "@/components/TopBar";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 
 interface OverviewViewProps {
   result: JobResult;
   datasetLabel: string | null;
+  activeView: ViewId;
+  onChangeView: (v: ViewId) => void;
 }
 
-export function OverviewView({ result }: OverviewViewProps) {
+export function OverviewView({ result, activeView, onChangeView }: OverviewViewProps) {
   const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
 
   const [showSegmentation, setShowSegmentation] = useState(true);
@@ -36,7 +39,6 @@ export function OverviewView({ result }: OverviewViewProps) {
       onMouseEnter={() => setCanvasHovered(true)}
       onMouseLeave={() => setCanvasHovered(false)}
     >
-      {/* Canvas + floating overlay controls */}
       <div className="flex-1 relative">
         <MicroscopyCanvas
           result={result}
@@ -44,7 +46,6 @@ export function OverviewView({ result }: OverviewViewProps) {
           activeOverlay={activeOverlay}
           channelVisibility={channelVisibility}
         />
-
         <OverlayControls
           showSegmentation={showSegmentation}
           onToggleSegmentation={() => setShowSegmentation((v) => !v)}
@@ -64,10 +65,12 @@ export function OverviewView({ result }: OverviewViewProps) {
         />
       </div>
 
-      {/* Right rail */}
       <RightRail
         result={result}
         onDeselectCell={() => setSelectedCellId(null)}
+        activeView={activeView}
+        onChangeView={onChangeView}
+        hasResult={true}
       />
     </div>
   );

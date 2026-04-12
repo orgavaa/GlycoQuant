@@ -8,9 +8,14 @@ import { PlotlyChart } from "./PlotlyChart";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 
+import type { ViewId } from "./TopBar";
+
 interface RightRailProps {
   result: JobResult;
   onDeselectCell: () => void;
+  activeView: ViewId;
+  onChangeView: (v: ViewId) => void;
+  hasResult: boolean;
 }
 
 interface CellRow {
@@ -23,7 +28,13 @@ function fmt(v: number | null | undefined, decimals = 2): string {
   return v.toFixed(decimals);
 }
 
-export function RightRail({ result, onDeselectCell }: RightRailProps) {
+const VIEW_TABS: { id: ViewId; label: string; icon: string }[] = [
+  { id: "overview", label: "Overview", icon: "🔬" },
+  { id: "single", label: "Single Cell", icon: "🎯" },
+  { id: "compare", label: "Compare", icon: "⚖️" },
+];
+
+export function RightRail({ result, onDeselectCell, activeView, onChangeView, hasResult }: RightRailProps) {
   const selectedCellId = useJobStore((s) => s.selectedCellId);
 
   const rows: CellRow[] = useMemo(() => {
@@ -58,7 +69,9 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
   // Single cell mode
   if (selectedCell) {
     return (
-      <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#333] overflow-y-auto h-full p-4 space-y-5">
+      <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#333] overflow-y-auto h-full flex flex-col">
+        <ViewTabs activeView={activeView} onChangeView={onChangeView} hasResult={hasResult} />
+        <div className="flex-1 p-4 space-y-5 overflow-y-auto">
         <button
           type="button"
           onClick={onDeselectCell}
@@ -109,12 +122,15 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
           </div>
         </details>
       </div>
+      </div>
     );
   }
 
   // Overview mode
   return (
-    <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#333] overflow-y-auto h-full p-4 space-y-6">
+    <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#333] overflow-y-auto h-full flex flex-col">
+      <ViewTabs activeView={activeView} onChangeView={onChangeView} hasResult={hasResult} />
+      <div className="flex-1 p-4 space-y-6 overflow-y-auto">
       {/* Hero metrics */}
       <div className="space-y-4">
         <HeroMetric label="Cells analyzed" value={String(result.cell_count)} />
@@ -171,6 +187,44 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
           </div>
         </div>
       )}
+      </div>
+    </div>
+  );
+}
+
+function ViewTabs({
+  activeView,
+  onChangeView,
+  hasResult,
+}: {
+  activeView: ViewId;
+  onChangeView: (v: ViewId) => void;
+  hasResult: boolean;
+}) {
+  return (
+    <div className="flex border-b border-[#333] shrink-0">
+      {VIEW_TABS.map((tab) => {
+        const active = tab.id === activeView || (tab.id === "overview" && activeView === "single");
+        const disabled = !hasResult;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => !disabled && onChangeView(tab.id)}
+            disabled={disabled}
+            className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 transition-colors text-center ${
+              active
+                ? "bg-[#1a1a1a] text-white border-b border-[#343dff]"
+                : disabled
+                  ? "text-[#444] cursor-not-allowed"
+                  : "text-[#888] hover:bg-[#1a1a1a] hover:text-[#ccc]"
+            }`}
+          >
+            <span className="text-[13px]">{tab.icon}</span>
+            <span className="text-[9px] uppercase tracking-[0.08em]">{tab.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

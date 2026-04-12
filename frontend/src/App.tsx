@@ -16,17 +16,18 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-[#0a0a0a] text-[#eee] overflow-hidden">
-      <TopBar
-        activeView={activeView}
-        onChangeView={setActiveView}
-        hasResult={hasResult}
-      />
+      <TopBar onChangeView={setActiveView} />
 
       <div className="flex-1 overflow-hidden">
         {!hasResult ? (
           <LoaderView />
         ) : activeView === "overview" || activeView === "single" ? (
-          <OverviewView result={latestResult} datasetLabel={latestLabel} />
+          <OverviewView
+            result={latestResult}
+            datasetLabel={latestLabel}
+            activeView={activeView}
+            onChangeView={setActiveView}
+          />
         ) : activeView === "prioritization" ? (
           <LegacyTabWrapper tab="prioritization" />
         ) : activeView === "experiment" ? (
