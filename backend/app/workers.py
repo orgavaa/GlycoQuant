@@ -284,24 +284,29 @@ def _get_embedder():  # noqa: ANN202
 
         from glycoquant.compute import describe_device, resolve_device
 
-        ckpt = os.environ.get("GLYCOQUANT_CELL_DINO_CKPT")
-        ckpt_exists = bool(ckpt and Path(ckpt).is_file())
-        print(f"[worker] GLYCOQUANT_CELL_DINO_CKPT = {ckpt!r}")
-        print(f"[worker] checkpoint file exists = {ckpt_exists}")
-        if ckpt and not ckpt_exists:
-            # List what's actually in /app/models/ to diagnose
-            models_dir = Path(ckpt).parent
-            if models_dir.is_dir():
-                print(f"[worker] contents of {models_dir}: {list(models_dir.iterdir())}")
-            else:
-                print(f"[worker] directory {models_dir} does not exist")
-            # Also check third_party/dinov2
-            dinov2_dir = Path(__file__).resolve().parents[2] / "third_party" / "dinov2"
-            print(f"[worker] dinov2 dir exists = {dinov2_dir.is_dir()}")
-            if dinov2_dir.is_dir():
-                hub_file = dinov2_dir / "hubconf.py"
-                print(f"[worker] hubconf.py exists = {hub_file.is_file()}")
-        if ckpt_exists:
+        # Default checkpoint path — can be overridden by env var
+        default_ckpt = str(
+            Path(__file__).resolve().parents[2] / "models" / "channel_adaptive_dino_vitl16.pth"
+        )
+        ckpt = os.environ.get("GLYCOQUANT_CELL_DINO_CKPT", default_ckpt)
+
+        # Auto-download from HuggingFace if checkpoint doesn't exist yet.
+        # This runs ONCE per container start and takes ~30s on a fast
+        # connection. Bypasses all Docker build cache issues.
+        HF_URL = "https://huggingface.co/orgava/glycoquant-models/resolve/main/channel_adaptive_dino_vitl16.pth"
+        if not Path(ckpt).is_file():
+            print(f"[worker] Cell-DINO checkpoint not found at {ckpt}")
+            print(f"[worker] downloading from HuggingFace (~1.2 GB)...")
+            Path(ckpt).parent.mkdir(parents=True, exist_ok=True)
+            try:
+                import urllib.request
+                urllib.request.urlretrieve(HF_URL, ckpt)
+                size_mb = Path(ckpt).stat().st_size / (1024 * 1024)
+                print(f"[worker] downloaded Cell-DINO checkpoint ({size_mb:.0f} MB)")
+            except Exception as exc:
+                print(f"[worker] download failed: {exc} — falling back to DINOv2-base")
+
+        if Path(ckpt).is_file():
             from glycoquant.features.deep_embedding import (
                 ChannelAdaptiveDinoEmbedder,
                 ChannelAdaptiveDinoParams,
@@ -318,19 +323,13 @@ def _get_embedder():  # noqa: ANN202
                 )
             )
         else:
-            # Cell-DINO checkpoint not provisioned — fall back to
-            # DINOv2-base so CI and dev environments without the FAIR
-            # weights still produce deep features. The UI labels this
-            # as "Cell-DINO (fallback)" so the operator knows to
-            # provision the checkpoint for the real backbone.
             from glycoquant.features.deep_embedding import (
                 DinoV2Embedder,
                 DinoV2Params,
             )
 
             print(
-                f"[worker] Cell-DINO checkpoint not found "
-                f"(GLYCOQUANT_CELL_DINO_CKPT={'not set' if not ckpt else ckpt}); "
+                f"[worker] Cell-DINO unavailable — "
                 f"using DINOv2-base fallback on {describe_device()}"
             )
             _EMBEDDER_SINGLETON = DinoV2Embedder(
