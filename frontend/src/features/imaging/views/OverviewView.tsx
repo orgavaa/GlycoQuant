@@ -305,8 +305,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
             <div className="bg-surface-container-lowest p-4 ghost-border">
               <PlotlyFigure
                 figureJson={result.glyco_mechano_correlation_figure_json}
-                height={360}
-                downloadName="glycoquant_glyco_mechano_correlation"
+                height={480}
               />
             </div>
             {topPair && (
@@ -330,8 +329,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
             <div className="bg-surface-container-lowest ghost-border py-2 px-2">
               <PlotlyFigure
                 figureJson={result.mechano_score_distribution_figure_json}
-                height={200}
-                downloadName="glycoquant_mechano_distribution"
+                height={280}
               />
             </div>
             {summary && (
@@ -424,7 +422,6 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
               <PlotlyFigure
                 figureJson={result.correlation_figure_json}
                 height={500}
-                downloadName="glycoquant_full_correlation"
               />
             </div>
           ) : (

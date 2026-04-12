@@ -50,7 +50,10 @@
       "Bash(.venv/Scripts/python.exe scripts/download_rxrx1_batch.py)",
       "Bash(ls -1 data/demo/*.tiff)",
       "Bash(du -sh data/demo/*.tiff)",
-      "Bash(.venv/Scripts/python.exe scripts/synthesize_mechano_channels.py)"
+      "Bash(.venv/Scripts/python.exe scripts/synthesize_mechano_channels.py)",
+      "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz.glyco_mechano_correlation import plot_mechano_score_distribution\")",
+      "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz.glyco_mechano_correlation import plot_mechano_score_distribution; print\\('ok'\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"from glycoquant.viz import plot_correlation_map, plot_glyco_mechano_correlation, plot_mechano_score_distribution; print\\('all viz modules ok'\\)\")"
     ],
     "deny": [
       "Bash(rm -rf /)",

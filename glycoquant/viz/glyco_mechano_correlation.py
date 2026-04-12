@@ -185,13 +185,13 @@ def plot_glyco_mechano_correlation(
                 star = "*" if np.isfinite(p) and p < sig_threshold else ""
                 annotations.append(
                     {
-                        "x": m,
-                        "y": g,
+                        "x": _short(m),
+                        "y": _short(g),
                         "text": f"{r:+.2f}{star}",
                         "showarrow": False,
                         "font": {
-                            "size": 9,
-                            "color": "#FFFFFF" if abs(r) > 0.5 else "#1F2437",
+                            "size": 10,
+                            "color": "#FFFFFF" if abs(r) > 0.4 else "#2a3437",
                         },
                     }
                 )
@@ -205,26 +205,53 @@ def plot_glyco_mechano_correlation(
         )
     title = "".join(title_parts)
 
+    # Shorten feature names for readability in the embedded view
+    def _short(name: str) -> str:
+        return (
+            name
+            .replace("glycocalyx_", "glyco·")
+            .replace("haralick_", "")
+            .replace("pericellular_", "peri·")
+            .replace("radial_decay_", "decay·")
+            .replace("integrated_", "integ·")
+            .replace("shannon_", "")
+            .replace("mean_intensity", "mean")
+            .replace("yap_nc_ratio_size_corrected", "YAP N/C corr")
+            .replace("yap_nuclear_intensity", "YAP nuc")
+            .replace("fa_density_per_um2", "FA density")
+            .replace("fa_mature_fraction", "FA mature")
+            .replace("fa_total_area_um2", "FA area")
+            .replace("fa_mean_orientation_alignment", "FA align")
+            .replace("actin_stress_fiber_coherence", "actin coher")
+            .replace("actin_cortical_ratio", "actin cort")
+            .replace("nuclear_aspect_ratio", "nuc AR")
+            .replace("nuclear_solidity", "nuc solid")
+            .replace("nuclear_to_cell_area_ratio", "nuc/cell")
+            .replace("mechano_score", "mechano")
+            .replace("_", " ")
+        )
+
+    short_glyco = [_short(g) for g in result.glyco_features]
+    short_mechano = [_short(m) for m in result.mechano_features]
+
     fig = go.Figure(
         data=go.Heatmap(
             z=result.r_matrix,
-            x=list(result.mechano_features),
-            y=list(result.glyco_features),
+            x=short_mechano,
+            y=short_glyco,
             colorscale="RdBu_r",
             zmin=-1.0,
             zmax=1.0,
             colorbar={
                 "title": {
-                    "text": f"{method.capitalize()[:1]} ρ",
-                    "font": {"color": "#8B92A8", "size": 10},
+                    "text": "ρ",
+                    "font": {"color": "#566164", "size": 11},
                 },
-                "tickfont": {"color": "#8B92A8", "size": 9},
-                "outlinecolor": "#1F2437",
-                "outlinewidth": 1,
+                "tickfont": {"color": "#566164", "size": 10},
+                "len": 0.6,
             },
             hovertemplate=(
-                "Glyco: %{y}<br>"
-                "Mechano: %{x}<br>"
+                "<b>%{y}</b> × <b>%{x}</b><br>"
                 "ρ = %{z:+.3f}<extra></extra>"
             ),
         )
@@ -232,25 +259,19 @@ def plot_glyco_mechano_correlation(
     layout = get_plotly_layout_template()
     layout.update(
         {
-            "title": {"text": title, "font": {"size": 14}},
+            "title": {"text": title, "font": {"size": 13, "family": "Inter"}},
             "xaxis": {
                 "tickangle": 45,
-                "tickfont": {"size": 9, "color": "#8B92A8"},
-                "title": {
-                    "text": "Mechanotransduction features",
-                    "font": {"size": 11, "color": "#8B92A8"},
-                },
+                "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
             },
             "yaxis": {
-                "tickfont": {"size": 9, "color": "#8B92A8"},
-                "title": {
-                    "text": "Glycocalyx features",
-                    "font": {"size": 11, "color": "#8B92A8"},
-                },
+                "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
                 "autorange": "reversed",
             },
-            "margin": {"b": 140, "l": 200, "r": 40, "t": 70},
-            "height": max(420, 28 * len(result.glyco_features) + 200),
+            "margin": {"b": 100, "l": 120, "r": 60, "t": 50},
+            "height": max(400, 32 * len(result.glyco_features) + 150),
+            "paper_bgcolor": "rgba(0,0,0,0)",
+            "plot_bgcolor": "rgba(0,0,0,0)",
             "annotations": annotations,
         }
     )
@@ -278,10 +299,11 @@ def plot_mechano_score_distribution(
     fig = go.Figure(
         data=go.Histogram(
             x=finite,
-            nbinsx=30,
+            nbinsx=25,
             marker={
-                "color": "#00E0B8",
-                "line": {"color": "#0A8B73", "width": 1},
+                "color": "#343dff",
+                "line": {"color": "#1a21ff", "width": 0.5},
+                "opacity": 0.8,
             },
             hovertemplate="score=%{x:.2f}<br>cells=%{y}<extra></extra>",
         )
@@ -289,38 +311,36 @@ def plot_mechano_score_distribution(
     mean = float(finite.mean())
     fig.add_vline(
         x=mean,
-        line={"color": "#FFFFFF", "width": 2, "dash": "dash"},
+        line={"color": "#2a3437", "width": 2, "dash": "dash"},
         annotation={
-            "text": f"mean = {mean:+.2f}",
-            "font": {"color": "#FFFFFF", "size": 11},
+            "text": f"μ = {mean:+.2f}",
+            "font": {"color": "#2a3437", "size": 12, "family": "Inter"},
             "yanchor": "bottom",
         },
     )
-    layout = get_plotly_layout_template()
-    layout.update(
-        {
+    fig.update_layout(
+        title=None,
+        xaxis={
             "title": {
-                "text": "Per-cell mechanotransduction score distribution",
-                "font": {"size": 14},
+                "text": "Mechano score",
+                "font": {"size": 12, "color": "#566164", "family": "Inter"},
             },
-            "xaxis": {
-                "title": {
-                    "text": "Composite mechano score (PC1 z-score)",
-                    "font": {"size": 11, "color": "#8B92A8"},
-                },
-                "tickfont": {"size": 9, "color": "#8B92A8"},
+            "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
+            "gridcolor": "rgba(169,180,183,0.15)",
+        },
+        yaxis={
+            "title": {
+                "text": "Cells",
+                "font": {"size": 12, "color": "#566164", "family": "Inter"},
             },
-            "yaxis": {
-                "title": {
-                    "text": "Cell count",
-                    "font": {"size": 11, "color": "#8B92A8"},
-                },
-                "tickfont": {"size": 9, "color": "#8B92A8"},
-            },
-            "margin": {"b": 60, "l": 60, "r": 40, "t": 60},
-            "height": 320,
-            "bargap": 0.05,
-        }
+            "tickfont": {"size": 11, "color": "#2a3437", "family": "Inter"},
+            "gridcolor": "rgba(169,180,183,0.15)",
+        },
+        margin={"b": 50, "l": 50, "r": 20, "t": 20},
+        height=280,
+        bargap=0.08,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"family": "Inter"},
     )
-    fig.update_layout(**layout)
     return fig
