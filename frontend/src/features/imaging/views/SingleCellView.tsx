@@ -144,10 +144,72 @@ export function SingleCellView({ result }: SingleCellViewProps) {
   const mechanoZ = zScore("mechano_score");
   const cellLabel = effectiveCellId != null ? `C-${String(effectiveCellId).padStart(4, "0")}` : "—";
 
-  // Stitch placeholder values for the metric sections — fall back to
-  // these if real data is missing so the screen still looks right.
+  // Stitch placeholder values for the metric sections
   const volumeIntegral = cell?.glycocalyx_integrated_intensity;
   const meanThickness = cell?.glycocalyx_radial_decay_rate;
+
+  // Zoom the segmentation figure to just the selected cell's region.
+  // Parse the Plotly JSON, find the trace whose customdata contains the
+  // selected cell_id, compute the bounding box from its x/y arrays,
+  // and override the axis ranges to that bbox + padding.
+  const zoomedFigureJson = useMemo(() => {
+    if (effectiveCellId == null) return result.segmentation_figure_json;
+    try {
+      const fig = JSON.parse(result.segmentation_figure_json);
+      // Each cell outline is a separate Scatter trace with
+      // customdata = [cell_id, cell_id, ...] (one per point).
+      const traces = fig.data as Array<{
+        x?: number[];
+        y?: number[];
+        customdata?: number[];
+      }>;
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      let found = false;
+      for (const trace of traces) {
+        if (!trace.customdata || !trace.x || !trace.y) continue;
+        if (trace.customdata.includes(effectiveCellId)) {
+          found = true;
+          for (const v of trace.x) {
+            if (typeof v === "number" && Number.isFinite(v)) {
+              if (v < minX) minX = v;
+              if (v > maxX) maxX = v;
+            }
+          }
+          for (const v of trace.y) {
+            if (typeof v === "number" && Number.isFinite(v)) {
+              if (v < minY) minY = v;
+              if (v > maxY) maxY = v;
+            }
+          }
+        }
+      }
+      if (!found || !Number.isFinite(minX)) {
+        return result.segmentation_figure_json;
+      }
+      // Add generous padding around the cell (3× the cell size)
+      const dx = maxX - minX;
+      const dy = maxY - minY;
+      const pad = Math.max(dx, dy) * 1.5;
+      fig.layout = {
+        ...fig.layout,
+        xaxis: {
+          ...fig.layout?.xaxis,
+          range: [minX - pad, maxX + pad],
+          visible: false,
+        },
+        yaxis: {
+          ...fig.layout?.yaxis,
+          range: [maxY + pad, minY - pad], // inverted Y for image coords
+          visible: false,
+          scaleanchor: "x",
+        },
+      };
+      return JSON.stringify(fig);
+    } catch {
+      return result.segmentation_figure_json;
+    }
+  }, [result.segmentation_figure_json, effectiveCellId]);
 
   if (cellIds.length === 0) {
     return (
@@ -213,10 +275,18 @@ export function SingleCellView({ result }: SingleCellViewProps) {
           </div>
         </div>
 
-        {/* Main Image Canvas — shows segmentation figure with cell highlighted */}
-        <div className="flex-1 flex items-center justify-center bg-slate-950 overflow-hidden">
+        {/* Main Image Canvas — zoomed to the selected cell.
+            We modify the Plotly figure's axis ranges client-side to
+            focus on the selected cell's region. The segmentation
+            figure stores cell_id in customdata per trace — we find
+            the matching trace, compute its bounding box from the
+            x/y coordinate arrays, and set the axis range to that
+            bbox with padding. This gives a "single cell crop" view
+            without needing the backend to stream per-cell PNGs. */}
+        <div className="flex-1 relative bg-slate-950 overflow-hidden [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
           <PlotlyFigure
-            figureJson={result.segmentation_figure_json}
+            figureJson={zoomedFigureJson}
+            height={Math.max(300, window.innerHeight - 56 - 60)}
             className="w-full h-full"
           />
         </div>

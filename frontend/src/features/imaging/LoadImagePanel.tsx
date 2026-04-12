@@ -1,14 +1,14 @@
+/**
+ * LoadImagePanel — bundled dataset selector + file upload.
+ *
+ * Restyled for the Stitch "Quantitative Aesthetic": ghost-border
+ * controls, 10px uppercase labels, primary-filled load button,
+ * outline upload button. The Select dropdown uses a native <select>
+ * instead of Radix to avoid shadcn styling conflicts with the Stitch
+ * palette.
+ */
 import { useQuery } from "@tanstack/react-query";
-import { ImageIcon, Loader2, Upload } from "lucide-react";
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useRef } from "react";
 import { fetchDemoList, type DemoCondition } from "@/lib/api";
 
 interface LoadImagePanelProps {
@@ -22,7 +22,6 @@ export function LoadImagePanel({
   onLoadUpload,
   disabled,
 }: LoadImagePanelProps) {
-  const [selectedCondition, setSelectedCondition] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const demoQuery = useQuery({
@@ -30,11 +29,12 @@ export function LoadImagePanel({
     queryFn: fetchDemoList,
   });
 
-  const handleDemoLoad = () => {
-    if (!selectedCondition) return;
-    const found = demoQuery.data?.conditions.find(
-      (c) => c.name === selectedCondition,
-    );
+  const conditions = demoQuery.data?.conditions ?? [];
+
+  const handleDemoSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.value;
+    if (!name) return;
+    const found = conditions.find((c) => c.name === name);
     if (found) onLoadDemo(found);
   };
 
@@ -44,59 +44,47 @@ export function LoadImagePanel({
   };
 
   return (
-    <div className="space-y-5">
-      {/* Bundled datasets from the Human Protein Atlas */}
-      <div className="space-y-2">
-        <label className="section-label">Reference dataset</label>
-        <p className="text-[0.7rem] leading-snug text-muted-foreground">
-          Real immunofluorescence microscopy from the Human Protein Atlas
-          (CC BY-SA 3.0). Three canonical proteins from our glycocalyx
-          and mechanotransduction panels.
+    <div className="space-y-6">
+      {/* Bundled dataset selector */}
+      <div className="space-y-3">
+        <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+          Reference dataset
+        </label>
+        <p className="text-xs leading-snug text-on-surface-variant">
+          Cell Painting U-2 OS field from the Broad BBBC022 collection
+          (CC0). Real WGA-lectin glycocalyx staining in all five channels.
         </p>
-        <Select value={selectedCondition} onValueChange={setSelectedCondition}>
-          <SelectTrigger disabled={demoQuery.isLoading}>
-            <SelectValue placeholder="Choose a dataset" />
-          </SelectTrigger>
-          <SelectContent>
-            {demoQuery.data?.conditions.map((c) => (
-              <SelectItem key={c.name} value={c.name}>
-                <div className="flex flex-col">
-                  <span className="font-medium">{c.display_name || c.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {c.source}
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          onClick={handleDemoLoad}
-          disabled={!selectedCondition || disabled}
-          className="w-full"
-          size="sm"
+        <select
+          onChange={handleDemoSelect}
+          disabled={demoQuery.isLoading || disabled}
+          defaultValue=""
+          className="w-full bg-surface-container-lowest ghost-border px-3 py-2.5 text-sm text-on-surface appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
         >
-          {demoQuery.isLoading ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <ImageIcon />
-          )}
-          Load dataset
-        </Button>
+          <option value="" disabled>
+            {demoQuery.isLoading ? "Loading datasets…" : "Select a dataset"}
+          </option>
+          {conditions.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.display_name || c.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Divider */}
-      <div className="flex items-center gap-2">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-outline-variant/20" />
+        <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
           or
         </span>
-        <div className="h-px flex-1 bg-border" />
+        <div className="h-px flex-1 bg-outline-variant/20" />
       </div>
 
-      {/* User upload */}
-      <div className="space-y-2">
-        <label className="section-label">Upload your own image</label>
+      {/* File upload */}
+      <div className="space-y-3">
+        <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+          Upload your own image
+        </label>
         <input
           ref={fileInputRef}
           type="file"
@@ -104,17 +92,18 @@ export function LoadImagePanel({
           onChange={handleFileChange}
           className="hidden"
         />
-        <Button
+        <button
+          type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
-          className="w-full"
-          size="sm"
-          variant="outline"
+          className="w-full py-2.5 text-[11px] font-bold uppercase tracking-widest text-on-surface ghost-border hover:bg-surface-container transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
         >
-          <Upload />
+          <span className="material-symbols-outlined text-[16px]">
+            upload_file
+          </span>
           Select TIFF or PNG
-        </Button>
-        <p className="text-[0.72rem] leading-snug text-muted-foreground">
+        </button>
+        <p className="text-[10px] leading-snug text-on-surface-variant">
           Five channels required, in the order DAPI, WGA-lectin, YAP,
           paxillin, phalloidin.
         </p>

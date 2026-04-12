@@ -72,11 +72,15 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
       {/* Left: Microscopy Canvas (7 Columns)                           */}
       {/* ============================================================ */}
       <section className="col-span-7 relative h-[calc(100vh-3.5rem)] bg-inverse-surface overflow-hidden group">
-        {/* Plotly segmentation figure — toggleable via overlay controls */}
+        {/* Plotly segmentation figure — toggleable via overlay controls.
+            Uses a fixed pixel height matching the viewport minus the nav
+            so the Plotly figure fills the entire dark canvas without
+            clipping or scrollbars. */}
         {showSegmentation && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 [&_.js-plotly-plot]:!h-full [&_.plot-container]:!h-full [&_.svg-container]:!h-full">
             <PlotlyFigure
               figureJson={result.segmentation_figure_json}
+              height={Math.max(400, window.innerHeight - 56)}
               className="w-full h-full"
             />
           </div>

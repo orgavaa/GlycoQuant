@@ -171,12 +171,12 @@ function EmptyStateLoader({
   return (
     <div className="grid grid-cols-12 gap-0 min-h-[calc(100vh-3.5rem)]">
       {/* Left: image preview canvas (matches the Overview dark pane) */}
-      <section className="col-span-7 relative bg-inverse-surface overflow-hidden flex items-center justify-center">
+      <section className="col-span-7 relative h-[calc(100vh-3.5rem)] bg-inverse-surface overflow-hidden flex items-center justify-center">
         {previewSrc ? (
           <img
             src={previewSrc}
             alt="Input preview"
-            className="w-full h-full object-cover opacity-80"
+            className="w-full h-full object-contain opacity-90"
           />
         ) : (
           <div className="flex flex-col items-center gap-4 text-white/30">
