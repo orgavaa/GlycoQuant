@@ -24,7 +24,7 @@ html, body, #root {
   height: 100%;
   background: var(--bg);
   color: var(--text-primary);
-  font-family: ui-monospace, 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-size: 13px;
 }
@@ -35,4 +35,4 @@ html, body, #root {
 
 /* Utility */
 .label { font-family: system-ui, sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
-.mono { font-variant-numeric: tabular-nums; }
+.mono { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }

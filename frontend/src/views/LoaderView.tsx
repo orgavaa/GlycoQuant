@@ -61,20 +61,26 @@ export function LoaderView() {
 
   return (
     <div className="h-full flex">
-      {/* Left: preview */}
-      <div className="flex-1 bg-black flex items-center justify-center">
+      {/* Left: preview — image fills entire area */}
+      <div className="flex-1 bg-black flex items-center justify-center overflow-hidden">
         {previewSrc ? (
-          <img src={previewSrc} alt="Preview" className="max-w-full max-h-full object-contain opacity-80" />
+          <img src={previewSrc} alt="Preview" className="w-full h-full object-cover opacity-90" />
         ) : (
-          <div className="text-[#444] text-[10px] uppercase tracking-[0.2em]">Load an image to begin</div>
+          <div className="text-[#333] text-[10px] uppercase tracking-[0.2em]">Load an image to begin</div>
         )}
       </div>
 
-      {/* Right: controls */}
+      {/* Right: controls with logo */}
       <div className="w-[360px] shrink-0 bg-[#111] border-l border-[#333] p-6 overflow-y-auto space-y-6">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 pb-4 border-b border-[#333]">
+          <img src="/favicon.png" alt="" className="h-5 w-5" draggable={false} />
+          <span className="text-sm font-semibold tracking-tight text-[#eee]">GlycoQuant</span>
+        </div>
+
         <div>
           <div className="label mb-1">Image analysis</div>
-          <h2 className="text-lg font-bold leading-snug">
+          <h2 className="text-[15px] font-semibold leading-snug">
             Quantify how glycocalyx conformation relates to mechanotransduction.
           </h2>
           <p className="text-[11px] text-[#888] leading-relaxed mt-3">

@@ -18,14 +18,9 @@ const TABS: { id: ViewId; label: string; requiresResult: boolean }[] = [
 export function TopBar({ activeView, onChangeView, hasResult }: TopBarProps) {
   return (
     <nav className="h-10 bg-[#111] flex items-center justify-between px-4 border-b border-[#333] shrink-0 z-50">
-      <button
-        type="button"
-        onClick={() => onChangeView("overview")}
-        className="text-sm font-bold tracking-tight text-[#eee] hover:text-white transition-colors flex items-center gap-2"
-      >
-        <img src="/favicon.png" alt="" className="h-4 w-4" draggable={false} />
+      <span className="text-[11px] font-semibold tracking-tight text-[#888]">
         GlycoQuant
-      </button>
+      </span>
 
       <div className="flex items-center gap-5">
         {TABS.map((tab) => {
