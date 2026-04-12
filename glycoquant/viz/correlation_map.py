@@ -48,11 +48,7 @@ def plot_correlation_map(
             z=corr,
             x=labels,
             y=labels,
-            colorscale=[
-                [0.0, "#FF6B6B"],  # error red (strong negative)
-                [0.5, "#141829"],  # bg surface (zero)
-                [1.0, "#00E0B8"],  # brand teal (strong positive)
-            ],
+            colorscale="RdBu_r",
             zmin=-1.0,
             zmax=1.0,
             colorbar={

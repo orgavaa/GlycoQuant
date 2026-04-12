@@ -74,14 +74,24 @@ RUN pip install --upgrade pip && \
     fi && \
     pip install --prefer-binary -e ".[cell_dino]"
 
-# Copy the Cell-DINO checkpoint if it exists in the repo.
-# The file is 1.2 GB and gitignored — place it at
-# models/channel_adaptive_dino_vitl16.pth before building.
-# If absent, the COPY uses a wildcard so the build doesn't fail.
-COPY model[s]/channel_adaptive_dino_vitl16.pt[h] /app/models/
+# Cell-DINO checkpoint download at build time.
+# Set CELL_DINO_CKPT_URL as a Railway Build Arg pointing to YOUR OWN
+# hosted copy of the checkpoint (Google Drive direct link, S3 presigned
+# URL, GCS public URL, etc.). The FAIR-emailed URLs have special chars
+# that break Docker build args — re-host the file yourself.
+#
+# Example: upload to GCS then set CELL_DINO_CKPT_URL to:
+#   https://storage.googleapis.com/your-bucket/channel_adaptive_dino_vitl16.pth
+ARG CELL_DINO_CKPT_URL=""
+RUN mkdir -p /app/models && \
+    if [ -n "$CELL_DINO_CKPT_URL" ]; then \
+        echo "[build] downloading Cell-DINO checkpoint (~1.2 GB)..." && \
+        curl -L -o /app/models/channel_adaptive_dino_vitl16.pth "$CELL_DINO_CKPT_URL" && \
+        ls -lh /app/models/channel_adaptive_dino_vitl16.pth ; \
+    else \
+        echo "[build] no CELL_DINO_CKPT_URL — will fall back to DINOv2-base at runtime" ; \
+    fi
 
-# Set the runtime env var. If the file wasn't copied (didn't exist
-# at build time), the worker falls back to DINOv2-base gracefully.
 ENV GLYCOQUANT_CELL_DINO_CKPT=/app/models/channel_adaptive_dino_vitl16.pth
 
 EXPOSE 8000

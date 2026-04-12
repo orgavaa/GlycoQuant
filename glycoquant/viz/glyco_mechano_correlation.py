@@ -210,11 +210,7 @@ def plot_glyco_mechano_correlation(
             z=result.r_matrix,
             x=list(result.mechano_features),
             y=list(result.glyco_features),
-            colorscale=[
-                [0.0, "#FF6B6B"],
-                [0.5, "#141829"],
-                [1.0, "#00E0B8"],
-            ],
+            colorscale="RdBu_r",
             zmin=-1.0,
             zmax=1.0,
             colorbar={
