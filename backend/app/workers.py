@@ -285,7 +285,23 @@ def _get_embedder():  # noqa: ANN202
         from glycoquant.compute import describe_device, resolve_device
 
         ckpt = os.environ.get("GLYCOQUANT_CELL_DINO_CKPT")
-        if ckpt and Path(ckpt).is_file():
+        ckpt_exists = bool(ckpt and Path(ckpt).is_file())
+        print(f"[worker] GLYCOQUANT_CELL_DINO_CKPT = {ckpt!r}")
+        print(f"[worker] checkpoint file exists = {ckpt_exists}")
+        if ckpt and not ckpt_exists:
+            # List what's actually in /app/models/ to diagnose
+            models_dir = Path(ckpt).parent
+            if models_dir.is_dir():
+                print(f"[worker] contents of {models_dir}: {list(models_dir.iterdir())}")
+            else:
+                print(f"[worker] directory {models_dir} does not exist")
+            # Also check third_party/dinov2
+            dinov2_dir = Path(__file__).resolve().parents[2] / "third_party" / "dinov2"
+            print(f"[worker] dinov2 dir exists = {dinov2_dir.is_dir()}")
+            if dinov2_dir.is_dir():
+                hub_file = dinov2_dir / "hubconf.py"
+                print(f"[worker] hubconf.py exists = {hub_file.is_file()}")
+        if ckpt_exists:
             from glycoquant.features.deep_embedding import (
                 ChannelAdaptiveDinoEmbedder,
                 ChannelAdaptiveDinoParams,
