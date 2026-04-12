@@ -31,11 +31,9 @@ interface MethodsQCViewProps {
   datasetLabel: string | null;
 }
 
-// Stitch HTML scatter / residual placeholder URLs — kept verbatim
-const STITCH_FIG1_URL =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC7Qcl6NCcP7k9OdVkO6rzRjs79hTuhatQksJTcwDsinJs4W8Sf895yLN1TPTFaJCAi6bsuBPYRDGEM4ebry5Ot5U_j86_Meaii8yyCm6tSlWa4vr4anZcqZ5Pyv9hqnI8maoNQddNw19LkFD4p1gaGBqObhK3S70EK-Z6px3BG-yPy1eZpxMDB9EFtb0tKT0KCqLKvWBUICqgqWaYlevdsrW4sHSY92w2MV4I3HHFNFy2dEmrxDvmwEfA1iOCUG1iMyrDxdrqMzcY";
-const STITCH_FIG2_URL =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAQ2_eIazM9XdKEaLfzsNL5s7fTWOucmX9pvTc9ueBXfpLb63PwsWetjOf3ZJ3EyE2j-12-YuwuyFMgNDcvDOLrM0KII81naoAyKABtKdeOz7InpincQ3Ez8reHVrjLzszPYt9z9urCWsuoms4I1_xOVmxFtGTwkdmtqhDCGL_6-kLLzEg_15YNWHP-YV41dpTmx_pxjgU4_UHjtGniEa6o6N6v6MwJnL_nVBH51_nqLPDgVOgnXA3tYoPE-WvfFSSMfoW_0f6_LxA";
+// No static Stitch placeholder images — the YAP correction diagnostic
+// figures will be rendered from real backend data when the backend
+// generates them. For now, show inline diagnostic values.
 
 export function MethodsQCView({
   result,
@@ -110,17 +108,16 @@ export function MethodsQCView({
     URL.revokeObjectURL(url);
   };
 
-  // Real PC variance shares — fall back to Stitch mock when missing
-  const pcaShares: number[] = summary && summary.mode === "pca" && summary.pc1_variance_explained > 0
-    ? [
-        summary.pc1_variance_explained * 100,
-        // We don't get PC2/3/4 from the summary, so synthesize a
-        // tail that decays smoothly. Stitch shows 82/12/4/2.
-        Math.max(2, (1 - summary.pc1_variance_explained) * 100 * 0.6),
-        Math.max(1, (1 - summary.pc1_variance_explained) * 100 * 0.25),
-        Math.max(1, (1 - summary.pc1_variance_explained) * 100 * 0.15),
-      ]
-    : [82, 12, 4, 2];
+  // Real PC variance shares — show only what we know
+  const pcaShares: number[] =
+    summary && summary.mode === "pca" && summary.pc1_variance_explained > 0
+      ? [
+          summary.pc1_variance_explained * 100,
+          Math.max(2, (1 - summary.pc1_variance_explained) * 100 * 0.6),
+          Math.max(1, (1 - summary.pc1_variance_explained) * 100 * 0.25),
+          Math.max(1, (1 - summary.pc1_variance_explained) * 100 * 0.15),
+        ]
+      : [];
 
   return (
     <main className="pt-10 pb-12 px-8 max-w-[1400px]">
@@ -235,31 +232,50 @@ export function MethodsQCView({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="space-y-4">
               <div className="aspect-square bg-surface-container flex flex-col items-center justify-center p-6 ghost-border">
-                <img
-                  alt="Raw vs area scatter plot"
-                  className="w-full h-full object-contain mix-blend-multiply opacity-80"
-                  src={STITCH_FIG1_URL}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
+                  <span className="material-symbols-outlined text-[40px] text-on-surface-variant/30">
+                    scatter_plot
+                  </span>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">
+                    Raw yap_nc_ratio vs cell_area
+                  </p>
+                  <div className="text-sm font-mono tabular-nums text-on-surface">
+                    slope (β₁) = {fmt(slope, 5)}
+                  </div>
+                  <div className="text-sm font-mono tabular-nums text-on-surface">
+                    R² = {fmt(r2, 3)}
+                  </div>
+                  <p className="text-[9px] text-on-surface-variant mt-2">
+                    {runtimeRows} cells · {slope != null ? "correction applied" : "fallback (n < 30)"}
+                  </p>
+                </div>
                 <span className="text-[10px] font-bold text-outline uppercase mt-4">
-                  Fig 1: Raw Intensity vs. Area
+                  Fig 1: Raw N/C vs. Cell Area
                 </span>
               </div>
             </div>
             <div className="space-y-4">
               <div className="aspect-square bg-surface-container flex flex-col items-center justify-center p-6 ghost-border">
-                <img
-                  alt="Corrected residual plot"
-                  className="w-full h-full object-contain mix-blend-multiply opacity-80"
-                  src={STITCH_FIG2_URL}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
+                  <span className="material-symbols-outlined text-[40px] text-on-surface-variant/30">
+                    monitoring
+                  </span>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">
+                    Area-corrected residuals
+                  </p>
+                  {slope != null ? (
+                    <p className="text-xs text-on-surface-variant">
+                      Residuals should be uncorrelated with cell_area after
+                      correction (Pearson |r| &lt; 0.05).
+                    </p>
+                  ) : (
+                    <p className="text-xs text-amber-700">
+                      Size correction inactive — raw N/C ratio preserved.
+                    </p>
+                  )}
+                </div>
                 <span className="text-[10px] font-bold text-outline uppercase mt-4">
-                  Fig 2: Area-Corrected Residuals
+                  Fig 2: Corrected Residuals
                 </span>
               </div>
             </div>
@@ -320,33 +336,43 @@ export function MethodsQCView({
               <label className="block text-[10px] font-bold text-outline uppercase tracking-wider mb-4">
                 PCA Variance Explained
               </label>
-              <div className="flex items-end gap-1 h-32">
-                {pcaShares.map((pct, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 group relative ${
-                      i === 0
-                        ? "bg-primary"
-                        : i === 1
-                          ? "bg-primary/40"
-                          : i === 2
-                            ? "bg-primary/20"
-                            : "bg-primary/10"
-                    }`}
-                    style={{ height: `${pct}%` }}
-                  >
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                      {pct.toFixed(0)}%
-                    </span>
+              {pcaShares.length > 0 ? (
+                <>
+                  <div className="flex items-end gap-1 h-32">
+                    {pcaShares.map((pct, i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 group relative ${
+                          i === 0
+                            ? "bg-primary"
+                            : i === 1
+                              ? "bg-primary/40"
+                              : i === 2
+                                ? "bg-primary/20"
+                                : "bg-primary/10"
+                        }`}
+                        style={{ height: `${pct}%` }}
+                      >
+                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                          {pct.toFixed(0)}%
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="flex justify-between mt-2 text-[10px] font-bold text-outline uppercase">
-                <span>PC1</span>
-                <span>PC2</span>
-                <span>PC3</span>
-                <span>PC4</span>
-              </div>
+                  <div className="flex justify-between mt-2 text-[10px] font-bold text-outline uppercase">
+                    <span>PC1</span>
+                    <span>PC2</span>
+                    <span>PC3</span>
+                    <span>PC4</span>
+                  </div>
+                </>
+              ) : (
+                <div className="h-32 bg-surface-container-highest/30 ghost-border flex items-center justify-center">
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">
+                    PCA not computed — weighted-sum fallback active (n &lt; 30 complete rows)
+                  </p>
+                </div>
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -362,7 +388,7 @@ export function MethodsQCView({
                 </thead>
                 <tbody className="text-sm">
                   {sortedLoadings.length > 0 ? (
-                    sortedLoadings.slice(0, 5).map(([feat, w]) => (
+                    sortedLoadings.map(([feat, w]) => (
                       <tr key={feat} className="border-b border-outline-variant/10">
                         <td className="py-3 font-mono text-xs">{feat}</td>
                         <td className="py-3 text-right font-mono tabular-nums">
@@ -372,20 +398,11 @@ export function MethodsQCView({
                       </tr>
                     ))
                   ) : (
-                    <>
-                      <tr className="border-b border-outline-variant/10">
-                        <td className="py-3 font-medium">Glyco_Thickness</td>
-                        <td className="py-3 text-right font-mono">0.842</td>
-                      </tr>
-                      <tr className="border-b border-outline-variant/10">
-                        <td className="py-3 font-medium">YAP_Nuc_Ratio</td>
-                        <td className="py-3 text-right font-mono">0.719</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 font-medium">Actin_Alignment</td>
-                        <td className="py-3 text-right font-mono">0.344</td>
-                      </tr>
-                    </>
+                    <tr>
+                      <td className="py-3 text-on-surface-variant text-xs" colSpan={2}>
+                        No loadings available — mechano score used weighted-sum fallback
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>

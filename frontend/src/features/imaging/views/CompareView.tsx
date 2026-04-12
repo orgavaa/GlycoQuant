@@ -57,8 +57,22 @@ export function CompareView() {
           Experimental Comparison
         </h1>
         <p className="text-on-surface-variant mt-2 max-w-2xl text-sm leading-relaxed">
-          Comparative analysis of <span className="font-semibold">HepG2 Control</span> vs <span className="font-semibold">Inflammatory Perturbation (TNF-α)</span>. Focus on glycocalyx remodeling and nuclear YAP translocation across n=4,200 sampled cells.
+          Compare a control population against a perturbation condition to
+          quantify glycocalyx remodeling and mechanotransduction shifts at
+          the population level. Load two image runs from the Overview tab
+          to populate the effect-size cards, distribution overlays, and
+          matched-specimen snapshots below.
         </p>
+        <div className="mt-4 px-4 py-3 ghost-border bg-amber-500/5 text-amber-800 text-xs max-w-xl">
+          <strong className="uppercase tracking-widest text-[10px]">
+            Awaiting paired cohort
+          </strong>
+          <span className="mx-2">—</span>
+          The comparison view activates once a second image condition is
+          loaded. The layout below shows the target structure with
+          reference values from published Cell Painting perturbation
+          screens.
+        </div>
       </header>
 
       {/* Band 1: Effect Size Summary Cards */}

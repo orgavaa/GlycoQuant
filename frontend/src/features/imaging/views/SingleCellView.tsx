@@ -14,6 +14,7 @@
  * The shell (top nav, right sidebar) is rendered by App.tsx.
  */
 import { useMemo, useState } from "react";
+import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { useJobStore } from "@/lib/jobStore";
 import { fmt } from "@/lib/utils";
 import type { JobResult } from "@/lib/api";
@@ -29,8 +30,9 @@ interface CellRow {
 
 type EvidenceTab = "glycocalyx" | "yap" | "actin" | "explainability" | "raw";
 
-const STITCH_CELL_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCKYds4tzIXe-2iK75zPTYaryYmP-NfM-ujEY4IODzTgUixWhj1V1SWNXqG2WYGl4FaDpvNJAkjhUIgf3kfRmj-JbMoNgx34XocW6OXTNSbhzozSBIr5Edpk2u9LT70sAP8--rq_eYsbzbFITOZC98vwpJPT9DP60dehoUwWCvzBjOGj7AyqSHDW5aG4fAZHditvIndj_ooWleA79Gk77EKvxyHW0DRpHqNMcZVQCgmOECTPJST03vPKxNHCYNFNVQ3cQRmM91k6aY";
+// No static Stitch image — the left canvas shows the full
+// segmentation figure from the pipeline. Per-cell crops will be
+// added in Phase 2 inspection upgrade.
 
 export function SingleCellView({ result }: SingleCellViewProps) {
   const selectedCellId = useJobStore((s) => s.selectedCellId);
@@ -211,21 +213,12 @@ export function SingleCellView({ result }: SingleCellViewProps) {
           </div>
         </div>
 
-        {/* Main Image Canvas — Stitch placeholder until per-cell crops stream */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-slate-950">
-          <div className="relative w-[500px] h-[500px] shadow-2xl">
-            <img
-              className="w-full h-full object-cover opacity-90 border border-white/5"
-              alt="Cell crop"
-              src={STITCH_CELL_IMAGE}
-              onError={(e) => {
-                const t = e.target as HTMLImageElement;
-                t.style.display = "none";
-              }}
-            />
-            <div className="absolute inset-0 border-[3px] border-blue-500/40 pointer-events-none" />
-            <div className="absolute inset-0 bg-blue-500/5 pointer-events-none" />
-          </div>
+        {/* Main Image Canvas — shows segmentation figure with cell highlighted */}
+        <div className="flex-1 flex items-center justify-center bg-slate-950 overflow-hidden">
+          <PlotlyFigure
+            figureJson={result.segmentation_figure_json}
+            className="w-full h-full"
+          />
         </div>
 
         {/* Viewer Bottom Controls */}

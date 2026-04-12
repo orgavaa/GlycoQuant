@@ -196,21 +196,20 @@ function EmptyStateLoader({
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
             Image analysis
           </p>
-          <h2 className="mt-2 text-[1.4rem] font-headline font-semibold leading-tight tracking-tighter text-on-surface">
-            Measure how the cell surface coat shapes mechanical signalling
-            — one cell at a time.
+          <h2 className="mt-3 text-[1.4rem] font-headline font-semibold leading-snug tracking-tighter text-on-surface">
+            Quantify how glycocalyx conformation relates to
+            mechanotransduction — one cell at a time.
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
-            This pipeline takes a five-channel fluorescence image (nuclei,
-            glycocalyx lectin stain, YAP, focal-adhesion marker, and actin)
-            and automatically segments every cell. For each cell it measures
-            the thickness and texture of the glycocalyx coat, the balance
-            of YAP between nucleus and cytoplasm (corrected for cell size),
-            the maturity of focal adhesions, and the alignment of actin
-            stress fibres. It then asks: within this population, do cells
-            with a thicker glycocalyx also show stronger mechanical
-            activation? That single-cell correlation has never been measured
-            from imaging data before.
+          <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
+            Upload a multi-channel fluorescence image (DAPI, WGA-lectin,
+            YAP, paxillin, phalloidin) and the pipeline segments every
+            cell, extracts glycocalyx spatial features from the lectin
+            channel, measures size-corrected YAP nuclear/cytoplasmic ratio,
+            classifies focal adhesion maturation state, and quantifies
+            actin stress fibre alignment. Per-cell features are combined
+            into a composite mechanotransduction score and correlated with
+            glycocalyx metrics to map the coupling between surface coat
+            structure and mechanical signalling at single-cell resolution.
           </p>
         </div>
 
@@ -221,7 +220,7 @@ function EmptyStateLoader({
         />
 
         {pending && (
-          <div className="space-y-5">
+          <div className="space-y-6 pt-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label
