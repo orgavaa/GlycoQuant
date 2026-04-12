@@ -19,14 +19,14 @@ export function AnalysisView({ result }: Props) {
     dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
   });
   const datasetLabel = useJobStore(s => s.latestDatasetLabel);
-
   const cells = useMemo(() => extractFeatures(result.features_df_json), [result.features_df_json]);
 
   return (
     <div className="flex h-full bg-gray-50">
-      {/* Left: microscopy image */}
-      <div className="flex-1 min-w-0 p-5">
-        <Card noPadding className="h-full flex flex-col overflow-hidden">
+      {/* Left: microscopy image in a card */}
+      <div className="flex-1 min-w-0 p-4">
+        <div className="h-full bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden">
+          {/* Image area — fills all available space */}
           <div className="flex-1 relative min-h-0">
             <MicroscopyCanvas
               result={result}
@@ -43,12 +43,13 @@ export function AnalysisView({ result }: Props) {
               onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
             />
           </div>
+          {/* Caption bar at bottom */}
           <ImageCaption
             datasetLabel={datasetLabel}
             cellCount={result.cell_count}
             pixelSizeUm={result.pixel_size_um}
           />
-        </Card>
+        </div>
       </div>
 
       {/* Right rail */}

@@ -212,11 +212,21 @@ class ProfileAssembler:
         if not cell_ids:
             return pd.DataFrame()
 
-        rows: list[dict[str, float | list[float]]] = []
-        for cell_id in cell_ids:
+        def _extract_one(cell_id: int) -> dict[str, float | list[float]]:
             row: dict[str, float | list[float]] = {"cell_id": float(cell_id)}
             self._extract_row(row, cell_id, channels, cell_mask, nuclear_mask)
-            rows.append(row)
+            return row
+
+        # Parallelize per-cell feature extraction across threads.
+        # The NumPy / scikit-image operations release the GIL, so
+        # threads give meaningful speedup on multi-core machines.
+        from concurrent.futures import ThreadPoolExecutor
+
+        max_w = min(8, max(1, len(cell_ids)))
+        with ThreadPoolExecutor(max_workers=max_w) as pool:
+            rows: list[dict[str, float | list[float]]] = list(
+                pool.map(_extract_one, cell_ids)
+            )
 
         df = pd.DataFrame(rows).set_index("cell_id")
         df = self._finalize_radial_profile(df)

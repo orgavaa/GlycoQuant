@@ -18,7 +18,7 @@ export function RightRail({ result, cells }: Props) {
   );
 
   return (
-    <div className="w-[360px] flex-shrink-0 border-l border-gray-200 bg-gray-50 overflow-y-auto h-full p-5">
+    <div className="w-[400px] flex-shrink-0 border-l border-gray-200 bg-gray-50 overflow-y-auto h-full p-4">
       {selectedCell
         ? <CellContent cell={selectedCell} cells={cells} />
         : <OverviewContent result={result} cells={cells} />

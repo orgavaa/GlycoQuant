@@ -145,13 +145,21 @@ class DinoV2Embedder:
                 )
 
         cell_ids = sorted(int(v) for v in np.unique(cell_mask).tolist() if v != 0)
+
+        # Parallelize crop building across threads (CPU-bound resize is
+        # released by the GIL in skimage, so threads give ~2-4x speedup).
+        from concurrent.futures import ThreadPoolExecutor
+
+        def _build_one(cid: int) -> tuple[int, np.ndarray | None]:
+            return cid, self._build_crop(channels, cell_mask, cid)
+
         crops: list[np.ndarray] = []
         used_ids: list[int] = []
-        for cell_id in cell_ids:
-            crop = self._build_crop(channels, cell_mask, cell_id)
-            if crop is not None:
-                crops.append(crop)
-                used_ids.append(cell_id)
+        with ThreadPoolExecutor(max_workers=min(8, len(cell_ids))) as pool:
+            for cid, crop in pool.map(_build_one, cell_ids):
+                if crop is not None:
+                    crops.append(crop)
+                    used_ids.append(cid)
 
         if not crops:
             return [], np.zeros((0, _DINOV2_EMBEDDING_DIM), dtype=np.float32)
@@ -281,7 +289,8 @@ def build_cell_crop(
             ch,
             (params.crop_size, params.crop_size),
             preserve_range=True,
-            anti_aliasing=True,
+            anti_aliasing=False,
+            order=1,
         ).astype(np.float32)
         channel_crops.append(resized)
 
@@ -584,7 +593,8 @@ def build_cell_crop_multichannel(
             ch,
             (params.crop_size, params.crop_size),
             preserve_range=True,
-            anti_aliasing=True,
+            anti_aliasing=False,
+            order=1,
         ).astype(np.float32)
         channel_crops.append(resized)
 

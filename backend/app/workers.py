@@ -127,8 +127,11 @@ def run_analysis_job(
     Pulls the heavy imports lazily so FastAPI app startup stays fast —
     Cellpose, DINOv2, and scikit-image all live behind this function.
     """
+    import time as _time
+
     store = get_job_store()
     try:
+        _t0 = _time.monotonic()
         store.update(job_id, status="running", phase="segmenting", pct=5, message="Preparing the analysis")
 
         # Channel-count warnings recorded by the router when a non-
@@ -172,12 +175,16 @@ def run_analysis_job(
         from glycoquant.profiles import AssemblerConfig, ProfileAssembler
 
         store.update(job_id, phase="segmenting", pct=15, message="Detecting cells and nuclei")
+        _t1 = _time.monotonic()
         segmenter = _get_segmenter()
         cell_mask, nuclear_mask = segmenter.segment_both(
             channels[_seg_channel(channels)],
             channels["dapi"],
             cell_diameter=float(cell_diameter),
         )
+        _t2 = _time.monotonic()
+        n_cells = int((cell_mask > 0).max() and len(set(cell_mask.flat) - {0}))
+        print(f"[worker] segmentation: {_t2 - _t1:.1f}s ({n_cells} cells)")
 
         store.update(job_id, phase="extracting", pct=55, message="Measuring features for every detected cell")
         embedder = None
@@ -186,6 +193,7 @@ def run_analysis_job(
         assembler = ProfileAssembler(
             config=AssemblerConfig(
                 include_deep_features=include_deep_features,
+                include_radial_profile=True,
                 pixel_size_um=pixel_size_um,
             ),
             dinov2_embedder=embedder,
@@ -193,6 +201,8 @@ def run_analysis_job(
         features_df = assembler.process_image(
             channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
         )
+        _t3 = _time.monotonic()
+        print(f"[worker] feature extraction + embeddings: {_t3 - _t2:.1f}s ({len(features_df)} cells)")
         mechano_summary = assembler.last_mechano_summary
 
         if include_deep_features:
@@ -211,6 +221,9 @@ def run_analysis_job(
                 embedder.backend_name() if embedder is not None else None
             ),
         )
+        _t4 = _time.monotonic()
+        print(f"[worker] chart generation: {_t4 - _t3:.1f}s")
+        print(f"[worker] total pipeline: {_t4 - _t0:.1f}s")
         if channel_warnings:
             result.warnings = list(result.warnings) + channel_warnings
 
@@ -391,21 +404,13 @@ def _build_result_payload(
     # Segmentation figure: build via the same overlay logic, serialized to JSON
     seg_fig, channel_trace_indices, overlay_trace_ranges = _build_segmentation_figure(channels, cell_mask, nuclear_mask, features_df)
 
-    # Radial profile figure: re-run the assembler with radial profile inclusion
-    radial_assembler = ProfileAssembler(
-        config=AssemblerConfig(
-            include_radial_profile=True,
-            pixel_size_um=pixel_size_um,
-        )
-    )
-    df_with_profile = radial_assembler.process_image(
-        channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
-    )
+    # Radial profile figure: use profile columns already in features_df
+    # (include_radial_profile=True is now set in the main assembler call)
     profile_cols = [
-        c for c in df_with_profile.columns if c.startswith("glycocalyx_radial_profile_")
+        c for c in features_df.columns if c.startswith("glycocalyx_radial_profile_")
     ]
     if profile_cols:
-        profiles = df_with_profile[profile_cols].to_numpy().astype(np.float32)
+        profiles = features_df[profile_cols].to_numpy().astype(np.float32)
         radial_fig = plot_radial_profile(profiles)
     else:
         import plotly.graph_objects as go
