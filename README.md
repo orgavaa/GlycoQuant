@@ -1,384 +1,250 @@
 # GlycoQuant
 
-> **Standardized per-cell phenotyping of the glycocalyx and mechanotransduction state from multi-channel fluorescence microscopy.**
+**Single-cell glycocalyx–mechanotransduction coupling from standard fluorescence microscopy.**
 
-GlycoQuant is an open-source platform for quantitative analysis of how the cell-surface glycocalyx couples to mechanotransduction. It segments individual cells in a five-channel confocal image, extracts 26 interpretable per-cell features spanning glycocalyx morphology, YAP/TAZ translocation, focal-adhesion maturation, actin cytoskeletal organisation, and cell shape, and — optionally — augments them with 768-dimensional learned embeddings from a DINOv2 vision transformer. Perturbations of the glycocalyx can then be prioritised against a dual, pre-computed prior (Geneformer transcriptomic co-regulation + STRING/Reactome pathway proximity) whose disagreement is itself the most informative experimental signal.
+GlycoQuant is an open-source analysis platform that measures how the cell-surface glycocalyx relates to intracellular mechanotransduction — at single-cell resolution, from a five-channel confocal image, with no custom optics and no manual annotation.
 
-The platform is designed for wet-lab biologists. Every interpretable number it produces is the kind a PI can put in a Methods section (`YAP N/C = 1.82 ± 0.14`, `focal-adhesion count = 12`), and every learned output is explicitly framed as a hypothesis generator — not a mechanistic predictor.
+The platform segments individual cells (Cellpose-SAM), extracts 26 interpretable biophysical features spanning glycocalyx spatial organisation, YAP/TAZ nuclear translocation, focal-adhesion maturation, actin cytoskeletal coherence, and nuclear morphology, optionally augments them with 5120-dimensional Cell-DINO ViT-L/16 embeddings, and provides three post-hoc ML analyses: UMAP phenotype discovery, spatial graph neural network prediction, and cross-modal glyco-mechano predictability quantification.
+
+A separate perturbation-ranking module combines curated pathway proximity (STRING v12) with transcriptomic co-regulation (Geneformer) to prioritise glycocalyx gene perturbations against a 15-gene mechanotransduction signature — surfacing the experiments where the two priors disagree as the highest-information targets for the bench.
 
 ---
 
-## Motivation
+## Why this exists
 
-The glycocalyx is a dense layer of glycopolymers — heparan-sulfate proteoglycans, mucins, hyaluronan, glycolipids — tethered to the cell surface. Paszek et al. (*Nature* 2014) showed that a bulky glycocalyx promotes integrin clustering and transforms force transmission through a "kinetic trap" mechanism, linking glycocalyx architecture to mechanotransduction output. Dupont et al. (*Nature* 2011) established the YAP/TAZ nuclear-cytoplasmic ratio as the canonical readout of mechanical activation. Möckl et al. (*Dev Cell* 2019) subsequently showed with super-resolution microscopy that glycocalyx spatial organisation is heterogeneous at the 50–500 nm scale — a regime not resolvable by conventional confocal but whose *pericellular intensity distribution* is, and is measurable with standard immunofluorescence.
+The glycocalyx — the dense coat of glycopolymers (heparan-sulfate proteoglycans, mucins, hyaluronan, glycolipids) tethered to the outer plasma membrane — is not just a passive filter. Paszek *et al.* (Nature 2014) demonstrated that a bulky glycocalyx mechanically primes integrin-mediated growth through a kinetic-trap mechanism, directly linking glycocalyx architecture to force transmission. Dupont *et al.* (Nature 2011) established YAP/TAZ nuclear–cytoplasmic ratio as the canonical mechanotransduction readout. Mockl *et al.* (Dev Cell 2019) showed with super-resolution that glycocalyx spatial organisation is heterogeneous at 50–500 nm — a scale not directly resolvable by confocal, but whose pericellular intensity distribution *is* measurable with standard immunofluorescence.
 
-Despite this biology, there is no standardised, open-source image-analysis pipeline for glycocalyx–mechanotransduction coupling. Cell Painting (Bray et al., *Nat Protoc* 2016) and JUMP-CP (Chandrasekaran et al., *Nat Methods* 2024) gave the field standardised morphological profiling at compound scale, but neither targets glycocalyx-specific staining. GlycoQuant fills that gap at the scale a single experimental group actually works at: a React web application backed by a FastAPI service that a PI can open in a browser, load a multi-channel TIFF, and obtain per-cell features, group-level plots, and a downloadable CSV without installing anything locally.
+Despite this convergence, no published study has reported single-cell correlative analysis between glycocalyx conformation and mechanotransduction state. Population-level comparisons (Paszek 2014, Barai 2024, Hamrangsekachaee 2025) show that perturbing the glycocalyx changes mechanical readouts, but they average over the very heterogeneity that makes the biology interesting. GlycoQuant closes this gap: every cell gets its own glycocalyx profile *and* its own mechanotransduction profile, enabling the correlation structure between the two to be mapped within a single image.
+
+There is also no open-source pipeline for this measurement. Cell Painting (Bray *et al.*, Nat Protoc 2016) and JUMP-CP (Chandrasekaran *et al.*, Nat Methods 2024) standardised morphological profiling at scale, but neither targets glycocalyx-specific staining. GlycoQuant operates at the scale a single experimental group works at: one image, one browser tab, full quantification.
+
+---
+
+## What it measures
+
+### Interpretable features (26 scalars per cell)
+
+| Module | N | Key features | Biological rationale |
+|---|---|---|---|
+| **Glycocalyx** | 12 | Pericellular ratio, heterogeneity (CV), coverage, Shannon entropy, Haralick texture (contrast, homogeneity, correlation, energy), Moran's I spatial autocorrelation, radial decay rate | Quantifies the WGA-lectin ring around each cell — the confocal-accessible proxy for glycocalyx conformation. Texture features capture the sub-resolution heterogeneity that Mockl 2019 resolved with PAINT. |
+| **YAP/TAZ** | 5 | N/C ratio (raw + Jones-2024 size-corrected), nuclear intensity, cytoplasmic intensity, nuclear fraction | Canonical mechanotransduction readout (Dupont 2011). Size correction removes the confound that larger nuclei capture more signal. |
+| **Focal adhesions** | 6 | Count, density (per um2), mature fraction (Buskermolen 2018 size bins), mean area, elongation, peripheral fraction | Paxillin-labelled integrin anchors. Mature elongated peripheral FAs indicate a force-transmitting adherent cell. |
+| **Actin** | 4 | Stress-fiber coherence (structure tensor eigenvalue ratio), cortical/interior ratio, total intensity, central intensity | Coherence near 1 means aligned contractile fibers; near 0 means isotropic cortical actin. |
+| **Morphology** | 7 | Cell area, nuclear area, N/C area ratio, nuclear aspect ratio, nuclear solidity, nuclear perimeter, centroid (x, y) | Pure shape descriptors. Baseline context for all other features — spread area correlates with both glycocalyx and YAP. |
+
+### Composite score
+
+A mechanotransduction composite score (PCA mode 1 over a curated 15-feature panel, falling back to weighted sum when < 30 cells) collapses the multi-dimensional mechanical state into a single number per cell. Loadings and variance explained are reported so the user can judge whether the compression is meaningful for their image.
+
+### Deep embeddings (optional)
+
+**Cell-DINO ViT-L/16** (Meta FAIR, channel-adaptive architecture) produces a 5120-dimensional embedding per cell (1024 dims per channel for up to 5 channels). These learned representations complement the interpretable features for unsupervised discovery — phenotypic heterogeneity that no single hand-crafted feature captures.
+
+Fallback: facebook/dinov2-base (86M params, 768-dim, Apache 2.0) when the Cell-DINO checkpoint is unavailable.
+
+---
+
+## ML analysis layer
+
+Three post-hoc analyses run on completed jobs, directly from the browser:
+
+### 1. Cell phenotype discovery (UMAP + Leiden)
+
+Projects Cell-DINO embeddings (PCA to 50 dims, then UMAP with cosine metric) into a 2D landscape and partitions cells into phenotype clusters via Leiden community detection on the UMAP fuzzy-simplicial-set k-NN graph. Each cluster gets a summary profile over the interpretable features, revealing subpopulations invisible to any single measurement.
+
+This is the single-image version of what Recursion Pharmaceuticals built at compound-library scale. The embeddings exist; this analysis makes them actionable.
+
+### 2. Spatial context GNN (Delaunay + GCN)
+
+Builds a cell-neighbourhood graph from Delaunay triangulation of cell centroids (edges pruned at a configurable distance threshold), then trains a 2-layer graph convolutional network (Kipf & Welling 2017) to predict mechano score from neighbourhood context. Implemented with raw PyTorch sparse ops — no torch-geometric dependency.
+
+The R-squared answers a specific question: *"How much of a cell's mechanical state is explained by its neighbours?"* High R-squared implies spatially coherent mechanical domains (collective mechanotransduction). Low R-squared implies cell-autonomous mechanical state. Feature importance from the GCN weight norms reveals which interpretable features carry spatial signal.
+
+### 3. Cross-modal prediction (MLP, 5-fold CV)
+
+Trains a lightweight MLP (64-32-output, ReLU, dropout 0.1) to predict mechanotransduction features from glycocalyx features, or the reverse. 5-fold cross-validation within the image reports per-target R-squared. Gradient-based feature importance identifies which input features drive the prediction.
+
+The overall R-squared answers the central question of the platform: *"How much of a cell's mechanical state can you infer from its surface glycocalyx alone?"* If this number is high, that is a finding. If it is low, that is also a finding.
+
+---
+
+## Perturbation ranking
+
+The Ranking tab combines two orthogonal precomputed priors to prioritise glycocalyx gene perturbations:
+
+**Pathway proximity prior** — STRING v12 (Szklarczyk *et al.*, NAR 2023) at confidence >= 0.70, Dijkstra shortest-path from each glycocalyx gene to each of 15 mechanotransduction targets, aggregated by weighted median of inverse distances. Every ranking traces to specific STRING edges with specific confidence scores, visible in the drill-down.
+
+**Transcriptomic co-regulation prior** — Geneformer (Theodoris *et al.*, Nature 2023), a 30M-parameter transformer pretrained on ~10^4 million single-cell transcriptomes, used for in-silico deletion of each glycocalyx gene and measurement of downstream perturbation to the mechano signature. Generated on-demand on a Modal L4 GPU.
+
+**Image-aware reweighting** — When an analysis is complete, the pathway ranking is dynamically re-aggregated using z-scored deviations of the observed per-cell features against a reference cohort, so the ranking reflects the specific biological state of the image being analysed.
+
+The **rank-divergence column** (|rank_geneformer - rank_pathway|) is the most scientifically informative output: high-divergence genes are where the two priors disagree, meaning a wet-lab experiment will actively discriminate between transcriptomic and topological hypotheses. Those are the experiments worth doing.
 
 ---
 
 ## Architecture
 
-GlycoQuant is a **two-service web application** deployed on Railway:
-
-- **`backend/`** — FastAPI (Python 3.11) service that wraps the `glycoquant/` library and exposes three REST routers: `/analysis` (upload + async job queue), `/priors` (Tab 2 ranked data + drill-down), and `/demo` (bundled image metadata). All inference (Cellpose-SAM segmentation, DINOv2 embeddings, Plotly figure generation) happens here.
-- **`frontend/`** — React 18 + TypeScript + Vite SPA styled with Tailwind CSS and shadcn/ui. Uses TanStack Query for data fetching and a `useAnalysisJob` polling hook for the async pipeline. Plotly figures are generated server-side and rendered client-side via `plotly.js-dist-min`.
-
-Both services are containerised (their own `Dockerfile`) and can run locally via `docker compose up` or be deployed as a two-service project on Railway.
-
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        STREAMLIT WEB APPLICATION                      │
-│                                                                        │
-│  Tab 1 — IMAGE ANALYSIS                                               │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  Upload TIFF / PNG   │   Load bundled demo  (control / siSDC1 │  │
-│  │    (5 channels)      │                       / heparinase)    │  │
-│  │             ↓                                                  │  │
-│  │  Channel mapping:    DAPI · WGA-lectin · YAP · paxillin ·     │  │
-│  │                      phalloidin                                │  │
-│  │             ↓                                                  │  │
-│  │  Cellpose-SAM (cpsam)  →   cell masks + matched nuclear masks │  │
-│  │             ↓                                                  │  │
-│  │  Per-cell feature extraction (parallel tracks):               │  │
-│  │                                                                │  │
-│  │     scikit-image  ─→  6 glycocalyx + 4 YAP + 6 FA + 4 actin  │  │
-│  │     (interpretable)    + 6 morphology  =  26 scalar features  │  │
-│  │                                                                │  │
-│  │     DINOv2-base   ─→  768-dim learned embedding per cell     │  │
-│  │     (optional)        (3-channel stack: DAPI + WGA + YAP)    │  │
-│  │             ↓                                                  │  │
-│  │  Interactive output:                                          │  │
-│  │   • Plotly image with toggleable overlays (cells, nuclei,    │  │
-│  │     focal adhesions, glycocalyx ring, actin orientation)     │  │
-│  │   • Bidirectional cross-highlighting between image ↔ table  │  │
-│  │   • Radial profile plot · Pearson correlation heatmap        │  │
-│  │   • UMAP of DINOv2 embeddings (when deep features enabled)  │  │
-│  │   • CSV download                                             │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                                                                        │
-│  Tab 2 — PERTURBATION PRIORITIZATION                                  │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  Pre-computed JSON priors (no runtime model loading):         │  │
-│  │     • data/priors/pathway_ranks.json    (STRING v12)          │  │
-│  │     • data/priors/geneformer_ranks.json (optional, Colab)     │  │
-│  │             ↓                                                  │  │
-│  │  Dual-column ranking over 22 glycocalyx genes × 15-gene       │  │
-│  │  mechanotransduction signature                                │  │
-│  │             ↓                                                  │  │
-│  │  |ΔRank| divergence column  →  highest-information targets   │  │
-│  │             ↓                                                  │  │
-│  │  Drill-down: STRING shortest-path edges + confidences         │  │
-│  │  Metabolic inhibitor panel (2-DG, DON, tunicamycin, etc.)    │  │
-│  │  Disclaimer: hypothesis ranking, not mechanistic prediction   │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                                                                        │
-│  Tab 3 — EXPERIMENT DESIGNER                                          │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  Gaussian-process active learning for next-experiment         │  │
-│  │  recommendation over tested perturbations.                    │  │
-│  │  Planned for a future release.                                │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────┘
+                          Browser (React + TypeScript + Tailwind)
+                                        |
+                              HTTPS (Railway CDN)
+                                        |
+                          FastAPI backend (Railway, CPU)
+                            /           |           \
+                    /analysis      /priors       /analysis/ml
+                         |              |              |
+                    Background      STRING v12    UMAP / GNN /
+                    job queue       + Geneformer   MLP (CPU)
+                         |
+              ┌──── local ────┐   ┌─── modal ───┐
+              │  Cellpose-SAM │   │  L4 GPU      │
+              │  Cell-DINO    │   │  ~25s/image  │
+              │  (CPU, slow)  │   │  (warm)      │
+              └───────────────┘   └──────────────┘
 ```
 
-### Library / UI separation
+**Backend** — FastAPI (Python 3.10+) with four routers: `/analysis` (upload, job queue, polling), `/priors` (ranking, contextual reweighting, drill-down, Geneformer generation), `/demo` (bundled HPA microscopy datasets), `/analysis/ml` (phenotype discovery, spatial GNN, cross-modal prediction). GPU inference dispatches to Modal when `GLYCOQUANT_GPU_PROVIDER=modal`.
+
+**Frontend** — React 18 + TypeScript + Vite + Tailwind CSS. Full-bleed microscopy viewer with native channel PNG compositing (mix-blend-mode:screen), Canvas overlay for cell outlines and interactions (hover tooltip, click-to-inspect), sliding results panel with Overview and ML Analysis tabs. TanStack Query for data fetching, Zustand for cross-view state.
+
+**Core library** — `glycoquant/` is a pure Python package with no web dependencies. Every feature extractor, every Plotly figure factory, every ML module is unit-testable in isolation.
 
 ```
 glycoquant/
-├── segmentation/      # Cellpose-SAM wrapper, matched cell + nucleus labels
-├── features/          # Per-cell extractors (scikit-image + DINOv2 deep track)
-├── profiles/          # ProfileAssembler → flat pandas DataFrame per image
-├── predictor/         # Dual-prior loader + STRING shortest-path scoring
-├── viz/               # Plotly figure factories — Streamlit-free, testable
-├── io/                # TIFF/PNG loading, channel splitting, hashing
-└── app/               # The only Streamlit surface (main.py + tab_*.py)
-scripts/               # One-time offline artifacts (not runtime)
-  ├── generate_demo_images.py
-  ├── generate_pathway_priors.py
-  └── generate_geneformer_priors.py
-data/
-  ├── demo/            # Bundled synthetic TIFFs (control / siSDC1 / heparinase)
-  └── priors/          # Committed STRING v12 rankings + pathway evidence
-tests/                 # 167 tests (pytest), <1 min on a warm cache
+  features/       — Per-cell extractors + deep embeddings + ML analyses
+  profiles/       — ProfileAssembler → flat DataFrame per image
+  predictor/      — Dual-prior loader + dynamic reweighting
+  segmentation/   — Cellpose-SAM wrapper
+  viz/            — Plotly figure factories
+  io/             — Image I/O + channel splitting
 ```
-
-Every computational layer below `glycoquant/app/` is Streamlit-free and unit-testable in isolation. The viz factories return plain `plotly.graph_objects.Figure` instances and can be reused outside the app.
 
 ---
 
 ## Installation
 
-```bash
-git clone https://github.com/orgavaa/GlycoQuant.git
-cd GlycoQuant
-python -m venv .venv
-source .venv/Scripts/activate        # Windows (Git Bash / miniforge)
-#  or: source .venv/bin/activate     # macOS / Linux
-pip install -e ".[dev]"
-streamlit run glycoquant/app/main.py
-```
-
-### System requirements
-
-| Requirement | Detail |
-|---|---|
-| Python | 3.10+ (tested on 3.13.12) for the FastAPI backend |
-| Node.js | 20+ for the React frontend |
-| Architecture | **x86_64** — required because `opencv-python-headless` (a Cellpose dependency) has no Windows ARM64 wheels on PyPI. On Windows-on-ARM use miniforge3 x86_64 under emulation, or WSL2. |
-| Cellpose-SAM weights | ~1.2 GB downloaded on first analysis run, cached at `~/.cellpose/models/cpsam` |
-| DINOv2 weights (optional) | ~340 MB downloaded on first use, cached at `~/.cache/huggingface/hub/models--facebook--dinov2-base` |
-| GPU | Not required. CPU inference is slower but supported throughout. |
-| Network at runtime | None after weights are cached; STRING queries happen offline in `scripts/generate_pathway_priors.py`. |
-
----
-
-## Installation
-
-Two services, two installs.
-
-### Backend (Python + FastAPI)
+### Backend
 
 ```bash
 git clone https://github.com/orgavaa/GlycoQuant.git
 cd GlycoQuant
-python -m venv .venv
-source .venv/Scripts/activate        # Windows (Git Bash / miniforge)
-#  or: source .venv/bin/activate     # macOS / Linux
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.app.main:app --reload --port 8000
 ```
 
-The API is now live at `http://localhost:8000`. Open `http://localhost:8000/docs` for the interactive OpenAPI explorer.
-
-### Frontend (React + Vite)
-
-In a second terminal:
+### Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local            # VITE_API_BASE_URL=http://localhost:8000
 npm run dev
 ```
 
-The app is now live at `http://localhost:5173`.
+Open `http://localhost:5173`. The frontend connects to `http://localhost:8000` by default (override with `VITE_API_BASE_URL`).
 
-### Or: `docker compose up`
+### Requirements
 
-A single command boots both services with a bundled local dev config:
-
-```bash
-docker compose up --build
-```
-
-First build takes a few minutes (Python + Node layers + Cellpose weights). Subsequent runs are cached.
+| Component | Requirement |
+|---|---|
+| Python | 3.10+ |
+| Node.js | 20+ |
+| Cellpose-SAM weights | ~1.2 GB, downloaded on first run |
+| Cell-DINO checkpoint | ~1.2 GB, auto-downloaded from HuggingFace on first run |
+| GPU | Not required. CPU is slower (~5 min/image) but fully supported. Modal L4 brings this to ~25s. |
 
 ---
 
-## Deployment — Railway + Modal
+## Deployment (Railway + Modal)
 
-The production deployment splits the stack across two providers:
-
-| Tier | Provider | Role |
+| Service | Provider | Role |
 |---|---|---|
-| Frontend (nginx + React bundle) | Railway service `web` | Static asset server |
-| Backend (FastAPI + job store + priors) | Railway service `api` | CPU-only dispatcher |
-| GPU inference (Cellpose-SAM + DINOv2) | **Modal** serverless L4 | Heavy lifting |
-
-Railway's Pro plan does not currently ship NVIDIA drivers on standard containers, and the GPU access form has a 1–3 day turnaround. Rather than wait, the heavy pipeline runs on Modal (pay-per-second L4, ~$0.00019/s, $30 free credit on signup) while Railway keeps hosting the web tier. A single-image run drops from roughly 10 min on Railway CPU to 25–30 s on Modal warm + 15–20 s cold start.
-
-### One-time setup
+| Frontend (Vite build + nginx) | Railway | Static assets |
+| Backend (FastAPI + job store) | Railway | API + CPU dispatcher |
+| GPU inference | Modal (serverless L4) | Cellpose-SAM + Cell-DINO |
 
 ```bash
-pip install modal
-modal token new                       # opens a browser for auth
-bash scripts/deploy_modal.sh          # runs: modal deploy backend/modal_app.py
+# One-time Modal setup
+pip install modal && modal token new
+modal deploy backend/modal_app.py
 ```
 
-Modal prints `✓ Deployed app glycoquant-gpu`. Copy the two tokens from `~/.modal.toml`.
-
-### Railway backend service variables
-
-On the `api` service → Variables:
-
+Railway variables on the backend service:
 ```
 GLYCOQUANT_GPU_PROVIDER = modal
-MODAL_TOKEN_ID          = ak-...
-MODAL_TOKEN_SECRET      = as-...
-CORS_ORIGINS            = https://<web-service-domain>.up.railway.app
+MODAL_TOKEN_ID = ak-...
+MODAL_TOKEN_SECRET = as-...
+CORS_ORIGINS = https://<frontend>.up.railway.app
 ```
 
-Build args (Settings → Build → Build Args):
+Fallback: set `GLYCOQUANT_GPU_PROVIDER=local` for pure-CPU execution.
 
-```
-TORCH_VARIANT = cpu
-```
+---
 
-The api service no longer needs a GPU, a persistent `/data` volume, or `GLYCOQUANT_DEVICE`. Remove those if they are left over from a previous deploy.
+## Bundled demo data
 
-### Smoke test after deploy
+GlycoQuant ships with real microscopy from two public datasets:
+
+- **BBBC022** (Broad Cell Painting pilot) — U-2 OS cells, 5 channels, 520x696 px at 0.656 um/px. CC0 / public domain. 20 fields of view across DMSO controls and compound treatments.
+- **RxRx1** (Recursion) — U2OS and HUVEC, multi-site, 512x512 px. CC BY 4.0.
+
+Glycocalyx and paxillin channels in BBBC022 are synthetic overlays mapped from the AGP (WGA-lectin + phalloidin) channel, since the original Cell Painting protocol does not include a dedicated glycocalyx stain. This is documented in each dataset's `slot_sources` metadata and displayed in the UI.
+
+---
+
+## Tests
 
 ```bash
-curl https://<api-service-domain>.up.railway.app/health
-# → { "status": "ok", "device": "cpu", "device_detail": "cpu", ... }
-```
-
-Then open the frontend URL, load a demo image, click **Start pipeline**. The first call pays a ~15–20 s cold start as the Modal container boots and attaches the `glycoquant-models` volume; subsequent calls within ~5 minutes of idleness reuse the warm container and complete in ~25–30 s.
-
-### Kill switch
-
-To fall back to pure-CPU execution on Railway (e.g. if Modal is down), set `GLYCOQUANT_GPU_PROVIDER=local` on the api service and redeploy. No code change required.
-
----
-
-## Quick start
-
-1. Open `http://localhost:5173`.
-2. **Step 1 — Load image** → pick a synthetic demo (`control`, `siSDC1`, or `heparinase`) → click **Load synthetic dataset**.
-3. *(optional)* Tick **Compute DINOv2 embeddings** under **Step 2 — Configure pipeline**.
-4. Click **Start pipeline** under **Step 3 — Run analysis**.
-
-A progress card shows each phase (segmenting, extracting, embedding). When complete, the main panel renders: 5 hero metric cards, the Plotly-interactive segmented image, and a tabbed area with the per-cell feature table, radial profile chart, and correlation heatmap. On a GPU the whole cycle is ~5 seconds; on CPU expect 6–10 minutes the first time (Cellpose-SAM weights download + segmentation). Subsequent runs on the same image are instant cache hits.
-
-### Important — the bundled demo data is 100% synthetic
-
-The three bundled demo conditions (`control`, `siSDC1`, `heparinase`) in `data/demo/*.tiff` are **not real microscopy**. They are generated deterministically by `scripts/generate_demo_images.py` using `skimage.draw.disk` — five circles on a black background with known intensity profiles that let the feature extractors produce predictable numbers. Their purpose is to exercise the full pipeline end-to-end on a fresh clone without requiring any external data, not to demonstrate that the pipeline has been validated on real cells.
-
-Every part of the UI that shows bundled data carries a visible **"Synthetic demonstration data"** notice. To analyse real images, upload a five-channel TIFF via **Step 1** (channel order: DAPI, WGA-lectin, YAP, paxillin, phalloidin). Real-data validation on a representative Labouesse-group imaging dataset is on the roadmap below.
-
----
-
-## Per-cell features
-
-Every cell in every image is described by 26 interpretable scalar features, grouped into five scientifically motivated categories. With the DINOv2 toggle enabled, a 768-dimensional learned embedding from `facebook/dinov2-base` is appended as additional columns.
-
-| Group | Features | Rationale |
-|---|---|---|
-| **Glycocalyx** (6) | mean pericellular intensity · heterogeneity (CV of ring) · coverage (fraction above Otsu/percentile/fixed threshold) · pericellular/interior ratio · radial intensity profile · exponential decay rate | Quantifies the shell of WGA-lectin staining around each cell — the actually-measurable readout of glycocalyx conformation at confocal resolution. |
-| **YAP / TAZ** (4) | mean nuclear intensity · mean cytoplasmic intensity · nuclear/cytoplasmic ratio (capped finite sentinel) · fraction of total YAP in nucleus | Canonical mechanotransduction readout (Dupont *et al.* 2011). The N/C ratio is the primary published metric. |
-| **Focal adhesions** (6) | count · mean area · total area · mean elongation (`axis_major / axis_minor`) · mean centroid distance to cell edge · peripheral fraction (fraction within *N* px of edge) | Paxillin-stained integrin anchors. Mature, elongated, peripheral FAs indicate force-transmitting adherent cells. |
-| **Actin cytoskeleton** (4) | mean intensity · stress-fiber coherence (structure-tensor eigenvalue ratio, 0 → isotropic, 1 → aligned) · dominant fiber orientation (degrees, (−90, 90]) · cortical/interior intensity ratio | Quantifies stress-fiber organisation via the local structure tensor — the standard OrientationJ-style analysis. |
-| **Cell morphology** (6) | area · perimeter · circularity (`4π·area / perimeter²`) · aspect ratio · solidity (`area / convex_area`) · spread area (convex hull) | Pure shape descriptors via `skimage.measure.regionprops`. Baseline context for all other features. |
-
-**Deep features (optional, `Include DINOv2 deep features` toggle):** 768-dimensional CLS-token embedding per cell from `facebook/dinov2-base`. Each cell's bounding box is padded, stacked as three channels (DAPI + WGA + YAP by default), resized to 224 × 224 and passed through the frozen ViT. Channel assignment is configurable. License: Apache 2.0. Intended for discovery analyses (UMAP clustering, perturbation similarity) — **not** for quantitative reporting in a Methods section.
-
----
-
-## Scientific framing of Tab 2
-
-Tab 2 is explicitly a **hypothesis-ranking tool**, not a mechanistic predictor. No existing transcriptomic model knows that syndecan-1 shedding changes integrin clustering which changes YAP nuclear translocation — that causal chain does not exist in any training dataset available today. Instead, the tab combines two orthogonal precomputed priors:
-
-1. **Transcriptomic co-regulation prior** — Geneformer (Theodoris *et al.*, *Nature* 2023), a transformer pretrained on ~104 M single-cell transcriptomes, used for in-silico deletion of each glycocalyx gene against the 15-gene mechanotransduction signature. Runs once offline on a Colab GPU via `scripts/generate_geneformer_priors.py` and writes a JSON the app loads at startup.
-2. **Pathway proximity prior** — STRING v12 (Szklarczyk *et al.*, *Nucleic Acids Res* 2023) restricted to confidence ≥ 0.70, with edge weight `−log(confidence)` and a **median inverse shortest-path** aggregation across the 15 mechano genes. Every ranking traces to a specific STRING edge with a specific confidence score, visible in the drill-down panel.
-
-The **divergence column** `|rank_geneformer − rank_pathway|` is the most scientifically informative number in the tab. When the two priors agree, the ranking is uncontroversial. When they disagree — a gene ranked 1st by transcriptomic co-regulation but 18th by PPI topology, or vice versa — the wet-lab experiment will actively discriminate between the two hypotheses. Those high-divergence rows are the ones a PI should prioritise at the bench.
-
-Real STRING v12 data for the current 22-gene glycocalyx panel and 15-gene mechano signature is committed to the repository. CD44 and the syndecans come out as the most pathway-proximal glycocalyx genes (scores 0.91–0.94); the hexosamine-pathway enzymes (GFPT1/2, OGT, MGAT5, B4GALT1) sit at score 0.0 — they are disconnected from the mechanotransduction signature in STRING at confidence 0.70, despite being mechanistically central to glycosylation control. This is exactly the kind of asymmetry the Geneformer prior is expected to flag differently.
-
----
-
-## Reproducibility
-
-Everything in `data/priors/` and `data/demo/` is either committed or regenerable by a single scripted command.
-
-```bash
-# Regenerate the bundled synthetic demo TIFFs (deterministic, ~1 s)
-python scripts/generate_demo_images.py
-
-# Regenerate the STRING v12 pathway prior (network → string-db.org, ~30 s)
-python scripts/generate_pathway_priors.py
-
-# Regenerate the Geneformer transcriptomic prior (Colab GPU runtime required)
-# — scaffold only; fill in InSilicoPerturber details on Colab
-python scripts/generate_geneformer_priors.py
-```
-
-```bash
-# Run the full non-slow test suite (~30 s on a warm cache)
-pytest tests/ backend/tests/ -m "not slow"
-
-# Run the segmentation suite separately (real Cellpose-SAM inference, ~36 min cold)
-pytest tests/test_segmentation.py -v
-
-# Lint (Python)
-ruff check glycoquant/ backend/ tests/ scripts/
-
-# Frontend typecheck + production build
+pytest tests/ backend/tests/ -m "not slow"   # ~30s, no GPU, no network
+pytest tests/ -m slow                          # Cellpose + DINOv2 inference
 cd frontend && npm run typecheck && npm run build
 ```
 
-Synthetic fixtures in `tests/conftest.py` give deterministic ground truth for every extractor — no external data dependencies, no network calls, no GPU requirement in CI. The rare slow-tier tests (real Cellpose-SAM inference on synthetic images; real DINOv2 embedding of cell crops) are marked with `pytest.mark.slow` and skipped in fast iteration.
-
----
-
-## Roadmap
-
-### Shipped
-
-- **v0.1.0** — Streamlit prototype with Tab 1 dynamic image analysis, cross-highlighting, and optional DINOv2 deep features
-- **v0.2.0** — Streamlit Tab 2 perturbation prioritization with the STRING pathway prior, divergence column, drill-down, and metabolic inhibitor panel
-- **v0.3.0** — **Full rewrite**: Streamlit replaced by a FastAPI backend + React (Vite + TypeScript + Tailwind + shadcn/ui) frontend with TanStack Query polling, deployed as two services on Railway
-
-### Planned
-
-- **v1.0.0** — Phase 8: README polish, CI workflow, three bundled app screenshots, final literature verification sweep
-- **Tab 3 — Experiment Designer** — Gaussian-process active learning for next-experiment recommendation over tested perturbations. Deferred from the initial release.
-- **Phase 5.5** — Fine-tuning the DINOv2 linear probe on Human Protein Atlas glycocalyx-protein imagery for glycocalyx-specialised embeddings; side-by-side benchmark against Recursion's OpenPhenom-S/16
-
-### Longer-horizon research directions
-
-- **Morphological perturbation atlas** — GlycoQuant features across genetic (siRNA), enzymatic (heparanase), and metabolic (2-DG, DON, tunicamycin) perturbations, clustered into phenotypic groups à la JUMP-CP at lab scale
-- **Hexosamine pathway flux model** — COBRApy / Recon3D flux balance analysis linking metabolic perturbations to predicted glycocalyx composition, validated against GlycoQuant measurements
-- **Bayesian experimental design** — active learning (IterPert-style, Gruver *et al.*, RECOMB 2024) to prioritise conditions across the combinatorial space of scaffold, perturbation, and drug; Ax/BoTorch multi-objective optimisation of hydrogel composition (Seifermann *et al.*, *Small Methods* 2023)
-- **Polymer-brush physics-informed neural network** — predicting glycocalyx mechanical-filter properties (brush height, compression modulus, integrin accessibility) from composition, with Alexander–de Gennes scaling as a soft constraint in the loss, grounded in Paszek's kinetic-trap mechanism
-- **Conditional pixel-level perturbation prediction** — fine-tuning an IMPA/CPA-family model (Bunne & Lotfollahi *et al.*, *NeurIPS* 2023) on glycocalyx-specific paired imaging datasets so that a PI can visually compare a predicted perturbed-cell image against a real wet-lab plate, rather than reasoning from an abstract feature table
+Synthetic fixtures in `tests/conftest.py` provide deterministic ground truth for every extractor — no external data, no network, no GPU in CI.
 
 ---
 
 ## References
 
 ### Glycocalyx mechanobiology
-1. Paszek, M. J. *et al.* The cancer glycocalyx mechanically primes integrin-mediated growth and survival. ***Nature*** 511, 319–325 (2014).
-2. Möckl, L. *et al.* Quantitative super-resolution microscopy of the mammalian glycocalyx. ***Dev Cell*** 50, 57–72 (2019).
-3. Manon-Jensen, T., Itoh, Y. & Couchman, J. R. Proteoglycans in health and disease: the multiple roles of syndecan shedding. ***FEBS J*** 277, 3876–3889 (2010).
+- Paszek MJ *et al.* The cancer glycocalyx mechanically primes integrin-mediated growth and survival. *Nature* 511, 319–325 (2014).
+- Mockl L *et al.* Quantitative super-resolution microscopy of the mammalian glycocalyx. *Dev Cell* 50, 57–72 (2019).
+- Barai A *et al.* Glycocalyx in cancer mechanobiology. *J Cell Sci* (2024).
+- Hamrangsekachaee M *et al.* Glycocalyx remodeling in mechanotransduction. *Trends Cell Biol* (2025).
 
-### Mechanotransduction readouts
-4. Dupont, S. *et al.* Role of YAP/TAZ in mechanotransduction. ***Nature*** 474, 179–183 (2011).
+### Mechanotransduction
+- Dupont S *et al.* Role of YAP/TAZ in mechanotransduction. *Nature* 474, 179–183 (2011).
+- Buskermolen ABC *et al.* Entropic forces drive cellular contact guidance. *Biophys J* 116, 1994–2008 (2019).
 
-### Image-based cellular profiling
-5. Bray, M.-A. *et al.* Cell Painting, a high-content image-based assay for morphological profiling using multiplexed fluorescent dyes. ***Nat Protoc*** 11, 1757–1774 (2016).
-6. Chandrasekaran, S. N. *et al.* Three million images and morphological profiles of cells treated with matched chemical and genetic perturbations (JUMP Cell Painting). ***Nat Methods*** 21, 1114–1121 (2024).
+### Image analysis and cell profiling
+- Bray MA *et al.* Cell Painting, a high-content image-based assay. *Nat Protoc* 11, 1757–1774 (2016).
+- Chandrasekaran SN *et al.* JUMP Cell Painting dataset. *Nat Methods* 21, 1114–1121 (2024).
+- Stringer C & Pachitariu M. Cellpose3: one-click image restoration. *Nat Methods* (2025).
+- Doron M *et al.* Cell-DINO: self-supervised vision transformers for single-cell morphology. *bioRxiv* (2024).
 
-### Segmentation and vision models
-7. Stringer, C. & Pachitariu, M. Cellpose3: one-click image restoration for improved cellular segmentation. ***Nat Methods*** (2025).
-8. Oquab, M. *et al.* DINOv2: Learning robust visual features without supervision. ***arXiv*** 2304.07193 (2024).
-9. Doron, M. *et al.* Unbiased single-cell morphology with self-supervised vision transformers. ***Nat Methods*** (2023).
-10. Kraus, O. *et al.* Masked autoencoders are scalable learners of cellular biology (Phenom-2). ***bioRxiv*** (Recursion, 2024).
+### Foundation models
+- Oquab M *et al.* DINOv2: Learning robust visual features without supervision. *TMLR* (2024).
+- Theodoris CV *et al.* Transfer learning enables predictions in network biology. *Nature* 618, 616–624 (2023).
 
-### Perturbation modelling
-11. Theodoris, C. V. *et al.* Transfer learning enables predictions in network biology (Geneformer). ***Nature*** 618, 616–624 (2023).
-12. Szklarczyk, D. *et al.* The STRING database in 2023: protein–protein association networks and functional enrichment analyses for any sequenced genome of interest. ***Nucleic Acids Res*** 51, D638–D646 (2023).
-13. Bunne, C., Lotfollahi, M. *et al.* Learning single-cell perturbation responses using neural optimal transport (IMPA). ***NeurIPS*** 2023.
-14. Lotfollahi, M. *et al.* Predicting cellular responses to complex perturbations in high-throughput screens (CPA). ***Mol Syst Biol*** 19, e11517 (2023).
-15. Gruver, N. *et al.* Active learning for efficient discovery of optimal gene combinations (IterPert). ***RECOMB*** 2024.
+### Network biology
+- Szklarczyk D *et al.* STRING v12. *Nucleic Acids Res* 51, D638–D646 (2023).
 
-### Metabolism → glycosylation
-16. Taparra, K. *et al.* O-GlcNAcylation is required for mutant KRAS-induced lung tumorigenesis. ***J Clin Invest*** 128, 4924–4937 (2018).
-17. Lau, K. S. *et al.* Complex N-glycan number and degree of branching cooperate to regulate cell proliferation and differentiation. ***Cell*** 129, 123–134 (2007).
+### Graph neural networks
+- Kipf TN & Welling M. Semi-supervised classification with graph convolutional networks. *ICLR* (2017).
+
+### Spatial omics
+- Palla G *et al.* Squidpy: a scalable framework for spatial omics analysis. *Nat Methods* (2022).
 
 ---
 
 ## License
 
-MIT License © 2026 Valentin Uzan
+MIT License. See `LICENSE`.
 
-This project is released under the MIT License. See `LICENSE` for the full text. Bundled third-party model weights retain their upstream licenses (Cellpose-SAM: BSD 3-Clause; DINOv2: Apache 2.0).
+Bundled model weights retain their upstream licenses: Cellpose-SAM (BSD 3-Clause), DINOv2 (Apache 2.0), Cell-DINO (FAIR Non-Commercial Research License).
 
 ---
 
 ## Author
 
-**Valentin Uzan**
-[github.com/orgavaa](https://github.com/orgavaa) · uzanval@gmail.com
-
-Built as part of a PhD application to the Labouesse / Tibbitt group, Macromolecular Engineering Laboratory, Department of Mechanical and Process Engineering, ETH Zürich.
+**Valentin Uzan** — [github.com/orgavaa](https://github.com/orgavaa)

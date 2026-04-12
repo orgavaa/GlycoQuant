@@ -23,7 +23,23 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [tooltip, setTooltip] = useState<{ x: number; y: number; cellId: number; lines: { l: string; v: string }[] } | null>(null);
 
-  const polygons = useMemo(() => extractPolygons(result.segmentation_figure_json), [result.segmentation_figure_json]);
+  const polygons = useMemo(() => {
+    const p = extractPolygons(result.segmentation_figure_json);
+    if (p.length > 0) {
+      console.log(`[MicroscopyCanvas] ${p.length} cell polygons extracted. First cell: id=${p[0].cellId}, vertices=${p[0].vertices.length}, bbox=[${p[0].bbox.x.toFixed(0)},${p[0].bbox.y.toFixed(0)},${(p[0].bbox.x + p[0].bbox.w).toFixed(0)},${(p[0].bbox.y + p[0].bbox.h).toFixed(0)}]`);
+    } else {
+      console.warn("[MicroscopyCanvas] No polygons extracted from segmentation figure!");
+      // Debug: log trace types
+      try {
+        const fig = JSON.parse(result.segmentation_figure_json);
+        const types = (fig.data as Array<{type?: string; x?: unknown[]; customdata?: unknown[]}>).map(
+          (t, i) => `trace[${i}]: type=${t.type}, hasX=${!!t.x}, hasCD=${!!t.customdata}, xLen=${t.x?.length ?? 0}`
+        );
+        console.log("[MicroscopyCanvas] Traces:", types.join(" | "));
+      } catch { /* */ }
+    }
+    return p;
+  }, [result.segmentation_figure_json]);
   const cellMap = useMemo(() => {
     const m = new Map<number, CellFeatures>();
     for (const c of cells) m.set(Number(c.cell_id), c);
@@ -56,8 +72,11 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       const xr = fig.layout?.xaxis?.range as [number, number] | undefined;
       const yr = fig.layout?.yaxis?.range as [number, number] | undefined;
       if (xr && yr) {
-        return { w: xr[1] - xr[0], h: Math.abs(yr[1] - yr[0]), yFlip: yr[0] > yr[1] };
+        const dims = { w: xr[1] - xr[0], h: Math.abs(yr[1] - yr[0]), yFlip: yr[0] > yr[1] };
+        console.log(`[MicroscopyCanvas] imgDims: ${dims.w}x${dims.h}, yFlip=${dims.yFlip}, xRange=[${xr}], yRange=[${yr}]`);
+        return dims;
       }
+      console.warn("[MicroscopyCanvas] No axis ranges in segmentation figure");
     } catch { /* empty */ }
     return null;
   }, [result.segmentation_figure_json]);

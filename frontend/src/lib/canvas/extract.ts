@@ -21,34 +21,53 @@ export interface PopulationStats {
 export function extractPolygons(figureJson: string): CellPolygon[] {
   try {
     const fig = JSON.parse(figureJson);
-    const traces = fig.data as Array<{
-      x?: number[]; y?: number[]; customdata?: Array<number | number[]>; type?: string;
-    }>;
+    if (!fig.data || !Array.isArray(fig.data)) return [];
+
     const polys: CellPolygon[] = [];
-    for (const trace of traces) {
-      if (trace.type === "heatmap" || !trace.x || !trace.y || !trace.customdata) continue;
+    for (const trace of fig.data) {
+      // Skip heatmap traces (channel images)
+      if (trace.type === "heatmap" || trace.type === "image") continue;
+      // Must have x, y arrays and customdata with a cell ID
+      if (!Array.isArray(trace.x) || !Array.isArray(trace.y)) continue;
+      if (!Array.isArray(trace.customdata) || trace.customdata.length === 0) continue;
+
+      // Extract cell ID from customdata[0]
       const cd = trace.customdata[0];
-      const cellId = Array.isArray(cd) ? cd[0] : cd;
-      if (typeof cellId !== "number") continue;
+      let cellId: number;
+      if (Array.isArray(cd)) {
+        cellId = Number(cd[0]);
+      } else {
+        cellId = Number(cd);
+      }
+      if (!Number.isFinite(cellId) || cellId === 0) continue;
+
+      // Build polygon vertices from x/y arrays
       const vertices: [number, number][] = [];
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       let cx = 0, cy = 0;
-      for (let i = 0; i < trace.x.length; i++) {
-        const x = trace.x[i], y = trace.y[i];
-        if (typeof x === "number" && typeof y === "number") {
-          vertices.push([x, y]);
-          cx += x; cy += y;
-          if (x < minX) minX = x; if (y < minY) minY = y;
-          if (x > maxX) maxX = x; if (y > maxY) maxY = y;
-        }
+      const len = Math.min(trace.x.length, trace.y.length);
+      for (let i = 0; i < len; i++) {
+        const x = Number(trace.x[i]), y = Number(trace.y[i]);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        vertices.push([x, y]);
+        cx += x; cy += y;
+        if (x < minX) minX = x; if (y < minY) minY = y;
+        if (x > maxX) maxX = x; if (y > maxY) maxY = y;
       }
       if (vertices.length >= 3) {
         cx /= vertices.length; cy /= vertices.length;
-        polys.push({ cellId, vertices, bbox: { x: minX, y: minY, w: maxX - minX, h: maxY - minY }, centroid: [cx, cy] });
+        polys.push({
+          cellId: Math.round(cellId),
+          vertices,
+          bbox: { x: minX, y: minY, w: maxX - minX, h: maxY - minY },
+          centroid: [cx, cy],
+        });
       }
     }
     return polys;
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export function extractFeatures(json: string): CellFeatures[] {
