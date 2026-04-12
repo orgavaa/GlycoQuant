@@ -58,7 +58,10 @@
       "Read(//mnt/skills/public/**)",
       "Bash(ls -la /c/Users/uzanv/Documents/GlycoQuant/frontend/*.config.* /c/Users/uzanv/Documents/GlycoQuant/frontend/tsconfig.json)",
       "WebFetch(domain:localhost)",
-      "Bash(curl -s http://localhost:5174)"
+      "Bash(curl -s http://localhost:5174)",
+      "Bash(rm -rf frontend/src/components/ frontend/src/views/OverviewView.tsx frontend/src/views/CompareView.tsx frontend/src/lib/canvas/ frontend/src/types/)",
+      "Bash(mkdir -p frontend/src/components frontend/src/lib/canvas)",
+      "Bash(curl -s http://localhost:5175)"
     ],
     "deny": [
       "Bash(rm -rf /)",

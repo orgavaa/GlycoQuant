@@ -1,45 +1,50 @@
 /**
- * App — The Instrument. Microscopy-first shell.
+ * App — The Instrument shell.
  */
 import { useState } from "react";
 import { TopBar, type ViewId } from "@/components/TopBar";
 import { StatusBar } from "@/components/StatusBar";
 import { useJobStore } from "@/lib/jobStore";
 import { OverviewView } from "@/views/OverviewView";
-import { CompareView } from "@/views/CompareView";
 import { LoaderView } from "@/views/LoaderView";
+import { PrioritizationTab } from "@/features/prioritization/PrioritizationTab";
+import { ExperimentTab } from "@/features/experiment/ExperimentTab";
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>("overview");
-  const latestResult = useJobStore((s) => s.latestJobResult);
-  const latestLabel = useJobStore((s) => s.latestDatasetLabel);
-  const completedJobs = useJobStore((s) => s.completedJobs);
+  const latestResult = useJobStore(s => s.latestJobResult);
+  const latestLabel = useJobStore(s => s.latestDatasetLabel);
   const hasResult = latestResult !== null;
 
   return (
-    <div className="h-screen flex flex-col bg-[#0a0a0a] text-[#eee] overflow-hidden">
-      <TopBar
-        activeView={activeView}
-        onChangeView={setActiveView}
-        hasResult={hasResult}
-      />
+    <div style={{
+      height: "100vh", display: "flex", flexDirection: "column",
+      background: "#0a0a0a", color: "#eee", overflow: "hidden",
+      fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+    }}>
+      <TopBar activeView={activeView} onChangeView={setActiveView} hasResult={hasResult} />
 
-      <div className="flex-1 overflow-hidden">
+      <div style={{ flex: 1, overflow: "hidden" }}>
         {!hasResult ? (
           <LoaderView />
         ) : activeView === "overview" || activeView === "single" ? (
           <OverviewView result={latestResult} />
         ) : activeView === "compare" ? (
-          <CompareView
-            resultA={completedJobs.length >= 2 ? completedJobs[completedJobs.length - 2].result : null}
-            resultB={completedJobs.length >= 1 ? completedJobs[completedJobs.length - 1].result : null}
-            labelA={completedJobs.length >= 2 ? completedJobs[completedJobs.length - 2].label : ""}
-            labelB={completedJobs.length >= 1 ? completedJobs[completedJobs.length - 1].label : ""}
-          />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#555", fontSize: 13 }}>
+            Compare view — select two completed analyses to compare
+          </div>
         ) : activeView === "prioritization" ? (
-          <LegacyTabWrapper tab="prioritization" />
+          <div style={{ height: "100%", overflowY: "auto", background: "#fff", color: "#111", padding: 32 }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+              <PrioritizationTab />
+            </div>
+          </div>
         ) : activeView === "experiment" ? (
-          <LegacyTabWrapper tab="experiment" />
+          <div style={{ height: "100%", overflowY: "auto", background: "#fff", color: "#111", padding: 32 }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+              <ExperimentTab />
+            </div>
+          </div>
         ) : null}
       </div>
 
@@ -51,30 +56,4 @@ export default function App() {
       />
     </div>
   );
-}
-
-/** Wrapper for Tab 2 / Tab 3 — white background, clean layout */
-function LegacyTabWrapper({ tab }: { tab: "prioritization" | "experiment" }) {
-  return (
-    <div className="h-full overflow-y-auto bg-white text-gray-900 p-8">
-      <div className="max-w-[1200px] mx-auto">
-        {tab === "prioritization" ? (
-          <PrioritizationTabLazy />
-        ) : (
-          <ExperimentTabLazy />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Lazy imports for legacy tabs
-import { PrioritizationTab } from "@/features/prioritization/PrioritizationTab";
-import { ExperimentTab } from "@/features/experiment/ExperimentTab";
-
-function PrioritizationTabLazy() {
-  return <PrioritizationTab />;
-}
-function ExperimentTabLazy() {
-  return <ExperimentTab />;
 }

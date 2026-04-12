@@ -1,81 +1,59 @@
 /**
- * OverviewView — canvas + overlay controls + right rail.
- * 60/40 layout: image takes 60%, right rail takes 40%.
+ * OverviewView — the primary instrument view.
+ * Canvas (flex-1) + OverlayPanel + RightRail (320px).
  */
-import { useState } from "react";
-import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
-import { OverlayControls } from "@/components/OverlayControls";
+import { useMemo, useState } from "react";
+import { MicroscopyImage } from "@/components/MicroscopyImage";
+import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
-import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
+import { extractFeatures, type CellFeatures } from "@/lib/canvas/extract";
 
 interface OverviewViewProps {
   result: JobResult;
 }
 
 export function OverviewView({ result }: OverviewViewProps) {
-  const setSelectedCellId = useJobStore((s) => s.setSelectedCellId);
-
-  const [showSegmentation, setShowSegmentation] = useState(true);
+  const [showSeg, setShowSeg] = useState(true);
   const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [advancedOverlays, setAdvancedOverlays] = useState<Record<string, boolean>>({});
-  const [showScaleBar, setShowScaleBar] = useState(true);
-  const [showCellLabels, setShowCellLabels] = useState(false);
   const [canvasHovered, setCanvasHovered] = useState(false);
-  const [channelVisibility, setChannelVisibility] = useState<Record<string, boolean>>({
-    dapi: true,
-    glycocalyx: true,
-    yap: false,
-    paxillin: false,
-    actin: true,
+  const [channelVis, setChannelVis] = useState<Record<string, boolean>>({
+    dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
   });
+
+  // Parse per-cell features once
+  const cells: CellFeatures[] = useMemo(
+    () => extractFeatures(result.features_df_json),
+    [result.features_df_json],
+  );
 
   return (
     <div
-      className="flex h-full"
+      style={{ display: "flex", height: "100%" }}
       onMouseEnter={() => setCanvasHovered(true)}
       onMouseLeave={() => setCanvasHovered(false)}
     >
-      {/* Canvas area — 60% width */}
-      <div className="relative min-w-0" style={{ width: "60%" }}>
-        <MicroscopyCanvas
+      {/* Canvas area — all remaining width */}
+      <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
+        <MicroscopyImage
           result={result}
-          showSegmentation={showSegmentation}
+          showSegmentation={showSeg}
           activeOverlay={activeOverlay}
-          channelVisibility={channelVisibility}
-          showScaleBar={showScaleBar}
-          showCellLabels={showCellLabels}
+          cells={cells}
         />
-        <OverlayControls
-          showSegmentation={showSegmentation}
-          onToggleSegmentation={() => setShowSegmentation((v) => !v)}
+        <OverlayPanel
+          showSegmentation={showSeg}
+          onToggleSegmentation={() => setShowSeg(v => !v)}
           activeOverlay={activeOverlay}
-          onSetOverlay={(o) => setActiveOverlay(o)}
-          channelVisibility={channelVisibility}
-          onToggleChannel={(ch) =>
-            setChannelVisibility((prev) => ({ ...prev, [ch]: !prev[ch] }))
-          }
-          showAdvanced={showAdvanced}
-          onToggleAdvanced={() => setShowAdvanced((v) => !v)}
-          advancedOverlays={advancedOverlays}
-          onToggleAdvancedOverlay={(name) =>
-            setAdvancedOverlays((prev) => ({ ...prev, [name]: !prev[name] }))
-          }
-          showScaleBar={showScaleBar}
-          onToggleScaleBar={() => setShowScaleBar((v) => !v)}
-          showCellLabels={showCellLabels}
-          onToggleCellLabels={() => setShowCellLabels((v) => !v)}
+          onSetOverlay={setActiveOverlay}
+          channelVisibility={channelVis}
+          onToggleChannel={ch => setChannelVis(prev => ({ ...prev, [ch]: !prev[ch] }))}
           hovered={canvasHovered}
-          channelWarnings={result.warnings}
         />
       </div>
 
-      {/* Right rail — 40% width */}
-      <RightRail
-        result={result}
-        onDeselectCell={() => setSelectedCellId(null)}
-      />
+      {/* Right rail — 320px fixed */}
+      <RightRail result={result} cells={cells} />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 /**
- * PlotlyDark — dark-styled Plotly wrapper for the right rail.
- * Transparent background, muted axes, no toolbar. Generous margins for readability.
+ * PlotlyDark — dark-styled Plotly chart wrapper for the right rail.
  */
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useRef } from "react";
@@ -8,76 +7,34 @@ import { useEffect, useRef } from "react";
 interface PlotlyDarkProps {
   figureJson: string;
   height?: number;
-  title?: string;
 }
 
-export function PlotlyDark({ figureJson, height = 200, title }: PlotlyDarkProps) {
+export function PlotlyDark({ figureJson, height = 200 }: PlotlyDarkProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;
-    let parsed: { data: unknown; layout: unknown };
-    try {
-      parsed = JSON.parse(figureJson);
-    } catch {
-      return;
-    }
-
-    const existingLayout = parsed.layout as Record<string, unknown>;
+    let parsed: { data: unknown; layout: Record<string, unknown> };
+    try { parsed = JSON.parse(figureJson); } catch { return; }
 
     const layout = {
-      ...existingLayout,
-      height,
-      autosize: true,
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
-      font: {
-        family: "ui-monospace, 'JetBrains Mono', monospace",
-        color: "#aaa",
-        size: 10,
-      },
-      margin: { l: 80, r: 20, t: 20, b: 50 },
-      xaxis: {
-        ...(existingLayout?.xaxis ?? {}),
-        gridcolor: "rgba(255,255,255,0.06)",
-        zerolinecolor: "rgba(255,255,255,0.1)",
-        tickfont: { size: 9, color: "#888" },
-      },
-      yaxis: {
-        ...(existingLayout?.yaxis ?? {}),
-        gridcolor: "rgba(255,255,255,0.06)",
-        zerolinecolor: "rgba(255,255,255,0.1)",
-        tickfont: { size: 9, color: "#888" },
-      },
+      ...parsed.layout,
+      height, autosize: true,
+      paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+      font: { family: "ui-monospace, 'JetBrains Mono', monospace", color: "#888", size: 9 },
+      margin: { l: 60, r: 16, t: 12, b: 40 },
+      xaxis: { ...(parsed.layout.xaxis ?? {}), gridcolor: "rgba(255,255,255,0.05)", tickfont: { size: 8, color: "#666" } },
+      yaxis: { ...(parsed.layout.yaxis ?? {}), gridcolor: "rgba(255,255,255,0.05)", tickfont: { size: 8, color: "#666" } },
     };
-
-    const config = {
-      displaylogo: false,
-      displayModeBar: false,
-      responsive: true,
-      staticPlot: false,
-    };
-
+    const config = { displayModeBar: false, displaylogo: false, responsive: true };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Plotly.react(ref.current, parsed.data as any, layout as any, config as any);
 
     const el = ref.current;
-    const handleResize = () => {
-      if (el) Plotly.Plots.resize(el);
-    };
+    const handleResize = () => { if (el) Plotly.Plots.resize(el); };
     window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      if (el) Plotly.purge(el);
-    };
+    return () => { window.removeEventListener("resize", handleResize); if (el) Plotly.purge(el); };
   }, [figureJson, height]);
 
-  return (
-    <div>
-      {title && (
-        <div className="text-[10px] text-[#888] mono mb-2 leading-relaxed">{title}</div>
-      )}
-      <div ref={ref} style={{ width: "100%" }} />
-    </div>
-  );
+  return <div ref={ref} style={{ width: "100%" }} />;
 }

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GlycoQuant — Results Page Mockup</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #ccc; font-family: ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace; font-size: 13px; -webkit-font-smoothing: antialiased; }
+
+/* Top bar */
+.topbar { height: 40px; background: #0d0d0d; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; padding: 0 16px; gap: 40px; }
+.topbar .logo { color: #eee; font-size: 13px; font-weight: 600; letter-spacing: -0.5px; }
+.topbar .tabs { display: flex; gap: 24px; }
+.topbar .tab { color: #555; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; padding: 12px 0; border-bottom: 2px solid transparent; text-decoration: none; }
+.topbar .tab.active { color: #eee; border-bottom-color: #4A90D9; }
+.topbar .tab:hover { color: #999; }
+.topbar .spacer { flex: 1; }
+.topbar .export-btn { color: #888; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; background: #1a1a1a; cursor: pointer; border: none; font-family: inherit; }
+.topbar .export-btn:hover { background: #222; color: #ccc; }
+
+/* Main layout */
+.main { display: flex; height: calc(100vh - 72px); }
+.canvas-area { flex: 1; position: relative; background: #000; overflow: hidden; }
+.right-rail { width: 320px; flex-shrink: 0; background: #111; border-left: 1px solid #1a1a1a; overflow-y: auto; padding: 20px 16px; }
+
+/* Status bar */
+.statusbar { height: 32px; background: #0d0d0d; border-top: 1px solid #1a1a1a; display: flex; align-items: center; padding: 0 16px; color: #555; font-size: 10px; letter-spacing: 0.5px; gap: 8px; }
+.statusbar .highlight { color: #aaa; }
+
+/* Overlay panel */
+.overlay-panel { position: absolute; top: 16px; left: 16px; width: 130px; background: rgba(17,17,17,0.88); backdrop-filter: blur(8px); border-radius: 3px; padding: 12px; z-index: 10; }
+.section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 8px; }
+.toggle-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
+.toggle-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #444; flex-shrink: 0; }
+.toggle-dot.active { background: #0ff; border-color: #0ff; box-shadow: 0 0 6px rgba(0,255,255,0.4); }
+.toggle-dot.active-green { background: #4CAF50; border-color: #4CAF50; }
+.toggle-dot.active-magenta { background: #E040FB; border-color: #E040FB; }
+.toggle-label { font-size: 11px; color: #999; }
+.advanced-link { font-size: 9px; color: #555; cursor: pointer; padding: 4px 0; }
+.advanced-link:hover { color: #888; }
+.channel-strip { display: flex; gap: 5px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #222; }
+.channel-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.channel-chip { width: 20px; height: 20px; border-radius: 2px; cursor: pointer; transition: opacity 0.15s, box-shadow 0.15s; }
+.channel-chip:hover { opacity: 1 !important; }
+.channel-letter { font-size: 8px; color: #555; }
+
+/* Microscopy placeholder */
+.microscopy-placeholder { position: absolute; inset: 0; }
+.microscopy-placeholder svg { width: 100%; height: 100%; }
+
+/* Tooltip */
+.tooltip { position: absolute; background: rgba(0,0,0,0.92); border: 1px solid #333; border-radius: 3px; padding: 10px 14px; pointer-events: none; z-index: 20; top: 280px; right: 380px; }
+.tooltip .cell-id { font-size: 12px; font-weight: 600; color: #eee; margin-bottom: 6px; }
+.tooltip .metric-row { font-size: 10px; color: #888; line-height: 1.8; display: flex; justify-content: space-between; gap: 16px; }
+.tooltip .metric-value { color: #eee; }
+
+/* Scale bar */
+.scale-bar { position: absolute; bottom: 16px; right: 20px; text-align: right; z-index: 5; }
+.scale-bar .bar { height: 2px; background: #fff; width: 80px; margin-left: auto; }
+.scale-bar .bar-label { font-size: 9px; color: rgba(255,255,255,0.7); margin-top: 3px; }
+
+/* Hero metrics */
+.hero { display: flex; gap: 0; margin-bottom: 20px; }
+.hero .metric { flex: 1; text-align: center; }
+.hero .metric .value { font-size: 28px; font-weight: 700; color: #eee; line-height: 1; }
+.hero .metric .value.dim { color: #444; }
+.hero .metric .label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-top: 6px; }
+
+/* Separator */
+.sep { height: 1px; background: #1a1a1a; margin: 16px 0; }
+
+/* Heatmap placeholder */
+.heatmap-placeholder { height: 200px; background: #0d0d0d; border-radius: 2px; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(8, 1fr); gap: 1px; padding: 8px; }
+.hm-cell { border-radius: 1px; }
+
+/* Histogram placeholder */
+.histogram-placeholder { height: 80px; display: flex; align-items: flex-end; gap: 2px; padding: 0 4px; }
+.hist-bar { flex: 1; background: #4A90D9; border-radius: 1px 1px 0 0; min-height: 2px; }
+
+/* Top cells */
+.top-cells .cell-row { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 11px; transition: background 0.1s; }
+.top-cells .cell-row:hover { background: #1a1a1a; margin: 0 -4px; padding-left: 4px; padding-right: 4px; }
+.cell-num { color: #666; width: 32px; flex-shrink: 0; }
+.mechano-val { font-weight: 600; }
+.mechano-val.positive { color: #ef5350; }
+.mechano-val.negative { color: #42a5f5; }
+.glyco-val { color: #666; margin-left: auto; }
+
+/* Collapsible */
+.collapse-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 4px 0; }
+.collapse-header .arrow { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="logo">&#9679; GlycoQuant</span>
+  <div class="tabs">
+    <a class="tab active">Overview</a>
+    <a class="tab">Single Cell</a>
+    <a class="tab">Compare</a>
+    <a class="tab">Ranking</a>
+    <a class="tab">Experiment</a>
+  </div>
+  <div class="spacer"></div>
+  <button class="export-btn">Export</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- CANVAS AREA -->
+  <div class="canvas-area">
+    <!-- Microscopy placeholder with fake cells -->
+    <div class="microscopy-placeholder">
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#0a1a2a"/>
+            <stop offset="100%" stop-color="#000"/>
+          </radialGradient>
+        </defs>
+        <rect width="800" height="600" fill="url(#glow)"/>
+        <!-- Fake cell outlines -->
+        <polygon points="120,140 160,120 200,140 210,180 170,210 130,200" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <polygon points="300,100 350,80 390,110 385,160 340,175 295,155" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <polygon points="480,200 530,180 570,210 560,260 510,275 470,250" fill="none" stroke="rgba(0,255,255,0.8)" stroke-width="2"/>
+        <polygon points="200,300 240,280 280,300 285,345 245,365 205,350" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <polygon points="400,350 450,330 490,355 485,400 440,415 395,395" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <polygon points="580,380 630,360 660,390 655,430 610,445 575,420" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <polygon points="150,420 190,400 230,420 225,465 185,480 145,460" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <polygon points="350,220 395,200 430,225 425,270 385,285 345,265" fill="none" stroke="rgba(0,255,255,0.35)" stroke-width="1"/>
+        <!-- Dim cell nuclei suggestion -->
+        <circle cx="160" cy="170" r="12" fill="rgba(74,144,217,0.08)"/>
+        <circle cx="345" cy="130" r="14" fill="rgba(74,144,217,0.08)"/>
+        <circle cx="525" cy="230" r="15" fill="rgba(74,144,217,0.12)"/>
+        <circle cx="245" cy="325" r="11" fill="rgba(74,144,217,0.08)"/>
+        <circle cx="445" cy="375" r="13" fill="rgba(74,144,217,0.08)"/>
+      </svg>
+    </div>
+
+    <!-- Overlay panel -->
+    <div class="overlay-panel">
+      <div class="section-label">Overlays</div>
+      <div class="toggle-row">
+        <div class="toggle-dot active"></div>
+        <span class="toggle-label">Seg</span>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-dot"></div>
+        <span class="toggle-label">Glyco</span>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-dot"></div>
+        <span class="toggle-label">Mechano</span>
+      </div>
+      <div class="advanced-link">&#9656; Advanced</div>
+      <div class="section-label" style="margin-top: 12px;">Channels</div>
+      <div class="channel-strip">
+        <div class="channel-col">
+          <div class="channel-chip" style="background:#4A90D9; opacity:1; box-shadow:0 0 6px #4A90D9;"></div>
+          <span class="channel-letter">D</span>
+        </div>
+        <div class="channel-col">
+          <div class="channel-chip" style="background:#4CAF50; opacity:1; box-shadow:0 0 6px #4CAF50;"></div>
+          <span class="channel-letter">W</span>
+        </div>
+        <div class="channel-col">
+          <div class="channel-chip" style="background:#E040FB; opacity:0.2;"></div>
+          <span class="channel-letter">Y</span>
+        </div>
+        <div class="channel-col">
+          <div class="channel-chip" style="background:#FF9800; opacity:0.2;"></div>
+          <span class="channel-letter">P</span>
+        </div>
+        <div class="channel-col">
+          <div class="channel-chip" style="background:#B0BEC5; opacity:0.7;"></div>
+          <span class="channel-letter">A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip">
+      <div class="cell-id">Cell 42</div>
+      <div class="metric-row"><span>glyco</span> <span class="metric-value">1.82</span></div>
+      <div class="metric-row"><span>YAP N/C</span> <span class="metric-value">1.41</span></div>
+      <div class="metric-row"><span>mechano</span> <span class="metric-value">+0.73</span></div>
+      <div class="metric-row"><span>FA mature</span> <span class="metric-value">65%</span></div>
+    </div>
+
+    <!-- Scale bar -->
+    <div class="scale-bar">
+      <div class="bar"></div>
+      <div class="bar-label">50 &micro;m</div>
+    </div>
+  </div>
+
+  <!-- RIGHT RAIL -->
+  <div class="right-rail">
+    <!-- Hero metrics -->
+    <div class="hero">
+      <div class="metric">
+        <div class="value">131</div>
+        <div class="label">Cells</div>
+      </div>
+      <div class="metric">
+        <div class="value">-0.14</div>
+        <div class="label">Mechano</div>
+      </div>
+      <div class="metric">
+        <div class="value">-0.59</div>
+        <div class="label">Glyco&harr;Mech</div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Heatmap -->
+    <div class="rail-section">
+      <div class="section-label" style="margin-bottom: 4px;">Glyco &harr; Mechano correlation</div>
+      <div style="font-size:10px;color:#555;margin-bottom:8px;">top |r| = -0.59 &mdash; glyco_peri_ratio &times; yap_nc</div>
+      <div class="heatmap-placeholder">
+        <div class="hm-cell" style="background:rgba(33,102,172,0.8)"></div>
+        <div class="hm-cell" style="background:rgba(103,169,207,0.6)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.5)"></div>
+        <div class="hm-cell" style="background:rgba(178,24,43,0.7)"></div>
+        <div class="hm-cell" style="background:rgba(103,169,207,0.5)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.6)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(103,169,207,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.6)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(103,169,207,0.5)"></div>
+        <div class="hm-cell" style="background:rgba(178,24,43,0.9)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.7)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.5)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.7)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(103,169,207,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.5)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.6)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(178,24,43,0.6)"></div>
+        <div class="hm-cell" style="background:rgba(200,100,80,0.8)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.4)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(80,80,80,0.3)"></div>
+        <div class="hm-cell" style="background:rgba(103,169,207,0.5)"></div>
+        <div class="hm-cell" style="background:rgba(33,102,172,0.8)"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Histogram -->
+    <div class="rail-section">
+      <div class="section-label">Score distribution</div>
+      <div class="histogram-placeholder">
+        <div class="hist-bar" style="height:15%"></div>
+        <div class="hist-bar" style="height:25%"></div>
+        <div class="hist-bar" style="height:40%"></div>
+        <div class="hist-bar" style="height:70%"></div>
+        <div class="hist-bar" style="height:100%"></div>
+        <div class="hist-bar" style="height:85%"></div>
+        <div class="hist-bar" style="height:90%"></div>
+        <div class="hist-bar" style="height:60%"></div>
+        <div class="hist-bar" style="height:45%"></div>
+        <div class="hist-bar" style="height:30%"></div>
+        <div class="hist-bar" style="height:20%"></div>
+        <div class="hist-bar" style="height:10%"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Top cells -->
+    <div class="rail-section top-cells">
+      <div class="section-label">Top deviating cells</div>
+      <div class="cell-row">
+        <span class="cell-num">#19</span>
+        <span class="mechano-val positive">m +4.33</span>
+        <span class="glyco-val">glyco 0.14</span>
+      </div>
+      <div class="cell-row">
+        <span class="cell-num">#31</span>
+        <span class="mechano-val negative">m -4.27</span>
+        <span class="glyco-val">glyco 0.92</span>
+      </div>
+      <div class="cell-row">
+        <span class="cell-num">#18</span>
+        <span class="mechano-val positive">m +4.04</span>
+        <span class="glyco-val">glyco 0.18</span>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Collapsible full correlation -->
+    <div class="collapse-header">
+      <span class="section-label" style="margin:0;">Full correlation audit</span>
+      <span class="arrow">&#9656;</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span class="highlight">RXRX1_U2OS-01_PLATE2_H20_S1</span>
+  <span>&middot;</span>
+  <span>131 cells</span>
+  <span>&middot;</span>
+  <span>0.656 &micro;m/px</span>
+</div>
+
+</body>
+</html>
