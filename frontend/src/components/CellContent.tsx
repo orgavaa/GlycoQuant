@@ -82,28 +82,38 @@ export function CellContent({ cell, cells }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
-        <a onClick={() => setSelectedCellId(null)} className="text-[13px] font-medium text-blue-600 cursor-pointer hover:underline mb-4 inline-block">
-          &larr; Overview
-        </a>
-        <div className="text-[20px] font-bold text-gray-900 mb-1">Cell #{cell.cell_id}</div>
-        <div className="text-[12px] italic text-gray-400 mb-5 leading-relaxed">{summary}</div>
+      {/* Back link */}
+      <a
+        onClick={() => setSelectedCellId(null)}
+        className="text-[13px] font-medium text-blue-600 cursor-pointer hover:underline"
+      >
+        &larr; Back to overview
+      </a>
 
-        <div className="grid grid-cols-2 gap-2.5 mb-6">
-          {metricItems.map(mi => (
-            <div key={mi.key} className="bg-gray-50 rounded-md p-3">
-              <div className={`text-[20px] font-bold ${mColor(mi.key)}`} style={{ fontFeatureSettings: "'tnum'" }}>
-                {mi.format(cell[mi.key] as number | null | undefined)}
-              </div>
-              <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-[1px] mt-1">{mi.label}</div>
+      {/* Summary */}
+      <div>
+        <div className="text-[12px] italic text-gray-400 leading-relaxed">{summary}</div>
+      </div>
+
+      {/* 2x2 metric cards */}
+      <div className="grid grid-cols-2 gap-2.5">
+        {metricItems.map(mi => (
+          <Card key={mi.key} className="!p-3">
+            <div className={`text-[20px] font-bold ${mColor(mi.key)}`} style={{ fontFeatureSettings: "'tnum'" }}>
+              {mi.format(cell[mi.key] as number | null | undefined)}
             </div>
-          ))}
-        </div>
+            <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-[1px] mt-1">{mi.label}</div>
+          </Card>
+        ))}
+      </div>
 
-        <div className="flex justify-center mb-6">
-          <RadarChart values={radarValues} size={200} />
-        </div>
+      {/* Radar chart */}
+      <Card className="flex justify-center">
+        <RadarChart values={radarValues} size={220} />
+      </Card>
 
+      {/* Feature groups */}
+      <Card>
         {featureGroups.map((g, i) => (
           <FeatureGroup key={g.name} name={g.name} features={g.features} defaultOpen={i === 0} />
         ))}

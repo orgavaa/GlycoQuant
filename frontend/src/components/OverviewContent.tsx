@@ -26,8 +26,6 @@ export function OverviewContent({ result, cells }: Props) {
       .slice(0, 5);
   }, [cells]);
 
-  // Compute the third hero metric: prefer top_glyco_mechano_r from hero_metrics,
-  // fall back to mechano_score_summary
   const glycoMechR = m.top_glyco_mechano_r ?? summary?.top_correlation_r ?? null;
 
   return (
@@ -41,7 +39,7 @@ export function OverviewContent({ result, cells }: Props) {
         ]} />
       </Card>
 
-      {/* Glyco-Mechano correlation heatmap */}
+      {/* Glyco-Mechano correlation heatmap — generous height for readability */}
       {result.glyco_mechano_correlation_figure_json && (
         <PlotlyCard
           title="Glycocalyx \u2194 Mechanotransduction"
@@ -49,7 +47,7 @@ export function OverviewContent({ result, cells }: Props) {
             ? `top |r| = ${fmt(summary.top_correlation_r)} \u2014 ${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]}`
             : undefined}
           figureJson={result.glyco_mechano_correlation_figure_json}
-          maxHeight={260}
+          maxHeight={320}
         />
       )}
 
@@ -58,7 +56,7 @@ export function OverviewContent({ result, cells }: Props) {
         <PlotlyCard
           title="Score distribution"
           figureJson={result.mechano_score_distribution_figure_json}
-          maxHeight={160}
+          maxHeight={200}
         />
       )}
 
@@ -88,14 +86,14 @@ function CorrelationAudit({ figureJson }: { figureJson: string }) {
       </div>
       {open && (
         <div className="mt-3">
-          <PlotlyRailInline figureJson={figureJson} maxHeight={360} />
+          <PlotlyInline figureJson={figureJson} maxHeight={420} />
         </div>
       )}
     </Card>
   );
 }
 
-function PlotlyRailInline({ figureJson, maxHeight }: { figureJson: string; maxHeight: number }) {
+function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight: number }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
@@ -111,22 +109,21 @@ function PlotlyRailInline({ figureJson, maxHeight }: { figureJson: string; maxHe
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "#fff",
-      font: { family: "Inter, sans-serif", color: "#9ca3af", size: 9 },
-      margin: { l: 40, r: 8, t: 4, b: 32, pad: 0 },
-      xaxis: { ...backendXaxis, gridcolor: "#f3f4f6", tickfont: { size: 8, family: "Inter" } },
-      yaxis: { ...backendYaxis, gridcolor: "#f3f4f6", tickfont: { size: 8, family: "Inter" } },
+      font: { family: "Inter, sans-serif", color: "#9ca3af", size: 10 },
+      margin: { l: 48, r: 16, t: 8, b: 44, pad: 2 },
+      xaxis: { ...backendXaxis, gridcolor: "#f3f4f6", tickfont: { size: 9, family: "Inter" } },
+      yaxis: { ...backendYaxis, gridcolor: "#f3f4f6", tickfont: { size: 9, family: "Inter" } },
     };
 
-    // Style heatmap colorbars
     const data = (parsed.data as Record<string, unknown>[]).map(trace => {
       if (trace.type === "heatmap" && trace.colorbar) {
         return {
           ...trace,
           colorbar: {
             ...(trace.colorbar as Record<string, unknown>),
-            thickness: 10,
-            len: 0.8,
-            tickfont: { size: 8, color: "#9ca3af" },
+            thickness: 12,
+            len: 0.85,
+            tickfont: { size: 9, color: "#9ca3af" },
             outlinewidth: 0,
           },
         };

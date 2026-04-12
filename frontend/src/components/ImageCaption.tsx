@@ -13,7 +13,7 @@ export function ImageCaption({ datasetLabel, cellCount, pixelSizeUm }: ImageCapt
   if (parts.length === 0) return null;
 
   return (
-    <div className="px-4 py-3 text-[11px] text-gray-400">
+    <div className="px-4 py-2.5 text-[11px] text-gray-300 tracking-wide">
       {parts.join(" \u00b7 ")}
     </div>
   );

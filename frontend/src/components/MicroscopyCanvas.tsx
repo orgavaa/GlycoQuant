@@ -204,7 +204,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
 
   return (
     <>
-      <div ref={containerRef} className="w-full h-full bg-black rounded-t-lg relative overflow-hidden">
+      <div ref={containerRef} className="w-full h-full bg-black relative overflow-hidden">
         <div ref={plotRef} className="absolute inset-0 pointer-events-none" />
         <canvas
           ref={canvasRef}
