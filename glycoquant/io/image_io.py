@@ -27,7 +27,7 @@ from skimage.transform import resize
 # Constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_DISPLAY_MAX_SIDE = 1024  # pixels
+DEFAULT_DISPLAY_MAX_SIDE = 2048  # pixels — sharp on retina/HiDPI displays
 
 # Canonical channel names that downstream code (ProfileAssembler,
 # DinoV2Embedder) expects.

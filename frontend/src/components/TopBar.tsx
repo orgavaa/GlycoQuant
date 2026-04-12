@@ -8,6 +8,7 @@ interface TopBarProps {
 export function TopBar({ activeView, onChangeView }: TopBarProps) {
   return (
     <nav className="h-14 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0 z-50">
+      <img src="/logo.png" alt="GlycoQuant" className="h-7 w-7 rounded mr-2" draggable={false} />
       <span className="font-bold text-[16px] text-gray-900 tracking-[-0.3px]">GlycoQuant</span>
       <div className="flex gap-8 ml-12">
         <NavTab label="Analysis" active={activeView === "analysis"} onClick={() => onChangeView("analysis")} />

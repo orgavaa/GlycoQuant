@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
-import { Card } from "@/components/Card";
 import {
   demoPreviewUrl,
   fetchDemoList,
@@ -60,24 +59,22 @@ export function LoaderView() {
   const conditions = demoQuery.data?.conditions ?? [];
 
   return (
-    <div className="h-full flex bg-gray-50">
-      {/* Left: preview image */}
-      <div className="flex-1 min-w-0 p-5">
-        <Card noPadding className="h-full overflow-hidden">
-          <div className="h-full bg-black flex items-center justify-center">
-            {previewSrc ? (
-              <img src={previewSrc} alt="Preview" className="w-full h-full object-contain" />
-            ) : (
-              <div className="text-gray-500 text-[11px] tracking-[0.15em] uppercase">
-                Select a dataset to begin
-              </div>
-            )}
+    <div className="relative h-full w-full overflow-hidden bg-black">
+      {/* Full-bleed preview image */}
+      <div className="absolute inset-0">
+        {previewSrc ? (
+          <img src={previewSrc} alt="Preview" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-gray-500 text-[11px] tracking-[0.15em] uppercase">
+              Select a dataset to begin
+            </div>
           </div>
-        </Card>
+        )}
       </div>
 
-      {/* Right: controls */}
-      <div className="w-[380px] flex-shrink-0 border-l border-gray-200 bg-white overflow-y-auto p-6">
+      {/* Right: controls panel — overlaid on the image */}
+      <div className="absolute top-0 right-0 h-full w-[380px] flex-shrink-0 bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl overflow-y-auto p-6 z-10">
         <div className="mb-6">
           <h2 className="text-[18px] font-semibold text-gray-900 mb-2">Image analysis</h2>
           <p className="text-[12px] text-gray-500 leading-relaxed">
