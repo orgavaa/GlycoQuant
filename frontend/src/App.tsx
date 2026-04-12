@@ -53,10 +53,10 @@ export default function App() {
   );
 }
 
-/** Wrapper for legacy Tab 2 / Tab 3 with dark background */
+/** Wrapper for Tab 2 / Tab 3 — white background, clean layout */
 function LegacyTabWrapper({ tab }: { tab: "prioritization" | "experiment" }) {
   return (
-    <div className="h-full overflow-y-auto bg-[#0a0a0a] p-8">
+    <div className="h-full overflow-y-auto bg-white text-gray-900 p-8">
       <div className="max-w-[1200px] mx-auto">
         {tab === "prioritization" ? (
           <PrioritizationTabLazy />

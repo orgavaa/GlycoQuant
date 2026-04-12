@@ -1,7 +1,6 @@
 /**
  * OverviewView — canvas + overlay controls + right rail.
- * The primary instrument view. Handles both overview and single-cell modes
- * (single cell = a cell is selected on the canvas → right rail shows dossier).
+ * 60/40 layout: image takes 60%, right rail takes 40%.
  */
 import { useState } from "react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
@@ -38,8 +37,8 @@ export function OverviewView({ result }: OverviewViewProps) {
       onMouseEnter={() => setCanvasHovered(true)}
       onMouseLeave={() => setCanvasHovered(false)}
     >
-      {/* Canvas area — takes all remaining width */}
-      <div className="flex-1 relative min-w-0">
+      {/* Canvas area — 60% width */}
+      <div className="relative min-w-0" style={{ width: "60%" }}>
         <MicroscopyCanvas
           result={result}
           showSegmentation={showSegmentation}
@@ -52,10 +51,7 @@ export function OverviewView({ result }: OverviewViewProps) {
           showSegmentation={showSegmentation}
           onToggleSegmentation={() => setShowSegmentation((v) => !v)}
           activeOverlay={activeOverlay}
-          onSetOverlay={(o) => {
-            // Only one fill overlay active at a time
-            setActiveOverlay(o);
-          }}
+          onSetOverlay={(o) => setActiveOverlay(o)}
           channelVisibility={channelVisibility}
           onToggleChannel={(ch) =>
             setChannelVisibility((prev) => ({ ...prev, [ch]: !prev[ch] }))
@@ -75,7 +71,7 @@ export function OverviewView({ result }: OverviewViewProps) {
         />
       </div>
 
-      {/* Right rail — 320px fixed */}
+      {/* Right rail — 40% width */}
       <RightRail
         result={result}
         onDeselectCell={() => setSelectedCellId(null)}

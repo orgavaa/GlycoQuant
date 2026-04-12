@@ -341,17 +341,17 @@ export function MicroscopyCanvas({
     onHoveredCellChange?.(null);
   }, [onHoveredCellChange]);
 
-  // Fallback: if no channel PNGs, render the Plotly figure
+  // Fallback: if no channel PNGs, render the Plotly segmentation figure directly
   if (!result.channel_pngs || channelBitmaps.size === 0) {
     return (
-      <div ref={containerRef} className="flex-1 bg-black relative overflow-hidden">
+      <div ref={containerRef} className="w-full h-full bg-black relative overflow-hidden">
         <FallbackPlotly figureJson={result.segmentation_figure_json} />
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="flex-1 bg-black relative overflow-hidden">
+    <div ref={containerRef} className="w-full h-full bg-black relative overflow-hidden">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 cursor-crosshair"
@@ -364,28 +364,48 @@ export function MicroscopyCanvas({
 }
 
 function FallbackPlotly({ figureJson }: { figureJson: string }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(false);
+
   useEffect(() => {
-    if (!ref.current) return;
-    import("plotly.js-dist-min").then((Plotly) => {
-      let parsed: { data: unknown; layout: unknown };
-      try { parsed = JSON.parse(figureJson); } catch { return; }
-      const layout = {
-        ...(parsed.layout as Record<string, unknown>),
-        autosize: true,
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)",
-        font: { color: "#888" },
-        margin: { l: 0, r: 0, t: 0, b: 0 },
-        xaxis: { visible: false },
-        yaxis: { visible: false },
-      };
-      const config = { displayModeBar: false, displaylogo: false, responsive: true };
+    if (!plotRef.current || mountedRef.current) return;
+    mountedRef.current = true;
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Plotly = require("plotly.js-dist-min") as typeof import("plotly.js-dist-min");
+
+    let parsed: { data: unknown; layout: unknown };
+    try { parsed = JSON.parse(figureJson); } catch { return; }
+
+    const layout = {
+      ...(parsed.layout as Record<string, unknown>),
+      autosize: true,
+      paper_bgcolor: "#000",
+      plot_bgcolor: "#000",
+      font: { color: "#888", size: 10 },
+      margin: { l: 0, r: 0, t: 0, b: 0 },
+      xaxis: { visible: false, showgrid: false },
+      yaxis: { visible: false, showgrid: false, scaleanchor: "x" },
+    };
+    const config = { displayModeBar: false, displaylogo: false, responsive: true, staticPlot: false };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (Plotly as any).react(plotRef.current!, parsed.data as any, layout as any, config as any);
+
+    return () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Plotly.default.react(ref.current!, parsed.data as any, layout as any, config as any);
-    });
+      if (plotRef.current) (Plotly as any).purge(plotRef.current);
+      mountedRef.current = false;
+    };
   }, [figureJson]);
-  return <div ref={ref} className="w-full h-full" />;
+
+  return (
+    <div
+      ref={plotRef}
+      className="absolute inset-0"
+      style={{ width: "100%", height: "100%" }}
+    />
+  );
 }
 
 function fmtSigned(v: number | undefined | null): string {

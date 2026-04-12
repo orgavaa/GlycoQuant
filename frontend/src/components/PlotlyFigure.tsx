@@ -1,6 +1,6 @@
 /**
- * PlotlyFigure — compatibility shim for legacy tabs.
- * Delegates to the dark-styled PlotlyChart.
+ * PlotlyFigure — Plotly wrapper for white-background contexts (Ranking tab).
+ * White paper bg, gray text, no toolbar.
  */
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useRef } from "react";
@@ -35,9 +35,10 @@ export function PlotlyFigure({
       ...(parsed.layout as Record<string, unknown>),
       ...(height ? { height } : {}),
       autosize: true,
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
-      font: { family: "ui-monospace, monospace", color: "#888", size: 10 },
+      paper_bgcolor: "#fff",
+      plot_bgcolor: "#fafafa",
+      font: { family: "ui-monospace, monospace", color: "#333", size: 10 },
+      margin: { l: 50, r: 20, t: 20, b: 40 },
     };
     const config = {
       displaylogo: false,

@@ -1,6 +1,6 @@
 /**
  * PlotlyDark — dark-styled Plotly wrapper for the right rail.
- * Transparent background, muted axes, no toolbar.
+ * Transparent background, muted axes, no toolbar. Generous margins for readability.
  */
 import Plotly from "plotly.js-dist-min";
 import { useEffect, useRef } from "react";
@@ -23,8 +23,10 @@ export function PlotlyDark({ figureJson, height = 200, title }: PlotlyDarkProps)
       return;
     }
 
+    const existingLayout = parsed.layout as Record<string, unknown>;
+
     const layout = {
-      ...(parsed.layout as Record<string, unknown>),
+      ...existingLayout,
       height,
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
@@ -32,18 +34,20 @@ export function PlotlyDark({ figureJson, height = 200, title }: PlotlyDarkProps)
       font: {
         family: "ui-monospace, 'JetBrains Mono', monospace",
         color: "#aaa",
-        size: 9,
+        size: 10,
       },
-      margin: { l: 35, r: 10, t: 10, b: 30 },
+      margin: { l: 80, r: 20, t: 20, b: 50 },
       xaxis: {
-        ...((parsed.layout as Record<string, unknown>)?.xaxis ?? {}),
-        gridcolor: "rgba(255,255,255,0.05)",
-        zerolinecolor: "rgba(255,255,255,0.08)",
+        ...(existingLayout?.xaxis ?? {}),
+        gridcolor: "rgba(255,255,255,0.06)",
+        zerolinecolor: "rgba(255,255,255,0.1)",
+        tickfont: { size: 9, color: "#888" },
       },
       yaxis: {
-        ...((parsed.layout as Record<string, unknown>)?.yaxis ?? {}),
-        gridcolor: "rgba(255,255,255,0.05)",
-        zerolinecolor: "rgba(255,255,255,0.08)",
+        ...(existingLayout?.yaxis ?? {}),
+        gridcolor: "rgba(255,255,255,0.06)",
+        zerolinecolor: "rgba(255,255,255,0.1)",
+        tickfont: { size: 9, color: "#888" },
       },
     };
 
@@ -71,7 +75,7 @@ export function PlotlyDark({ figureJson, height = 200, title }: PlotlyDarkProps)
   return (
     <div>
       {title && (
-        <div className="text-[10px] text-[#888] mono mb-1">{title}</div>
+        <div className="text-[10px] text-[#888] mono mb-2 leading-relaxed">{title}</div>
       )}
       <div ref={ref} style={{ width: "100%" }} />
     </div>

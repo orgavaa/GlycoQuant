@@ -1,11 +1,12 @@
 /**
  * DrillDownPanel — per-gene STRING shortest-path evidence.
- * Restyled for the Stitch "Quantitative Aesthetic".
+ * Clean white UI with professional selects and path visualization.
  */
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { fetchDrillDown } from "@/lib/api";
+import { ArrowRight, Route } from "lucide-react";
 
 interface DrillDownPanelProps {
   gene: string;
@@ -34,16 +35,16 @@ export function DrillDownPanel({
   const evidence = drill?.evidence_per_target[selectedTarget];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Gene selector */}
       <div className="flex items-center gap-4">
-        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest whitespace-nowrap">
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
           Glycocalyx gene
-        </span>
+        </label>
         <select
           value={gene}
           onChange={(e) => onGeneChange(e.target.value)}
-          className="bg-surface-container-lowest ghost-border px-3 py-2 text-sm text-on-surface font-mono cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 font-mono cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {availableGenes.map((g) => (
             <option key={g} value={g}>{g}</option>
@@ -52,34 +53,33 @@ export function DrillDownPanel({
       </div>
 
       {/* Heatmap + evidence side by side */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left: heatmap */}
-        <div className="bg-surface-container-lowest ghost-border p-3">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           {drillQuery.isLoading ? (
             <div className="flex h-[240px] items-center justify-center">
-              <span className="material-symbols-outlined text-primary animate-spin">
-                progress_activity
-              </span>
+              <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
             </div>
           ) : drill ? (
             <PlotlyFigure figureJson={drill.heatmap_figure_json} height={240} />
           ) : (
-            <div className="flex h-[240px] items-center justify-center text-[10px] text-on-surface-variant uppercase tracking-widest">
-              Drill-down heatmap — Phase 6
+            <div className="flex h-[240px] items-center justify-center text-sm text-gray-400">
+              Select a gene to view the heatmap
             </div>
           )}
         </div>
 
         {/* Right: STRING evidence */}
-        <div className="bg-surface-container-lowest ghost-border p-5">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
           <div className="mb-4 flex items-center gap-3">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest whitespace-nowrap">
-              STRING evidence — mechano target
-            </span>
+            <Route className="w-4 h-4 text-gray-400" />
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Mechano target
+            </label>
             <select
               value={selectedTarget}
               onChange={(e) => setSelectedTarget(e.target.value)}
-              className="ml-auto bg-surface-container-lowest ghost-border px-2 py-1.5 text-xs text-on-surface font-mono cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+              className="ml-auto bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 font-mono cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               {mechanoSignature.map((m) => (
                 <option key={m} value={m}>{m}</option>
@@ -88,40 +88,40 @@ export function DrillDownPanel({
           </div>
 
           {!evidence ? (
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-sm text-gray-500">
               No pathway evidence for{" "}
-              <span className="font-mono">{gene} → {selectedTarget}</span>
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">{gene} &rarr; {selectedTarget}</code>
             </p>
           ) : evidence.path.length === 0 ? (
-            <p className="text-xs text-on-surface-variant">
-              <span className="font-mono">{gene} → {selectedTarget}</span>{" "}
-              unreachable in STRING v12 at confidence ≥ 0.7
+            <p className="text-sm text-gray-500">
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">{gene} &rarr; {selectedTarget}</code>{" "}
+              unreachable in STRING v12 at confidence &ge; 0.7
             </p>
           ) : (
             <div className="space-y-4">
               {/* Path nodes */}
-              <div className="flex flex-wrap items-center gap-2 font-mono text-sm">
+              <div className="flex flex-wrap items-center gap-2">
                 {evidence.path.map((node, i) => (
                   <span key={i} className="flex items-center gap-2">
-                    <span className="ghost-border px-2 py-1 text-on-surface bg-surface-container font-semibold text-xs">
+                    <span className="px-2.5 py-1 bg-white border border-gray-300 rounded-md font-mono font-semibold text-xs text-gray-900">
                       {node}
                     </span>
                     {i < evidence.path.length - 1 && (
-                      <span className="text-on-surface-variant text-xs">→</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
                     )}
                   </span>
                 ))}
               </div>
 
-              <div className="text-xs text-on-surface-variant">
+              <div className="text-sm text-gray-600">
                 Dijkstra distance ={" "}
-                <span className="font-mono text-on-surface tabular-nums">
-                  {evidence.distance?.toFixed(3) ?? "—"}
+                <span className="font-mono font-semibold text-gray-900 tabular-nums">
+                  {evidence.distance?.toFixed(3) ?? "\u2014"}
                 </span>
               </div>
 
               <div>
-                <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Edges along the path
                 </div>
                 <ul className="space-y-1.5">
@@ -130,14 +130,14 @@ export function DrillDownPanel({
                       key={i}
                       className="flex items-center gap-2 text-xs font-mono"
                     >
-                      <span className="ghost-border px-1.5 py-0.5 bg-surface-container text-on-surface text-[10px]">
+                      <span className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-800">
                         {e.from}
                       </span>
-                      <span className="text-on-surface-variant">↔</span>
-                      <span className="ghost-border px-1.5 py-0.5 bg-surface-container text-on-surface text-[10px]">
+                      <span className="text-gray-400">&harr;</span>
+                      <span className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-800">
                         {e.to}
                       </span>
-                      <span className="ml-auto tabular-nums text-on-surface-variant text-[10px]">
+                      <span className="ml-auto tabular-nums text-gray-500">
                         conf {e.confidence.toFixed(3)}
                       </span>
                     </li>

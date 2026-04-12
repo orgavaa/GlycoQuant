@@ -1,7 +1,8 @@
 /**
  * MetabolicInhibitorTable — where each drug sits in the ranked panel.
- * Restyled for the Stitch design language.
+ * Clean white table design.
  */
+import { Check } from "lucide-react";
 import type { MetabolicInhibitor } from "@/lib/api";
 
 interface MetabolicInhibitorTableProps {
@@ -14,42 +15,42 @@ export function MetabolicInhibitorTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
-        <thead>
-          <tr className="bg-surface-container-high">
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Inhibitor</th>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Pathway</th>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Primary target</th>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">In panel</th>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Pathway rank</th>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Pathway score</th>
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Inhibitor</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pathway</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Primary target</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">In panel</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pathway rank</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pathway score</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-outline-variant/10">
+        <tbody className="divide-y divide-gray-100">
           {inhibitors.map((inh) => (
-            <tr key={inh.name} className="hover:bg-surface-container/40 transition-colors">
-              <td className="p-3 font-headline font-semibold text-sm text-on-surface">
+            <tr key={inh.name} className="hover:bg-gray-50 transition-colors">
+              <td className="px-4 py-3 font-semibold text-sm text-gray-900">
                 {inh.name}
               </td>
-              <td className="p-3 text-xs text-on-surface-variant">
+              <td className="px-4 py-3 text-sm text-gray-500">
                 {inh.pathway}
               </td>
-              <td className="p-3 text-sm font-mono text-on-surface">
+              <td className="px-4 py-3 text-sm font-mono text-gray-900">
                 {inh.target}
               </td>
-              <td className="p-3 text-sm">
+              <td className="px-4 py-3 text-sm">
                 {inh.pathway_rank !== null ? (
-                  <span className="text-primary font-bold">&#10003;</span>
+                  <Check className="w-4 h-4 text-emerald-500" />
                 ) : (
-                  <span className="text-on-surface-variant">—</span>
+                  <span className="text-gray-300">\u2014</span>
                 )}
               </td>
-              <td className="p-3 text-sm font-mono tabular-nums text-on-surface">
-                {inh.pathway_rank ?? "—"}
+              <td className="px-4 py-3 text-sm font-mono tabular-nums text-gray-900">
+                {inh.pathway_rank ?? "\u2014"}
               </td>
-              <td className="p-3 text-sm font-mono tabular-nums text-on-surface">
+              <td className="px-4 py-3 text-sm font-mono tabular-nums text-gray-700">
                 {inh.pathway_score !== null
                   ? inh.pathway_score.toFixed(3)
-                  : "—"}
+                  : "\u2014"}
               </td>
             </tr>
           ))}

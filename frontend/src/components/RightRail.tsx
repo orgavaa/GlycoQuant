@@ -1,9 +1,9 @@
 /**
- * RightRail — 320px fixed panel. Content swaps by context.
+ * RightRail — 40% width panel. Content swaps by context.
  * Overview mode: hero metrics + heatmap + histogram + top cells.
  * Single cell mode: cell header + summary + radar + feature groups.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { HeroMetrics } from "./HeroMetrics";
 import { PlotlyDark } from "./PlotlyDark";
 import { RadarChart } from "./RadarChart";
@@ -12,7 +12,6 @@ import { CellSummary } from "./CellSummary";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 import { FEATURE_GROUPS, RADAR_AXES } from "@/types";
-import { useState } from "react";
 
 interface CellRow {
   cell_id: number;
@@ -50,7 +49,6 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
   const popStats = useMemo(() => {
     const stats: Record<string, { mean: number; std: number; min: number; max: number; median: number }> = {};
     if (rows.length === 0) return stats;
-    // Collect all numeric feature keys (excluding cell_id and deep_*)
     const keys = Object.keys(rows[0]).filter(
       (k) => k !== "cell_id" && !k.startsWith("deep_"),
     );
@@ -142,52 +140,56 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
     }
 
     return (
-      <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#222] overflow-y-auto h-full">
-        <div className="p-4 space-y-4">
+      <div className="shrink-0 bg-[#111] border-l border-[#222] overflow-y-auto h-full" style={{ width: "40%" }}>
+        <div className="p-6 space-y-6">
           {/* Back button */}
           <button
             type="button"
             onClick={onDeselectCell}
-            className="text-[10px] text-[#666] hover:text-[#ccc] transition-colors"
+            className="text-[11px] text-[#666] hover:text-[#ccc] transition-colors flex items-center gap-1"
           >
-            &larr; Overview
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Overview
           </button>
 
           {/* Cell header */}
           <div>
-            <div className="text-[18px] font-bold mono text-[#eee]">
+            <div className="text-[22px] font-bold mono text-[#eee]">
               Cell #{selectedCellId}
             </div>
-            <CellSummary cell={selectedCell} populationMedians={popMedians} />
+            <div className="mt-1">
+              <CellSummary cell={selectedCell} populationMedians={popMedians} />
+            </div>
           </div>
 
           {/* Key metrics — 4 columns */}
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-4 gap-3">
             {[
               { label: "GLYCO", key: "glycocalyx_pericellular_ratio", format: fmt },
               { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: fmt },
               { label: "MECHANO", key: "mechano_score", format: fmtSigned },
               { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | undefined) => v != null && Number.isFinite(v) ? (v * 100).toFixed(0) + "%" : "\u2014" },
-            ].map((m) => (
-              <div key={m.key} className="text-center">
+            ].map((mi) => (
+              <div key={mi.key} className="text-center bg-[#1a1a1a] rounded-sm py-3 px-1">
                 <div
-                  className="text-[18px] font-bold mono leading-none"
-                  style={{ color: metricColor(m.key) }}
+                  className="text-[20px] font-bold mono leading-none"
+                  style={{ color: metricColor(mi.key) }}
                 >
-                  {m.format(selectedCell[m.key])}
+                  {mi.format(selectedCell[mi.key])}
                 </div>
-                <div className="label mt-1">{m.label}</div>
+                <div className="label mt-2">{mi.label}</div>
               </div>
             ))}
           </div>
 
           {/* Radar chart */}
-          <div className="flex justify-center">
-            <RadarChart values={radarValues} size={180} />
+          <div className="flex justify-center py-2">
+            <RadarChart values={radarValues} size={200} />
           </div>
 
           {/* Feature groups */}
-          <div className="space-y-1">
+          <div className="space-y-2">
+            <div className="label mb-1">Features by module</div>
             {featureGroupEntries.map((group, i) => (
               <FeatureGroup
                 key={group.name}
@@ -204,8 +206,8 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
 
   // Overview Mode
   return (
-    <div className="w-[320px] shrink-0 bg-[#111] border-l border-[#222] overflow-y-auto h-full">
-      <div className="p-4 space-y-6">
+    <div className="shrink-0 bg-[#111] border-l border-[#222] overflow-y-auto h-full" style={{ width: "40%" }}>
+      <div className="p-6 space-y-8">
         {/* Hero metrics */}
         <HeroMetrics
           metrics={[
@@ -220,17 +222,21 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
           ]}
         />
 
+        {/* Divider */}
+        <div className="h-px bg-[#222]" />
+
         {/* Glyco-mechano heatmap */}
         {result.glyco_mechano_correlation_figure_json && (
           <div>
+            <div className="label mb-3">Glycocalyx \u2194 Mechanotransduction correlation</div>
+            {summary?.top_correlation_pair && (
+              <div className="text-[10px] text-[#666] mono mb-2">
+                top |r| = {fmt(summary.top_correlation_r)} — {summary.top_correlation_pair[0]} \u00d7 {summary.top_correlation_pair[1]}
+              </div>
+            )}
             <PlotlyDark
               figureJson={result.glyco_mechano_correlation_figure_json}
-              height={240}
-              title={
-                summary?.top_correlation_pair
-                  ? `top |r| = ${fmt(summary.top_correlation_r)} \u2014 ${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]}`
-                  : undefined
-              }
+              height={320}
             />
           </div>
         )}
@@ -238,31 +244,36 @@ export function RightRail({ result, onDeselectCell }: RightRailProps) {
         {/* Score distribution */}
         {result.mechano_score_distribution_figure_json && (
           <div>
-            <div className="label mb-1">Score distribution</div>
+            <div className="label mb-3">Mechano score distribution</div>
             <PlotlyDark
               figureJson={result.mechano_score_distribution_figure_json}
-              height={80}
+              height={120}
             />
           </div>
         )}
 
+        {/* Divider */}
+        <div className="h-px bg-[#222]" />
+
         {/* Top deviating cells */}
         {topCells.length > 0 && (
           <div>
-            <div className="label mb-2">Top deviating cells</div>
+            <div className="label mb-3">Top deviating cells</div>
             <div className="space-y-1">
               {topCells.map((cell) => (
                 <button
                   key={cell.cell_id}
                   type="button"
                   onClick={() => setSelectedCellId(Number(cell.cell_id))}
-                  className="w-full text-left py-1.5 px-2 hover:bg-[#1a1a1a] transition-colors text-[11px] mono"
+                  className="w-full text-left py-2.5 px-3 bg-[#1a1a1a] hover:bg-[#222] transition-colors text-[12px] mono rounded-sm flex items-center justify-between"
                 >
-                  <span className="text-[#888]">#{cell.cell_id}</span>
-                  <span className="ml-2 text-[#eee]">
-                    mechano {fmtSigned(cell.mechano_score)}
+                  <span>
+                    <span className="text-[#666]">#{cell.cell_id}</span>
+                    <span className="ml-3 text-[#eee]">
+                      mechano {fmtSigned(cell.mechano_score)}
+                    </span>
                   </span>
-                  <span className="ml-2 text-[#666]">
+                  <span className="text-[#555]">
                     glyco {fmt(cell.glycocalyx_pericellular_ratio)}
                   </span>
                 </button>
@@ -285,13 +296,15 @@ function CorrelationAudit({ figureJson }: { figureJson: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between py-1"
+        className="w-full flex items-center justify-between py-2"
       >
         <span className="label">Full correlation audit</span>
-        <span className="text-[8px] text-[#666]">{open ? "\u25be" : "\u25b8"}</span>
+        <span className="text-[10px] text-[#666]">{open ? "\u25be" : "\u25b8"}</span>
       </button>
       {open && (
-        <PlotlyDark figureJson={figureJson} height={400} />
+        <div className="mt-2">
+          <PlotlyDark figureJson={figureJson} height={400} />
+        </div>
       )}
     </div>
   );

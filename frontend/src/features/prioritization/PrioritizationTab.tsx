@@ -1,14 +1,10 @@
 /**
  * Tab 2 — Perturbation Prioritization.
- *
- * Restyled with the Stitch "Quantitative Aesthetic" visual language:
- * ghost-border cards, Surface token hierarchy, Space Grotesk headlines,
- * Material Symbols icons, 10px uppercase labels. All data logic is
- * preserved from the original implementation.
+ * White background, clean professional UI with Lucide icons.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Zap, Info, ChevronLeft, FlaskConical } from "lucide-react";
 import {
   fetchContextualPriors,
   fetchPriors,
@@ -78,25 +74,26 @@ export function PrioritizationTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <span className="material-symbols-outlined text-[32px] text-primary animate-spin">
-          progress_activity
-        </span>
+        <div className="flex items-center gap-3 text-gray-400">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          <span className="text-sm">Loading ranking data...</span>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="bg-error-container/20 ghost-border p-6">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-2">
-          <span className="material-symbols-outlined text-error-stitch">warning</span>
-          <span className="text-sm font-headline font-semibold text-on-surface">
+          <Info className="w-5 h-5 text-red-500" />
+          <span className="text-sm font-semibold text-gray-900">
             Failed to load priors
           </span>
         </div>
-        <p className="text-xs text-on-surface-variant">
+        <p className="text-sm text-gray-600">
           Make sure the backend is running and{" "}
-          <span className="font-mono">data/priors/pathway_ranks.json</span>{" "}
+          <code className="bg-red-100 px-1.5 py-0.5 rounded text-xs font-mono">data/priors/pathway_ranks.json</code>{" "}
           exists.
         </p>
       </div>
@@ -119,89 +116,85 @@ export function PrioritizationTab() {
     <div className="space-y-10">
       {/* Mode banner */}
       {isDynamic ? (
-        <div className="bg-primary-container/30 ghost-border p-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-3">
-            <span className="material-symbols-outlined text-primary">auto_awesome</span>
-            <span className="text-sm font-headline font-semibold text-on-surface">
-              Ranking contextualised by your Tab 1 analysis
+            <Zap className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-semibold text-gray-900">
+              Ranking contextualised by your analysis
             </span>
             {latestDatasetLabel && (
-              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 ghost-border bg-surface-container-lowest text-on-surface-variant">
+              <span className="text-xs font-medium px-2.5 py-1 bg-white border border-blue-200 rounded-full text-blue-700 font-mono">
                 {latestDatasetLabel}
               </span>
             )}
             {latestJobResult && (
-              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 ghost-border bg-surface-container-lowest text-on-surface-variant tabular-nums">
+              <span className="text-xs font-medium px-2.5 py-1 bg-white border border-blue-200 rounded-full text-blue-700 font-mono tabular-nums">
                 {latestJobResult.cell_count} cells
               </span>
             )}
           </div>
-          <p className="text-xs text-on-surface-variant leading-relaxed max-w-3xl">
+          <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">
             The pathway prior has been re-aggregated via a weighted median
             of the per-target inverse shortest-paths, where the weights
             come from z-scored deviations of your observed per-cell features
             against a reference cohort.
           </p>
           {topWeights.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <span className="text-[10px] text-on-surface-variant uppercase tracking-widest">
-                Mechano genes most weighted:
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Most weighted:
               </span>
               {topWeights.map(([gene, weight]) => (
                 <span
                   key={gene}
-                  className="text-[10px] font-mono font-bold px-1.5 py-0.5 ghost-border bg-surface-container-lowest tabular-nums"
+                  className="text-xs font-mono font-semibold px-2 py-1 bg-white border border-gray-200 rounded text-gray-800 tabular-nums"
                 >
-                  {gene} · {weight.toFixed(2)}
+                  {gene} &middot; {weight.toFixed(2)}
                 </span>
               ))}
             </div>
           )}
-          <div className="pt-3">
-            <Button
-              variant="outline"
-              size="sm"
+          <div className="pt-4">
+            <button
+              type="button"
               onClick={() => setForceStatic(true)}
-              className="text-[10px] uppercase tracking-widest ghost-border"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
+              <ChevronLeft className="w-3.5 h-3.5" />
               Show static ranking
-            </Button>
+            </button>
           </div>
         </div>
       ) : (
-        <div className="bg-surface-container-lowest ghost-border p-6">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-3">
-            <span className="material-symbols-outlined text-primary">info</span>
-            <span className="text-sm font-headline font-semibold text-on-surface">
+            <Info className="w-5 h-5 text-gray-400" />
+            <span className="text-sm font-semibold text-gray-900">
               How this ranking is produced
             </span>
           </div>
-          <p className="text-xs text-on-surface-variant leading-relaxed max-w-3xl">
+          <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">
             This tab loads a pre-computed pathway ranking of twenty-two
             glycocalyx-relevant genes against a fixed 15-gene
-            mechanotransduction signature, so nothing needs to run at
-            view time. The ranking combines curated pathway proximity
+            mechanotransduction signature. The ranking combines curated pathway proximity
             from STRING v12 with transcriptomic co-regulation from
-            Geneformer (Theodoris 2023, ~10⁴ M cells). Disagreement
-            between the two priors is the most scientifically
-            informative signal on this page.
+            Geneformer (Theodoris 2023, ~10&#x2074; M cells).
           </p>
           {latestJobResult !== null && forceStatic && (
-            <div className="pt-3">
-              <Button
-                variant="outline"
-                size="sm"
+            <div className="pt-4">
+              <button
+                type="button"
                 onClick={() => setForceStatic(false)}
-                className="text-[10px] uppercase tracking-widest ghost-border"
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Contextualise with my Tab 1 result
-              </Button>
+                <Zap className="w-3.5 h-3.5" />
+                Contextualise with my analysis
+              </button>
             </div>
           )}
           {latestJobResult === null && (
-            <p className="mt-3 text-[10px] text-on-surface-variant uppercase tracking-widest">
-              Run an image analysis in Tab 1 to see a ranking
-              contextualised by your own image.
+            <p className="mt-4 text-xs text-gray-400">
+              Run an image analysis in the Overview tab to see a contextualised ranking.
             </p>
           )}
         </div>
@@ -216,14 +209,14 @@ export function PrioritizationTab() {
         />
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
-        <div className="ghost-border bg-amber-500/5 p-6">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-amber-600">warning</span>
-            <span className="text-sm font-headline font-semibold text-on-surface">
+            <Info className="w-5 h-5 text-amber-500" />
+            <span className="text-sm font-semibold text-gray-900">
               Running in pathway-only mode
             </span>
           </div>
-          <p className="text-xs text-on-surface-variant leading-relaxed">
+          <p className="text-sm text-gray-600">
             The transcriptomic prior is not yet committed, and this
             deployment cannot generate it (no Modal GPU provider).
           </p>
@@ -232,29 +225,40 @@ export function PrioritizationTab() {
 
       {/* Hero: top 3 glycocalyx genes */}
       <section>
-        <div className="mb-4">
-          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+        <div className="mb-6">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
             Top candidates
           </span>
-          <h2 className="mt-1 text-xl font-headline font-semibold tracking-tight text-on-surface">
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-gray-900">
             Highest pathway proximity to the mechanotransduction signature
           </h2>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {top3.map((g) => (
-            <div key={g.gene} className="bg-surface-container-lowest p-6 ghost-border">
-              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-                Rank {g.pathway_rank} in {isDynamic ? "dynamic" : "STRING"} prior
-              </span>
-              <div className="text-3xl font-headline font-medium tracking-tighter text-on-surface mt-2 tabular-nums">
+          {top3.map((g, i) => (
+            <div
+              key={g.gene}
+              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Rank {g.pathway_rank}
+                </span>
+                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  i === 0 ? "bg-blue-100 text-blue-700" :
+                  i === 1 ? "bg-gray-100 text-gray-600" :
+                  "bg-gray-50 text-gray-500"
+                }`}>
+                  {i + 1}
+                </span>
+              </div>
+              <div className="text-3xl font-semibold tracking-tight text-gray-900 tabular-nums">
                 {g.gene}
               </div>
               {g.pathway_score !== null && (
-                <div className="text-xs text-on-surface-variant mt-1 tabular-nums font-mono">
+                <div className="text-sm text-gray-500 mt-2 font-mono tabular-nums">
                   score {g.pathway_score.toFixed(3)}
                 </div>
               )}
-              <div className="w-full h-[1px] bg-outline-variant/20 mt-4" />
             </div>
           ))}
         </div>
@@ -264,18 +268,18 @@ export function PrioritizationTab() {
       <section className="space-y-4">
         <div className="flex items-baseline justify-between">
           <div>
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               Ranked perturbations
             </span>
-            <h2 className="mt-1 text-xl font-headline font-semibold tracking-tight text-on-surface">
+            <h2 className="mt-1 text-xl font-semibold tracking-tight text-gray-900">
               Twenty-two glycocalyx genes, sorted by pathway rank
             </h2>
           </div>
-          <span className="text-[10px] text-on-surface-variant uppercase tracking-widest">
+          <span className="text-xs text-gray-400 hidden lg:block">
             Click any row to drill into its per-target evidence
           </span>
         </div>
-        <div className="bg-surface-container-lowest ghost-border p-6">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <RankingTable
             genes={priors.genes}
             geneformerAvailable={priors.geneformer_available}
@@ -289,14 +293,14 @@ export function PrioritizationTab() {
       {/* Per-gene drill-down */}
       <section className="space-y-4">
         <div>
-          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
             Per-gene drill-down
           </span>
-          <h2 className="mt-1 text-xl font-headline font-semibold tracking-tight text-on-surface">
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-gray-900">
             Shortest-path evidence for the selected gene
           </h2>
         </div>
-        <div className="bg-surface-container-lowest ghost-border p-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
           {activeGene ? (
             <DrillDownPanel
               gene={activeGene}
@@ -305,7 +309,7 @@ export function PrioritizationTab() {
               availableGenes={priors.genes.map((g) => g.gene)}
             />
           ) : (
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-sm text-gray-400">
               No genes available.
             </p>
           )}
@@ -314,15 +318,18 @@ export function PrioritizationTab() {
 
       {/* Metabolic inhibitors */}
       <section className="space-y-4">
-        <div>
-          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-            Metabolic inhibitors
-          </span>
-          <h2 className="mt-1 text-xl font-headline font-semibold tracking-tight text-on-surface">
-            Where each drug sits in the ranked panel via its primary target
-          </h2>
+        <div className="flex items-center gap-2">
+          <FlaskConical className="w-4 h-4 text-gray-400" />
+          <div>
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Metabolic inhibitors
+            </span>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight text-gray-900">
+              Where each drug sits in the ranked panel
+            </h2>
+          </div>
         </div>
-        <div className="bg-surface-container-lowest ghost-border p-6">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <MetabolicInhibitorTable
             inhibitors={priors.metabolic_inhibitors}
           />

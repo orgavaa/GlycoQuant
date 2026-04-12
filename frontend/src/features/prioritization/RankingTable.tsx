@@ -1,10 +1,7 @@
 /**
  * RankingTable — 22 glycocalyx genes sorted by pathway rank.
- * Restyled for the Stitch design: ghost-border table, no vertical
- * lines, uppercase tracking-widest headers, surface-container-high
- * header row, outline-variant/10 horizontal dividers.
+ * Clean white table with subtle hover and selection states.
  */
-import { cn } from "@/lib/utils";
 import type { PriorGeneEntry } from "@/lib/api";
 
 interface RankingTableProps {
@@ -26,26 +23,26 @@ export function RankingTable({
   return (
     <div className="max-h-[520px] overflow-auto">
       <table className="w-full text-left">
-        <thead className="sticky top-0 z-10 bg-surface-container-high">
+        <thead className="sticky top-0 z-10 bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Gene</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Gene</th>
             {geneformerAvailable && (
               <>
-                <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">GF rank</th>
-                <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">GF score</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">GF rank</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">GF score</th>
               </>
             )}
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Path rank</th>
-            <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Path score</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Path rank</th>
+            <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Path score</th>
             {showDelta && (
-              <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest" title="Change vs. static ranking">Δ</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" title="Change vs. static ranking">&Delta;</th>
             )}
             {geneformerAvailable && (
-              <th className="p-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">|ΔRank|</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">|&Delta;Rank|</th>
             )}
           </tr>
         </thead>
-        <tbody className="divide-y divide-outline-variant/10">
+        <tbody className="divide-y divide-gray-100">
           {genes.map((g) => {
             let delta: number | null = null;
             if (showDelta && staticRankByGene) {
@@ -54,35 +51,36 @@ export function RankingTable({
                 delta = staticRank - g.pathway_rank;
               }
             }
+            const isSelected = selectedGene === g.gene;
             return (
               <tr
                 key={g.gene}
-                className={cn(
-                  "cursor-pointer hover:bg-surface-container/40 transition-colors",
-                  selectedGene === g.gene && "bg-primary-container/20",
-                )}
+                className={`cursor-pointer transition-colors ${
+                  isSelected
+                    ? "bg-blue-50"
+                    : "hover:bg-gray-50"
+                }`}
                 onClick={() => onSelectGene(g.gene)}
               >
-                <td className="p-3 font-headline font-semibold text-sm text-on-surface">{g.gene}</td>
+                <td className="px-4 py-3 font-semibold text-sm text-gray-900">{g.gene}</td>
                 {geneformerAvailable && (
                   <>
-                    <td className="p-3 text-sm font-mono tabular-nums text-on-surface-variant">{g.geneformer_rank ?? "—"}</td>
-                    <td className="p-3"><ScoreBar value={g.geneformer_score} /></td>
+                    <td className="px-4 py-3 text-sm font-mono tabular-nums text-gray-500">{g.geneformer_rank ?? "\u2014"}</td>
+                    <td className="px-4 py-3"><ScoreBar value={g.geneformer_score} /></td>
                   </>
                 )}
-                <td className="p-3 text-sm font-mono tabular-nums text-on-surface">{g.pathway_rank ?? "—"}</td>
-                <td className="p-3"><ScoreBar value={g.pathway_score} /></td>
+                <td className="px-4 py-3 text-sm font-mono tabular-nums text-gray-900">{g.pathway_rank ?? "\u2014"}</td>
+                <td className="px-4 py-3"><ScoreBar value={g.pathway_score} /></td>
                 {showDelta && (
-                  <td className="p-3"><DeltaCell delta={delta} /></td>
+                  <td className="px-4 py-3"><DeltaCell delta={delta} /></td>
                 )}
                 {geneformerAvailable && (
-                  <td className={cn(
-                    "p-3 text-sm font-mono tabular-nums",
+                  <td className={`px-4 py-3 text-sm font-mono tabular-nums ${
                     g.abs_rank_divergence && g.abs_rank_divergence >= 5
                       ? "font-bold text-amber-600"
-                      : "text-on-surface-variant",
-                  )}>
-                    {g.abs_rank_divergence ?? "—"}
+                      : "text-gray-500"
+                  }`}>
+                    {g.abs_rank_divergence ?? "\u2014"}
                   </td>
                 )}
               </tr>
@@ -95,26 +93,25 @@ export function RankingTable({
 }
 
 function ScoreBar({ value }: { value: number | null }) {
-  if (value === null) return <span className="text-on-surface-variant text-xs">—</span>;
+  if (value === null) return <span className="text-gray-400 text-xs">\u2014</span>;
   const pct = Math.min(100, value * 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-1 w-16 overflow-hidden bg-surface-container-highest">
-        <div className="absolute inset-y-0 left-0 bg-primary" style={{ width: `${pct}%` }} />
+      <div className="relative h-1.5 w-16 overflow-hidden bg-gray-100 rounded-full">
+        <div className="absolute inset-y-0 left-0 bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
       </div>
-      <span className="font-mono text-xs tabular-nums text-on-surface">{value.toFixed(3)}</span>
+      <span className="font-mono text-xs tabular-nums text-gray-700">{value.toFixed(3)}</span>
     </div>
   );
 }
 
 function DeltaCell({ delta }: { delta: number | null }) {
-  if (delta === null) return <span className="text-on-surface-variant text-xs">—</span>;
-  if (delta === 0) return <span className="text-on-surface-variant text-xs font-mono">0</span>;
+  if (delta === null) return <span className="text-gray-400 text-xs">\u2014</span>;
+  if (delta === 0) return <span className="text-gray-400 text-xs font-mono">0</span>;
   return (
-    <span className={cn(
-      "text-xs font-mono font-semibold tabular-nums",
-      delta > 0 ? "text-emerald-600" : "text-error-stitch",
-    )}>
+    <span className={`text-xs font-mono font-semibold tabular-nums ${
+      delta > 0 ? "text-emerald-600" : "text-red-500"
+    }`}>
       {delta > 0 ? "+" : ""}{delta}
     </span>
   );
