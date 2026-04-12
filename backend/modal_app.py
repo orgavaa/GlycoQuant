@@ -86,7 +86,8 @@ image = (
     # ``import glycoquant`` and ``import backend`` exactly like Railway.
     # third_party/dinov2 is included so torch.hub.load(source='local')
     # finds the channel_adaptive_dino_vitl16 entry point.
-    .add_local_python_source("glycoquant", "backend")
+    # copy=True on all local additions so subsequent build steps work.
+    .add_local_python_source("glycoquant", "backend", copy=True)
     .add_local_dir(
         "third_party/dinov2",
         remote_path="/root/third_party/dinov2",
@@ -98,7 +99,7 @@ image = (
 # analysis image lean — Geneformer only pays the pip-install cost
 # when its function is actually invoked.
 image_with_geneformer = image.pip_install(
-    "geneformer",
+    "geneformer @ git+https://huggingface.co/ctheodoris/Geneformer",
     "anndata",
     "scanpy",
     "cellxgene-census",
