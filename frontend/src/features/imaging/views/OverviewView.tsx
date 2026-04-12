@@ -160,10 +160,10 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
         <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
           <div className="bg-black/70 backdrop-blur-md p-3 border border-white/10 flex flex-col gap-2.5 min-w-[180px]">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest">
+              <span className="text-[9px] font-bold text-on-surface/50 uppercase tracking-widest">
                 Overlays
               </span>
-              <span className="material-symbols-outlined text-xs text-white/30">tune</span>
+              <span className="material-symbols-outlined text-xs text-on-surface/30">tune</span>
             </div>
             <div className="flex flex-col gap-2">
               <OverlayToggle
@@ -226,7 +226,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
               >
                 flag
               </span>
-              <span className="text-[9px] font-bold text-white/80 tracking-wide uppercase">
+              <span className="text-[9px] font-bold text-on-surface/80 tracking-wide uppercase">
                 QC Flags: {result.warnings.length} notice{result.warnings.length === 1 ? "" : "s"}
               </span>
             </div>
@@ -239,20 +239,20 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
             <div className="absolute bottom-0 left-0 w-full h-[62%] bg-primary" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-white/40 leading-none">
+            <span className="text-[10px] font-bold uppercase text-on-surface-variant leading-none">
               Magnification
             </span>
-            <span className="text-sm font-headline font-bold text-white leading-tight">20.0x</span>
+            <span className="text-sm font-headline font-bold text-on-surface leading-tight">20.0x</span>
           </div>
         </div>
 
         {datasetLabel && (
           <div className="absolute bottom-6 right-6 flex items-end gap-3 px-3 py-2 bg-black/70 backdrop-blur-md border border-white/10 z-10">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase text-white/40 tracking-widest leading-none">
+              <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-widest leading-none">
                 {datasetLabel}
               </span>
-              <span className="text-sm font-headline font-bold text-white leading-tight tabular-nums">
+              <span className="text-sm font-headline font-bold text-on-surface leading-tight tabular-nums">
                 {result.cell_count} cells
               </span>
             </div>
@@ -263,7 +263,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
       {/* ============================================================ */}
       {/* Right: Analytics Rail — fixed 320px, dark                       */}
       {/* ============================================================ */}
-      <section className="w-[320px] shrink-0 bg-[#111] p-5 overflow-y-auto h-[calc(100vh-3rem)] flex flex-col gap-6 text-white/90">
+      <section className="w-[380px] shrink-0 bg-surface-container-low p-6 overflow-y-auto h-[calc(100vh-3.5rem)] flex flex-col gap-8">
         {/* Hero Metrics — real data only */}
         <div className="grid grid-cols-3 gap-6">
           <HeroMetric label="Cells Analyzed" value={cellCountStr} />
@@ -280,7 +280,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
           <div className="flex flex-col gap-4">
             <div className="flex items-end justify-between border-l-2 border-primary pl-3">
               <div>
-                <h3 className="text-xs font-bold text-white/80 uppercase tracking-widest">
+                <h3 className="text-sm font-headline font-semibold text-on-surface uppercase tracking-tight">
                   Glyco ↔ Mechano Correlation
                 </h3>
               </div>
@@ -290,14 +290,14 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
                 </span>
               )}
             </div>
-            <div className="bg-white/5 rounded-sm p-2">
+            <div className="bg-surface-container-lowest ghost-border p-4">
               <PlotlyFigure
                 figureJson={result.glyco_mechano_correlation_figure_json}
                 height={480}
               />
             </div>
             {topPair && (
-              <p className="text-[9px] text-white/30 font-mono tabular-nums">
+              <p className="text-[9px] text-on-surface/30 font-mono tabular-nums">
                 {topPair[0]} × {topPair[1]}
               </p>
             )}
@@ -307,20 +307,20 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
         {/* Score distribution — real Plotly figure */}
         {result.mechano_score_distribution_figure_json && (
           <div className="flex flex-col gap-4">
-            <h3 className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+            <h3 className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">
               Score distribution
             </h3>
-            <div className="bg-white/5 rounded-sm p-2">
+            <div className="bg-surface-container-lowest ghost-border p-4">
               <PlotlyFigure
                 figureJson={result.mechano_score_distribution_figure_json}
                 height={280}
               />
             </div>
             {summary && (
-              <div className="flex items-center gap-2 text-[9px] text-white/40">
+              <div className="flex items-center gap-2 text-[9px] text-on-surface-variant">
                 <span className={`px-1.5 py-0.5 rounded-sm ${
                   summary.mode === "pca"
-                    ? "bg-white/10 text-white/60"
+                    ? "bg-surface-container text-on-surface/60"
                     : "bg-amber-500/20 text-amber-400"
                 } font-bold uppercase tracking-wider`}>
                   {summary.mode === "pca"
@@ -337,7 +337,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
 
         {/* Representative cells — FULLY DYNAMIC from per-cell DataFrame */}
         <div className="flex flex-col gap-4">
-          <h3 className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+          <h3 className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">
             Top cells by mechano score
           </h3>
           <div className="grid grid-cols-3 gap-3">
@@ -350,20 +350,20 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
                     key={cellId}
                     type="button"
                     onClick={() => setSelectedCellId(cellId)}
-                    className="bg-white/5 overflow-hidden text-left hover:bg-white/10 transition-colors rounded-sm"
+                    className="bg-surface-container-lowest ghost-border overflow-hidden text-left hover:bg-surface-container transition-colors rounded-sm"
                   >
                     <div className="p-3">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-lg font-headline font-bold text-white tabular-nums">
+                        <span className="text-lg font-headline font-bold text-on-surface tabular-nums">
                           {fmt(score, 2)}
                         </span>
                         <span className={`text-[9px] font-bold uppercase tracking-widest ${
-                          i === 0 ? "text-primary" : "text-white/40"
+                          i === 0 ? "text-primary" : "text-on-surface-variant"
                         }`}>
                           #{i + 1}
                         </span>
                       </div>
-                      <span className="block text-[9px] text-white/40 font-mono tabular-nums mt-1">
+                      <span className="block text-[9px] text-on-surface-variant font-mono tabular-nums mt-1">
                         cell {cellId} · YAP {fmt(cell.yap_nc_ratio_size_corrected, 2)}
                       </span>
                     </div>
@@ -371,7 +371,7 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
                 );
               })
             ) : (
-              <p className="col-span-3 text-[10px] text-white/30">
+              <p className="col-span-3 text-[10px] text-on-surface/30">
                 No cells with a finite mechano score.
               </p>
             )}
@@ -379,30 +379,33 @@ export function OverviewView({ result, datasetLabel }: OverviewViewProps) {
         </div>
 
         {/* Full-feature audit — real Plotly figure when expanded */}
-        <div className="mt-auto pt-4 border-t border-white/10">
+        <div className="mt-auto pt-6 border-t border-outline-variant/15">
           <button
             type="button"
             onClick={() => setShowAudit((v) => !v)}
-            className="w-full flex items-center justify-between mb-3 group"
+            className="w-full flex items-center justify-between mb-4 group"
           >
-            <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
-              All-feature correlation
-            </span>
-            <span className="material-symbols-outlined text-sm text-white/30 group-hover:text-white/60 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-on-surface-variant">analytics</span>
+              <span className="text-xs font-headline font-semibold text-on-surface uppercase tracking-tight">
+                Full Feature Correlation
+              </span>
+            </div>
+            <span className="material-symbols-outlined text-sm text-on-surface-variant group-hover:translate-y-0.5 transition-transform">
               {showAudit ? "expand_less" : "expand_more"}
             </span>
           </button>
           {showAudit ? (
-            <div className="bg-white/5 rounded-sm p-2">
+            <div className="bg-surface-container-lowest ghost-border p-2">
               <PlotlyFigure
                 figureJson={result.correlation_figure_json}
-                height={400}
+                height={500}
               />
             </div>
           ) : (
-            <div className="h-10 bg-white/5 rounded-sm flex items-center justify-center">
-              <p className="text-[9px] text-white/20 uppercase tracking-[0.15em]">
-                Click to expand
+            <div className="h-14 bg-surface-container-highest/50 ghost-border flex items-center justify-center">
+              <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-[0.2em] opacity-40">
+                Click to Expand
               </p>
             </div>
           )}
@@ -425,14 +428,14 @@ function HeroMetric({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
         {label}
       </span>
-      <span className="text-2xl font-headline font-bold text-white tabular-nums">
+      <span className="text-3xl font-headline font-medium text-on-surface tabular-nums">
         {value}
-        {suffix && <span className="text-xs ml-0.5 text-white/50">{suffix}</span>}
+        {suffix && <span className="text-sm ml-0.5">{suffix}</span>}
       </span>
-      <div className="w-full h-[1px] bg-white/10 mt-1" />
+      <div className="w-full h-[1px] bg-outline-variant/20 mt-2" />
     </div>
   );
 }
@@ -452,7 +455,7 @@ function OverlayToggle({
       onClick={onToggle}
       className="flex items-center justify-between cursor-pointer w-full"
     >
-      <span className="text-[10px] font-medium text-white/70">{label}</span>
+      <span className="text-[10px] font-medium text-on-surface/70">{label}</span>
       <div
         className={`w-7 h-3.5 rounded-full relative flex items-center px-0.5 transition-colors ${
           enabled ? "bg-primary" : "bg-white/20"

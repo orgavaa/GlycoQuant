@@ -633,19 +633,25 @@ def _build_segmentation_figure(
     # RdBu for mechano (diverging, centered on 0)
     RDBU = ["#b2182b", "#ef8a62", "#f7f7f7", "#67a9cf", "#2166ac"]
 
+    def _hex_to_rgba(hex_color: str, alpha: float = 0.5) -> str:
+        """Convert #RRGGBB to rgba(r,g,b,alpha) for Plotly compatibility."""
+        h = hex_color.lstrip("#")
+        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+        return f"rgba({r},{g},{b},{alpha})"
+
     def _viridis_color(val: float, vmin: float, vmax: float) -> str:
         if not math.isfinite(val) or vmax <= vmin:
             return "rgba(100,100,100,0.2)"
         t = max(0.0, min(1.0, (val - vmin) / (vmax - vmin)))
         idx = min(int(t * (len(VIRIDIS) - 1)), len(VIRIDIS) - 2)
-        return VIRIDIS[idx]
+        return _hex_to_rgba(VIRIDIS[idx], 0.5)
 
     def _rdbu_color(val: float, vabs: float) -> str:
         if not math.isfinite(val) or vabs <= 0:
             return "rgba(100,100,100,0.2)"
         t = max(0.0, min(1.0, (val + vabs) / (2.0 * vabs)))
         idx = min(int(t * (len(RDBU) - 1)), len(RDBU) - 2)
-        return RDBU[idx]
+        return _hex_to_rgba(RDBU[idx], 0.5)
 
     overlay_trace_ranges: dict[str, list[int]] = {"glycocalyx": [], "mechano": []}
 
@@ -661,7 +667,7 @@ def _build_segmentation_figure(
                 y=contour[:, 0] * scale_y,
                 mode="lines",
                 fill="toself",
-                fillcolor=color.replace(")", ",0.5)").replace("rgb", "rgba") if "rgb" in color else color[:7] + "80",
+                fillcolor=color,
                 line={"color": color, "width": 0.5},
                 hoverinfo="skip",
                 visible=False,
@@ -681,7 +687,7 @@ def _build_segmentation_figure(
                 y=contour[:, 0] * scale_y,
                 mode="lines",
                 fill="toself",
-                fillcolor=color + "80",  # 50% opacity hex
+                fillcolor=color,
                 line={"color": color, "width": 0.5},
                 hoverinfo="skip",
                 visible=False,

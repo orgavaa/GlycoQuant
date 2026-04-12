@@ -43,7 +43,7 @@ export function AppHeader({
   showViewTabs = true,
 }: AppHeaderProps) {
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-12 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-white/10">
+    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-14 bg-surface/80 backdrop-blur-md ghost-border-b">
       <div className="flex items-center gap-8">
         {/* Logo + favicon — Stitch wordmark style: Space Grotesk, bold, tight tracking */}
         <button
@@ -57,7 +57,7 @@ export function AppHeader({
             className="h-6 w-6 shrink-0 select-none"
             draggable={false}
           />
-          <span className="text-lg font-bold tracking-tighter text-white font-headline group-hover:text-primary transition-colors">
+          <span className="text-xl font-bold tracking-tighter text-on-surface font-headline group-hover:text-primary transition-colors">
             GlycoQuant
           </span>
         </button>
@@ -72,10 +72,10 @@ export function AppHeader({
                 type="button"
                 onClick={() => onChangeView(item.id)}
                 className={cn(
-                  "font-label text-xs pb-1 transition-colors relative",
+                  "font-label text-sm pb-1 transition-colors relative",
                   isActive
-                    ? "text-white border-b border-primary"
-                    : "text-white/40 hover:text-white/70",
+                    ? "text-primary border-b-2 border-primary font-medium"
+                    : "text-on-surface-variant hover:text-primary",
                 )}
               >
                 {item.label}
@@ -93,8 +93,8 @@ export function AppHeader({
           className={cn(
             "px-4 py-1.5 text-[11px] font-label tracking-wider uppercase transition-colors ghost-border",
             canRerun
-              ? "text-white/60 hover:text-white border-white/20"
-              : "text-white/20 cursor-not-allowed border-white/10",
+              ? "text-on-surface hover:bg-surface-container"
+              : "text-on-surface-variant/50 cursor-not-allowed",
           )}
         >
           Rerun Analysis
@@ -106,8 +106,8 @@ export function AppHeader({
           className={cn(
             "px-4 py-1.5 text-[11px] font-label tracking-wider uppercase transition-opacity",
             canExport
-              ? "bg-primary text-white hover:opacity-90"
-              : "bg-white/10 text-white/20 cursor-not-allowed",
+              ? "bg-primary text-on-primary hover:opacity-90"
+              : "bg-surface-container-highest text-on-surface-variant cursor-not-allowed",
           )}
         >
           Export

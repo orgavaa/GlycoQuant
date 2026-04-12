@@ -30,13 +30,13 @@ export function ContextualSidebar({
   isExperimentActive = false,
 }: ContextualSidebarProps) {
   return (
-    <aside className="fixed right-0 top-12 h-[calc(100vh-3rem)] w-56 z-40 flex flex-col bg-[#0f0f0f] border-l border-white/10">
-      <div className="p-4 border-b border-white/10">
-        <h2 className="font-headline font-semibold text-xs text-white/60 tracking-tight">
+    <aside className="fixed right-0 top-14 h-[calc(100vh-3.5rem)] w-64 z-40 flex flex-col bg-surface-container-low ghost-border-l">
+      <div className="p-5 ghost-border-b">
+        <h2 className="font-headline font-semibold text-sm text-on-surface tracking-tight">
           Contextual Analysis
         </h2>
-        <p className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">
-          Current selection
+        <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-1">
+          Current selection details
         </p>
       </div>
 
@@ -56,8 +56,8 @@ export function ContextualSidebar({
                 className={cn(
                   "w-full flex items-center gap-3 px-5 py-3 transition-all duration-200",
                   isPrioritizationActive
-                    ? "bg-white/10 text-primary border-l-2 border-primary"
-                    : "text-white/40 hover:bg-white/5",
+                    ? "bg-surface-container-lowest text-primary border-l-2 border-primary"
+                    : "text-on-surface-variant hover:bg-surface-container",
                 )}
               >
                 <span className="material-symbols-outlined text-[18px]">
@@ -75,8 +75,8 @@ export function ContextualSidebar({
                 className={cn(
                   "w-full flex items-center gap-3 px-5 py-3 transition-all duration-200",
                   isExperimentActive
-                    ? "bg-white/10 text-primary border-l-2 border-primary"
-                    : "text-white/40 hover:bg-white/5",
+                    ? "bg-surface-container-lowest text-primary border-l-2 border-primary"
+                    : "text-on-surface-variant hover:bg-surface-container",
                 )}
               >
                 <span className="material-symbols-outlined text-[18px]">
@@ -92,14 +92,14 @@ export function ContextualSidebar({
       </nav>
 
       {/* Engine state footer */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 bg-surface-container-low ghost-border-t">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
+          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
             Engine State
           </span>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
         </div>
-        <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
           <div className="h-full bg-primary w-2/3" />
         </div>
       </div>

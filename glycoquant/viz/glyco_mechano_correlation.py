@@ -222,9 +222,9 @@ def plot_glyco_mechano_correlation(
             colorbar={
                 "title": {
                     "text": "ρ",
-                    "font": {"color": "rgba(255,255,255,0.5)", "size": 10},
+                    "font": {"color": "#566164", "size": 10},
                 },
-                "tickfont": {"color": "rgba(255,255,255,0.4)", "size": 9},
+                "tickfont": {"color": "#566164", "size": 9},
                 "len": 0.5,
                 "thickness": 10,
             },
@@ -237,13 +237,13 @@ def plot_glyco_mechano_correlation(
     layout = get_plotly_layout_template()
     layout.update(
         {
-            "title": {"text": title, "font": {"size": 12, "family": "Inter", "color": "rgba(255,255,255,0.6)"}},
+            "title": {"text": title, "font": {"size": 12, "family": "Inter", "color": "#2a3437"}},
             "xaxis": {
                 "tickangle": 45,
-                "tickfont": {"size": 10, "color": "rgba(255,255,255,0.5)", "family": "Inter"},
+                "tickfont": {"size": 10, "color": "#566164", "family": "Inter"},
             },
             "yaxis": {
-                "tickfont": {"size": 10, "color": "rgba(255,255,255,0.5)", "family": "Inter"},
+                "tickfont": {"size": 10, "color": "#566164", "family": "Inter"},
                 "autorange": "reversed",
             },
             "margin": {"b": 80, "l": 100, "r": 50, "t": 40},
@@ -288,10 +288,10 @@ def plot_mechano_score_distribution(
     mean = float(finite.mean())
     fig.add_vline(
         x=mean,
-        line={"color": "rgba(255,255,255,0.6)", "width": 1.5, "dash": "dash"},
+        line={"color": "#2a3437", "width": 1.5, "dash": "dash"},
         annotation={
             "text": f"μ = {mean:+.2f}",
-            "font": {"color": "rgba(255,255,255,0.6)", "size": 11, "family": "Inter"},
+            "font": {"color": "#2a3437", "size": 11, "family": "Inter"},
             "yanchor": "bottom",
         },
     )
@@ -300,22 +300,21 @@ def plot_mechano_score_distribution(
         xaxis={
             "title": {
                 "text": "Mechano score",
-                "font": {"size": 10, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
+                "font": {"size": 10, "color": "#566164", "family": "Inter"},
             },
-            "tickfont": {"size": 9, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
-            "gridcolor": "rgba(255,255,255,0.06)",
-            "zerolinecolor": "rgba(255,255,255,0.1)",
+            "tickfont": {"size": 10, "color": "#566164", "family": "Inter"},
+            "gridcolor": "rgba(169,180,183,0.15)",
         },
         yaxis={
             "title": {
                 "text": "Cells",
-                "font": {"size": 10, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
+                "font": {"size": 10, "color": "#566164", "family": "Inter"},
             },
-            "tickfont": {"size": 9, "color": "rgba(255,255,255,0.4)", "family": "Inter"},
-            "gridcolor": "rgba(255,255,255,0.06)",
+            "tickfont": {"size": 10, "color": "#566164", "family": "Inter"},
+            "gridcolor": "rgba(169,180,183,0.15)",
         },
         margin={"b": 40, "l": 40, "r": 15, "t": 10},
-        height=220,
+        height=240,
         bargap=0.08,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
