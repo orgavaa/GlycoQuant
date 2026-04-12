@@ -74,23 +74,14 @@ RUN pip install --upgrade pip && \
     fi && \
     pip install --prefer-binary -e ".[cell_dino]"
 
-# Cell-DINO checkpoint download at build time.
-# Set CELL_DINO_CKPT_URL as a Railway Build Arg pointing to YOUR OWN
-# hosted copy of the checkpoint (Google Drive direct link, S3 presigned
-# URL, GCS public URL, etc.). The FAIR-emailed URLs have special chars
-# that break Docker build args — re-host the file yourself.
-#
-# Example: upload to GCS then set CELL_DINO_CKPT_URL to:
-#   https://storage.googleapis.com/your-bucket/channel_adaptive_dino_vitl16.pth
-ARG CELL_DINO_CKPT_URL=""
+# Cell-DINO checkpoint — downloaded from Hugging Face at build time.
+# The checkpoint is hosted at orgava/glycoquant-models on HF (public).
+# Clean URL, no expiry, no special characters.
 RUN mkdir -p /app/models && \
-    if [ -n "$CELL_DINO_CKPT_URL" ]; then \
-        echo "[build] downloading Cell-DINO checkpoint (~1.2 GB)..." && \
-        curl -L -o /app/models/channel_adaptive_dino_vitl16.pth "$CELL_DINO_CKPT_URL" && \
-        ls -lh /app/models/channel_adaptive_dino_vitl16.pth ; \
-    else \
-        echo "[build] no CELL_DINO_CKPT_URL — will fall back to DINOv2-base at runtime" ; \
-    fi
+    echo "[build] downloading Cell-DINO checkpoint (~1.2 GB) from HuggingFace..." && \
+    curl -L -o /app/models/channel_adaptive_dino_vitl16.pth \
+        "https://huggingface.co/orgava/glycoquant-models/resolve/main/channel_adaptive_dino_vitl16.pth" && \
+    ls -lh /app/models/channel_adaptive_dino_vitl16.pth
 
 ENV GLYCOQUANT_CELL_DINO_CKPT=/app/models/channel_adaptive_dino_vitl16.pth
 
