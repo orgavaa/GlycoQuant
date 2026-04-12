@@ -1,35 +1,16 @@
+/**
+ * GeneformerRunCard — optional transcriptomic prior generation.
+ * Restyled for the Stitch design language.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   fetchGeneformerStatus,
   generateGeneformer,
   type GeneformerStatusResponse,
 } from "@/lib/api";
 
-/**
- * Card that replaces the "pathway-only" warning when the backend
- * reports ``can_generate_geneformer=true``. Clicking the button
- * spawns a Modal Geneformer run and polls until it lands — a Tab-2
- * sibling of Tab 1's progress card, reusing the same 2-second
- * polling interval.
- */
 interface GeneformerRunCardProps {
-  /** Callback fired when the job completes so Tab 2 can refetch /priors. */
   onComplete: () => void;
 }
 
@@ -63,11 +44,10 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
 
   const status = statusQuery.data;
   const isRunning =
-    spawn.isPending || (status?.state === "running" || status?.state === "queued");
+    spawn.isPending || status?.state === "running" || status?.state === "queued";
   const isComplete = status?.state === "complete";
   const isFailed = status?.state === "failed" || spawn.isError;
 
-  // Notify parent + invalidate the /priors cache once the Modal run lands
   useEffect(() => {
     if (isComplete) {
       queryClient.invalidateQueries({ queryKey: ["priors"] });
@@ -75,129 +55,126 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
     }
   }, [isComplete, queryClient, onComplete]);
 
-  // Crude pseudo-progress from elapsed time since we don't get real
-  // percentages out of Modal. Expected ~20-30 min → cap at 95% until
-  // the real completion ticks it to 100.
   const elapsedSec = status?.elapsed_sec ?? 0;
   const pseudoPct = Math.min(95, Math.floor((elapsedSec / 1500) * 95));
 
   if (isComplete) {
     return (
-      <Alert variant="success">
-        <CheckCircle2 />
-        <AlertTitle>Transcriptomic prior ready</AlertTitle>
-        <AlertDescription>
-          Geneformer in-silico perturbation finished in{" "}
-          {formatDuration(elapsedSec)}. The dual-prior ranking with the
-          divergence column is now available below.
-        </AlertDescription>
-      </Alert>
+      <div className="ghost-border bg-emerald-50 p-6">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+          <span className="text-sm font-headline font-semibold text-on-surface">
+            Transcriptomic prior ready
+          </span>
+        </div>
+        <p className="text-xs text-on-surface-variant">
+          Geneformer in-silico perturbation finished in {formatDuration(elapsedSec)}.
+          The dual-prior ranking with the divergence column is now available.
+        </p>
+      </div>
     );
   }
 
   return (
-    <Card className="border-dashed">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/60">
-            <Sparkles className="h-4 w-4 text-foreground" />
+    <div className="ghost-border bg-surface-container-lowest p-6 space-y-5">
+      <div className="flex items-center gap-3">
+        <span className="material-symbols-outlined text-primary">auto_awesome</span>
+        <div>
+          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+            Optional upgrade
+          </span>
+          <h3 className="text-sm font-headline font-semibold text-on-surface mt-0.5">
+            Generate the transcriptomic prior
+          </h3>
+        </div>
+      </div>
+
+      <p className="text-xs text-on-surface-variant leading-relaxed max-w-2xl">
+        The transcriptomic prior runs in-silico perturbation with
+        Geneformer (Theodoris 2023, ~10⁴ M cells) on a reference Tabula
+        Sapiens fibroblast cohort. Expect roughly twenty to thirty minutes
+        on the Modal L4 GPU. The result is cached on the persistent Modal
+        volume, so this only needs to happen once — every subsequent user
+        sees the full dual-prior ranking including the divergence column.
+      </p>
+
+      {!jobId && !spawn.isError && (
+        <button
+          type="button"
+          onClick={() => spawn.mutate()}
+          disabled={spawn.isPending}
+          className="bg-primary text-on-primary px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center gap-2"
+        >
+          {spawn.isPending ? (
+            <>
+              <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+              Spawning on Modal GPU
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+              Generate transcriptomic prior
+            </>
+          )}
+        </button>
+      )}
+
+      {spawn.isError && (
+        <div className="ghost-border bg-error-container/20 p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="material-symbols-outlined text-error-stitch text-[18px]">warning</span>
+            <span className="text-xs font-bold text-on-surface uppercase tracking-widest">
+              Could not spawn the Geneformer run
+            </span>
           </div>
-          <div className="flex min-w-0 flex-col">
-            <span className="section-label">Optional upgrade</span>
-            <CardTitle className="text-[0.98rem] leading-tight">
-              Generate the transcriptomic prior
-            </CardTitle>
+          <p className="text-xs text-on-surface-variant">
+            {(spawn.error as Error | undefined)?.message ?? "Unknown error from the backend."}
+          </p>
+        </div>
+      )}
+
+      {jobId && isRunning && !isFailed && (
+        <div className="ghost-border bg-surface-container p-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary animate-spin text-[20px]">
+              progress_activity
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-on-surface">
+                {status?.message ?? "Running on Modal GPU"}
+              </div>
+              <div className="text-[10px] text-on-surface-variant mt-0.5">
+                In-silico perturbation of 22 glycocalyx genes × 15 mechano targets
+              </div>
+            </div>
+            <span className="font-mono text-xs font-bold tabular-nums text-on-surface">
+              {pseudoPct}%
+            </span>
+          </div>
+          <div className="h-1 bg-surface-container-highest overflow-hidden">
+            <div className="h-full bg-primary transition-all" style={{ width: `${pseudoPct}%` }} />
+          </div>
+          <div className="flex items-center gap-3 text-[10px] text-on-surface-variant">
+            <span className="material-symbols-outlined text-[14px]">schedule</span>
+            <span className="font-mono tabular-nums">elapsed {formatDuration(elapsedSec)}</span>
+            <span className="font-mono tabular-nums">of ~25m budget</span>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-0">
-        <p className="text-[0.82rem] leading-relaxed text-muted-foreground">
-          The transcriptomic prior runs in-silico perturbation with
-          Geneformer (Theodoris 2023, ~104 M cells) on a reference
-          Tabula Sapiens fibroblast cohort. Expect roughly twenty to
-          thirty minutes on the Modal L4 GPU. The result is cached on
-          the persistent Modal volume, so this only needs to happen
-          once — every subsequent user sees the full dual-prior
-          ranking including the divergence column.
-        </p>
+      )}
 
-        {!jobId && !spawn.isError && (
-          <Button
-            onClick={() => spawn.mutate()}
-            disabled={spawn.isPending}
-            size="lg"
-          >
-            {spawn.isPending ? (
-              <>
-                <Loader2 className="animate-spin" />
-                Spawning on Modal GPU
-              </>
-            ) : (
-              <>
-                <Sparkles />
-                Generate transcriptomic prior
-              </>
-            )}
-          </Button>
-        )}
-
-        {spawn.isError && (
-          <Alert variant="destructive">
-            <AlertTriangle />
-            <AlertTitle>Could not spawn the Geneformer run</AlertTitle>
-            <AlertDescription>
-              {(spawn.error as Error | undefined)?.message ??
-                "Unknown error from the backend."}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {jobId && isRunning && !isFailed && (
-          <div className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-primary" />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-foreground">
-                  {status?.message ?? "Running on Modal GPU"}
-                </div>
-                <div className="truncate text-xs text-muted-foreground">
-                  In-silico perturbation of 22 glycocalyx genes against a
-                  15-gene mechanotransduction signature on a reference
-                  fibroblast cohort.
-                </div>
-              </div>
-              <div className="shrink-0 font-mono text-xs font-medium tabular-nums text-muted-foreground">
-                {pseudoPct}%
-              </div>
-            </div>
-            <Progress value={pseudoPct} />
-            <div className="flex items-center gap-3 pt-1 text-[0.72rem] text-muted-foreground">
-              <Clock className="h-3 w-3 shrink-0" />
-              <span className="font-mono tabular-nums">
-                elapsed {formatDuration(elapsedSec)}
-              </span>
-              <span className="font-mono tabular-nums">
-                of ~25m 00s budget
-              </span>
-            </div>
-            <p className="text-[0.7rem] leading-snug text-muted-foreground">
-              You can switch tabs freely — the run continues on the Modal
-              GPU and this card will update when it lands.
-            </p>
+      {jobId && isFailed && (
+        <div className="ghost-border bg-error-container/20 p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="material-symbols-outlined text-error-stitch text-[18px]">error</span>
+            <span className="text-xs font-bold text-on-surface uppercase tracking-widest">
+              Geneformer run failed
+            </span>
           </div>
-        )}
-
-        {jobId && isFailed && (
-          <Alert variant="destructive">
-            <AlertTriangle />
-            <AlertTitle>Geneformer run failed</AlertTitle>
-            <AlertDescription>
-              {status?.error ??
-                "The Modal call did not return a result. Try again, or check the backend logs."}
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-    </Card>
+          <p className="text-xs text-on-surface-variant">
+            {status?.error ?? "The Modal call did not return a result. Check the backend logs."}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

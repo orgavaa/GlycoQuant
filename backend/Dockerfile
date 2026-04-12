@@ -75,13 +75,13 @@ RUN pip install --upgrade pip && \
     pip install --prefer-binary -e ".[cell_dino]"
 
 # Cell-DINO checkpoint — downloaded from Hugging Face at build time.
-# The checkpoint is hosted at orgava/glycoquant-models on HF (public).
-# Clean URL, no expiry, no special characters.
+# Cache bust: v2 (force Railway to re-run this layer)
 RUN mkdir -p /app/models && \
-    echo "[build] downloading Cell-DINO checkpoint (~1.2 GB) from HuggingFace..." && \
-    curl -L -o /app/models/channel_adaptive_dino_vitl16.pth \
+    echo "[build] downloading Cell-DINO ViT-L/16 checkpoint (~1.2 GB)..." && \
+    curl -L --fail -o /app/models/channel_adaptive_dino_vitl16.pth \
         "https://huggingface.co/orgava/glycoquant-models/resolve/main/channel_adaptive_dino_vitl16.pth" && \
-    ls -lh /app/models/channel_adaptive_dino_vitl16.pth
+    ls -lh /app/models/channel_adaptive_dino_vitl16.pth && \
+    echo "[build] Cell-DINO checkpoint ready"
 
 ENV GLYCOQUANT_CELL_DINO_CKPT=/app/models/channel_adaptive_dino_vitl16.pth
 
