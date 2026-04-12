@@ -495,14 +495,14 @@ def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
 
     The frontend stacks these as <img> elements with mix-blend-mode:screen
     for additive compositing — the standard microscopy channel display.
+    Uses FULL resolution — no downsampling — so the image quality matches
+    the raw input exactly.
     """
     import base64
     import io
 
     import numpy as np
     from PIL import Image
-
-    from glycoquant.io import downsample_for_display
 
     # Channel-specific RGB LUT colors (applied as a tint on grayscale)
     LUTS: dict[str, tuple[int, int, int]] = {
@@ -517,7 +517,7 @@ def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
     for ch_name in ("dapi", "glycocalyx", "yap", "paxillin", "actin"):
         if ch_name not in channels:
             continue
-        ch = downsample_for_display(channels[ch_name]).astype(np.float32)
+        ch = channels[ch_name].astype(np.float32)
         # Percentile contrast stretch
         finite = ch[np.isfinite(ch)]
         if finite.size:

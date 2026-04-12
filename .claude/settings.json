@@ -61,7 +61,16 @@
       "Bash(curl -s http://localhost:5174)",
       "Bash(rm -rf frontend/src/components/ frontend/src/views/OverviewView.tsx frontend/src/views/CompareView.tsx frontend/src/lib/canvas/ frontend/src/types/)",
       "Bash(mkdir -p frontend/src/components frontend/src/lib/canvas)",
-      "Bash(curl -s http://localhost:5175)"
+      "Bash(curl -s http://localhost:5175)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s http://localhost:5173/src/main.tsx)",
+      "Bash(curl -s -H \"Origin: http://localhost:5173\" http://localhost:8000/demo)",
+      "Bash(node node_modules/.bin/vite --host --port 5173)",
+      "Bash(curl -s http://localhost:5174/src/App.tsx)",
+      "Bash(curl -s http://localhost:5174/src/index.css)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 19120 //F)"
     ],
     "deny": [
       "Bash(rm -rf /)",

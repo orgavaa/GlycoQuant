@@ -56,10 +56,10 @@ export function useAnalysisJob() {
   const progress = status?.progress ?? null;
 
   useEffect(() => {
-    if (isComplete && result) {
-      setLatestJobResult(result, datasetLabelRef.current);
+    if (isComplete && result && jobId) {
+      setLatestJobResult(result, datasetLabelRef.current, jobId);
     }
-  }, [isComplete, result, setLatestJobResult]);
+  }, [isComplete, result, jobId, setLatestJobResult]);
 
   const reset = () => {
     setJobId(null);

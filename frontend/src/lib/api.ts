@@ -321,3 +321,81 @@ export async function fetchGeneformerStatus(jobId: string): Promise<GeneformerSt
   const { data } = await api.get<GeneformerStatusResponse>(`/priors/geneformer/status/${jobId}`);
   return data;
 }
+
+// ---------------------------------------------------------------------------
+// ML features: phenotype discovery, spatial GNN, cross-modal
+// ---------------------------------------------------------------------------
+
+export interface ClusterSummary {
+  cluster_id: number;
+  size: number;
+  fraction: number;
+  mean_features: Record<string, number>;
+}
+
+export interface PhenotypeResponse {
+  job_id: string;
+  n_clusters: number;
+  cluster_sizes: Record<number, number>;
+  cluster_summaries: ClusterSummary[];
+  cells_json: string;
+  landscape_figure_json: string;
+}
+
+export interface SpatialGNNResponse {
+  job_id: string;
+  r2_score: number;
+  node_importance: Record<string, number>;
+  n_edges: number;
+  mean_neighbors: number;
+  cells_json: string;
+  graph_figure_json: string;
+  importance_figure_json: string;
+}
+
+export interface CrossModalResponse {
+  job_id: string;
+  direction: string;
+  overall_r2: number;
+  per_target_r2: Record<string, number>;
+  feature_importance: Record<string, number>;
+  input_features: string[];
+  target_features: string[];
+  r2_figure_json: string;
+  importance_figure_json: string;
+}
+
+export async function runPhenotypeDiscovery(
+  jobId: string,
+  params?: { n_neighbors?: number; min_dist?: number; resolution?: number },
+): Promise<PhenotypeResponse> {
+  const query = new URLSearchParams();
+  if (params?.n_neighbors) query.set("n_neighbors", String(params.n_neighbors));
+  if (params?.min_dist) query.set("min_dist", String(params.min_dist));
+  if (params?.resolution) query.set("resolution", String(params.resolution));
+  const { data } = await api.post<PhenotypeResponse>(
+    `/analysis/ml/phenotype/${jobId}?${query.toString()}`,
+  );
+  return data;
+}
+
+export async function runSpatialGNN(
+  jobId: string,
+  maxEdgeDistUm?: number,
+): Promise<SpatialGNNResponse> {
+  const query = maxEdgeDistUm ? `?max_edge_dist_um=${maxEdgeDistUm}` : "";
+  const { data } = await api.post<SpatialGNNResponse>(
+    `/analysis/ml/spatial-gnn/${jobId}${query}`,
+  );
+  return data;
+}
+
+export async function runCrossModal(
+  jobId: string,
+  direction: "glyco_to_mechano" | "mechano_to_glyco" = "glyco_to_mechano",
+): Promise<CrossModalResponse> {
+  const { data } = await api.post<CrossModalResponse>(
+    `/analysis/ml/cross-modal/${jobId}?direction=${direction}`,
+  );
+  return data;
+}

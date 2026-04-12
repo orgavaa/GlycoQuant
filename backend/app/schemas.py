@@ -337,3 +337,50 @@ class DrillDownResponse(BaseModel):
     gene: str
     heatmap_figure_json: str
     evidence_per_target: dict[str, PathwayEvidence]
+
+
+# ---------------------------------------------------------------------------
+# ML feature responses (phenotype, spatial GNN, cross-modal)
+# ---------------------------------------------------------------------------
+
+
+class ClusterSummarySchema(BaseModel):
+    cluster_id: int
+    size: int
+    fraction: float
+    mean_features: dict[str, float]
+
+
+class PhenotypeResponse(BaseModel):
+    """UMAP + Leiden phenotype discovery on Cell-DINO embeddings."""
+    job_id: str
+    n_clusters: int
+    cluster_sizes: dict[int, int]
+    cluster_summaries: list[ClusterSummarySchema]
+    cells_json: str  # [{cell_id, umap_x, umap_y, cluster}, ...]
+    landscape_figure_json: str
+
+
+class SpatialGNNResponse(BaseModel):
+    """Spatial context GNN — Delaunay + GCN mechano prediction."""
+    job_id: str
+    r2_score: float
+    node_importance: dict[str, float]
+    n_edges: int
+    mean_neighbors: float
+    cells_json: str  # [{cell_id, predicted, actual}, ...]
+    graph_figure_json: str
+    importance_figure_json: str
+
+
+class CrossModalResponse(BaseModel):
+    """Cross-modal prediction: glyco <-> mechano."""
+    job_id: str
+    direction: str
+    overall_r2: float
+    per_target_r2: dict[str, float]
+    feature_importance: dict[str, float]
+    input_features: list[str]
+    target_features: list[str]
+    r2_figure_json: str
+    importance_figure_json: str

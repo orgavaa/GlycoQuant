@@ -4,6 +4,7 @@ import { HeroMetrics } from "./HeroMetrics";
 import { PlotlyCard } from "./PlotlyCard";
 import { TopCells } from "./TopCells";
 import { Card } from "./Card";
+import { MLFeaturesPanel } from "./MLFeaturesPanel";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 import type { CellFeatures } from "@/lib/canvas/extract";
@@ -14,7 +15,42 @@ interface Props {
   cells: CellFeatures[];
 }
 
+type ViewTab = "overview" | "ml";
+
 export function OverviewContent({ result, cells }: Props) {
+  const [activeTab, setActiveTab] = useState<ViewTab>("overview");
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Tab strip */}
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`flex-1 py-2 px-3 rounded-md text-[12px] font-medium transition-colors ${
+            activeTab === "overview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("ml")}
+          className={`flex-1 py-2 px-3 rounded-md text-[12px] font-medium transition-colors ${
+            activeTab === "ml" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          ML Analysis
+        </button>
+      </div>
+
+      {activeTab === "overview"
+        ? <OverviewTab result={result} cells={cells} />
+        : <MLFeaturesPanel result={result} />
+      }
+    </div>
+  );
+}
+
+function OverviewTab({ result, cells }: Props) {
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const summary = result.mechano_score_summary;
   const m = result.hero_metrics;
@@ -30,7 +66,6 @@ export function OverviewContent({ result, cells }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Hero metrics */}
       <Card>
         <HeroMetrics metrics={[
           { value: String(result.cell_count), label: "Cells" },
@@ -39,7 +74,6 @@ export function OverviewContent({ result, cells }: Props) {
         ]} />
       </Card>
 
-      {/* Glyco-Mechano correlation heatmap */}
       {result.glyco_mechano_correlation_figure_json && (
         <PlotlyCard
           title={"Glycocalyx \u2194 Mechanotransduction"}
@@ -51,7 +85,6 @@ export function OverviewContent({ result, cells }: Props) {
         />
       )}
 
-      {/* Score distribution histogram */}
       {result.mechano_score_distribution_figure_json && (
         <PlotlyCard
           title="Score distribution"
@@ -60,7 +93,6 @@ export function OverviewContent({ result, cells }: Props) {
         />
       )}
 
-      {/* Top deviating cells */}
       {topCells.length > 0 && (
         <Card>
           <div className="text-[11px] font-semibold text-gray-400 tracking-[1px] uppercase mb-3">
@@ -70,7 +102,6 @@ export function OverviewContent({ result, cells }: Props) {
         </Card>
       )}
 
-      {/* Collapsed correlation audit */}
       <CorrelationAudit figureJson={result.correlation_figure_json} />
     </div>
   );
@@ -105,7 +136,6 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
 
     const layout = {
       ...parsed.layout,
-      // Strip backend title — our Card header handles it
       title: undefined,
       height: maxHeight,
       autosize: true,
@@ -121,13 +151,7 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
       if (trace.type === "heatmap" && trace.colorbar) {
         return {
           ...trace,
-          colorbar: {
-            ...(trace.colorbar as Record<string, unknown>),
-            thickness: 14,
-            len: 0.9,
-            tickfont: { size: 10, color: "#9ca3af" },
-            outlinewidth: 0,
-          },
+          colorbar: { ...(trace.colorbar as Record<string, unknown>), thickness: 14, len: 0.9, tickfont: { size: 10, color: "#9ca3af" }, outlinewidth: 0 },
         };
       }
       return trace;

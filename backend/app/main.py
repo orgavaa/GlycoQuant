@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app import __version__
-from backend.app.routers import analysis, demo, priors
+from backend.app.routers import analysis, demo, ml_features, priors
 
 # Frontend origin(s) allowed to call the API. Set via env var in
 # production; defaults permit local Vite dev + Railway production.
@@ -48,6 +48,7 @@ app.add_middleware(
 app.include_router(analysis.router)
 app.include_router(priors.router)
 app.include_router(demo.router)
+app.include_router(ml_features.router)
 
 
 @app.get("/health", tags=["meta"])
