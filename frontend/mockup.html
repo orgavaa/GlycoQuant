@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GlycoQuant — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-page: #f9fafb; --bg-card: #ffffff; --border: #e5e7eb; --border-subtle: #f3f4f6;
+    --text-primary: #111827; --text-secondary: #374151; --text-tertiary: #6b7280;
+    --text-muted: #9ca3af; --accent: #2563eb; --accent-light: #eff6ff;
+    --success: #059669; --success-bg: #ecfdf5; --danger: #dc2626; --danger-bg: #fef2f2;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+    --ch-dapi: #2166ac; --ch-glyco: #1b7837; --ch-yap: #762a83; --ch-paxillin: #b35806; --ch-actin: #4d4d4d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-page); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+
+  /* Top bar */
+  .topbar { height: 56px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; position: sticky; top: 0; z-index: 50; }
+  .logo { font-weight: 700; font-size: 16px; color: var(--text-primary); letter-spacing: -0.3px; }
+  .nav-tabs { display: flex; gap: 32px; margin-left: 48px; }
+  .nav-tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; padding: 17px 0; font-family: inherit; transition: color 0.15s; }
+  .nav-tab:hover { color: var(--text-tertiary); }
+  .nav-tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+  .export-btn { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 6px 14px; cursor: pointer; background: none; font-family: inherit; transition: background 0.15s; }
+  .export-btn:hover { background: var(--bg-page); }
+
+  /* Page layout */
+  .page { display: flex; gap: 20px; padding: 20px 24px; max-width: 1600px; margin: 0 auto; min-height: calc(100vh - 56px); }
+  .main-col { flex: 1; min-width: 0; }
+  .rail { width: 360px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Card */
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-sm); }
+  .card-pad { padding: 20px; }
+
+  /* Image card */
+  .image-card { position: relative; overflow: hidden; }
+  .image-area { background: #000; aspect-ratio: 4/3; position: relative; border-radius: 7px 7px 0 0; overflow: hidden; }
+
+  /* SVG cell outlines */
+  .cell-outline { fill: none; stroke: rgba(255,255,255,0.35); stroke-width: 0.8; cursor: crosshair; transition: stroke 0.15s; }
+  .cell-outline:hover { stroke: rgba(255,255,255,0.8); stroke-width: 1.5; }
+  .cell-outline.selected { stroke: rgba(255,255,255,0.95); stroke-width: 2; fill: rgba(255,255,255,0.06); }
+
+  /* Frosted overlay panel */
+  .overlay-panel { position: absolute; top: 12px; left: 12px; width: 148px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; box-shadow: var(--shadow-md); padding: 14px; z-index: 5; }
+  .section-label { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .toggle-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
+  .toggle-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #d1d5db; flex-shrink: 0; }
+  .toggle-dot.active { background: var(--text-primary); border-color: var(--text-primary); }
+  .toggle-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); }
+  .channel-chips { display: flex; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+  .channel-chip { width: 20px; height: 20px; border-radius: 4px; cursor: pointer; transition: opacity 0.15s; }
+  .channel-chip.inactive { opacity: 0.25; border: 1px dashed rgba(0,0,0,0.15); }
+
+  /* Tooltip */
+  .tooltip { position: absolute; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); padding: 12px 16px; min-width: 180px; z-index: 10; pointer-events: none; }
+  .tooltip-header { font-size: 13px; font-weight: 600; color: var(--text-primary); padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+  .tooltip-row { display: flex; justify-content: space-between; gap: 20px; font-size: 12px; line-height: 1.8; }
+  .tooltip-label { color: var(--text-muted); font-weight: 500; }
+  .tooltip-value { color: var(--text-primary); font-weight: 500; font-feature-settings: 'tnum'; }
+
+  /* Scale bar */
+  .scale-bar { position: absolute; bottom: 16px; right: 20px; color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 600; text-align: center; }
+  .scale-line { height: 2px; background: #fff; margin-bottom: 4px; position: relative; }
+  .scale-line::before, .scale-line::after { content: ''; position: absolute; width: 1px; height: 8px; background: #fff; top: -3px; }
+  .scale-line::before { left: 0; }
+  .scale-line::after { right: 0; }
+
+  /* Image caption */
+  .image-caption { padding: 12px 16px; font-size: 11px; color: var(--text-muted); }
+
+  /* Hero metrics */
+  .hero-metrics { display: flex; }
+  .hero-item { flex: 1; text-align: center; }
+  .hero-value { font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1; font-feature-settings: 'tnum'; }
+  .hero-label { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 6px; }
+
+  /* Section title */
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .section-subtitle { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+
+  /* Heatmap placeholder */
+  .heatmap-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 100px; }
+  .heatmap-cell { border-radius: 2px; }
+
+  /* Histogram placeholder */
+  .histogram { display: flex; align-items: flex-end; gap: 2px; height: 60px; }
+  .histogram-bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; opacity: 0.7; }
+
+  /* Notable cells */
+  .cell-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); cursor: pointer; font-size: 12px; transition: background 0.1s; }
+  .cell-row:hover { background: var(--bg-page); margin: 0 -20px; padding: 8px 20px; }
+  .cell-id { color: var(--text-muted); width: 40px; flex-shrink: 0; font-weight: 500; }
+  .cell-mechano { font-weight: 600; font-feature-settings: 'tnum'; }
+  .cell-mechano.pos { color: var(--danger); }
+  .cell-mechano.neg { color: var(--ch-dapi); }
+  .cell-glyco { color: var(--text-muted); margin-left: auto; font-size: 11px; font-feature-settings: 'tnum'; }
+
+  /* Collapsed section */
+  .collapsed-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 4px 0; }
+  .collapsed-arrow { font-size: 12px; color: var(--text-muted); }
+
+  /* ========== CELL DOSSIER ========== */
+  .back-link { font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer; margin-bottom: 16px; display: inline-block; }
+  .back-link:hover { text-decoration: underline; }
+  .cell-heading { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .cell-summary { font-size: 12px; font-style: italic; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .metric-mini { background: var(--bg-page); border-radius: 6px; padding: 12px; }
+  .metric-mini-value { font-size: 20px; font-weight: 700; color: var(--text-primary); font-feature-settings: 'tnum'; }
+  .metric-mini-value.green { color: var(--success); }
+  .metric-mini-value.red { color: var(--danger); }
+  .metric-mini-label { font-size: 9px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* Radar */
+  .radar-wrap { display: flex; justify-content: center; margin-bottom: 24px; }
+
+  /* Feature accordion */
+  .feature-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 8px 0; }
+  .feature-header-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+  .feature-row { display: flex; align-items: center; padding: 4px 0; font-size: 11px; border-bottom: 1px solid var(--border-subtle); }
+  .feature-name { color: var(--text-tertiary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px; }
+  .feature-val { color: var(--text-primary); font-weight: 500; font-feature-settings: 'tnum'; width: 60px; text-align: right; flex-shrink: 0; }
+  .badge { font-size: 10px; font-weight: 500; padding: 1px 6px; border-radius: 4px; width: 54px; text-align: right; flex-shrink: 0; margin-left: 6px; font-feature-settings: 'tnum'; }
+  .badge.green { background: var(--success-bg); color: #047857; }
+  .badge.red { background: var(--danger-bg); color: #b91c1c; }
+  .badge.neutral { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- ================= TOP BAR ================= -->
+<nav class="topbar">
+  <span class="logo">GlycoQuant</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active">Analysis</button>
+    <button class="nav-tab">Ranking</button>
+  </div>
+  <button class="export-btn">Export &darr;</button>
+</nav>
+
+<!-- ================= OVERVIEW STATE ================= -->
+<div class="page">
+  <div class="main-col">
+    <div class="card image-card">
+      <div class="image-area">
+        <!-- Simulated microscopy with gradients -->
+        <svg width="100%" height="100%" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" style="display:block">
+          <defs>
+            <radialGradient id="g1" cx="30%" cy="40%"><stop offset="0%" stop-color="#1a4d1a" stop-opacity="0.6"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+            <radialGradient id="g2" cx="65%" cy="55%"><stop offset="0%" stop-color="#1a1a4d" stop-opacity="0.5"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+            <radialGradient id="g3" cx="50%" cy="30%"><stop offset="0%" stop-color="#4d1a4d" stop-opacity="0.3"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect width="800" height="600" fill="#0a0a0a"/>
+          <rect width="800" height="600" fill="url(#g1)"/>
+          <rect width="800" height="600" fill="url(#g2)"/>
+          <rect width="800" height="600" fill="url(#g3)"/>
+          <!-- Cell outlines -->
+          <polygon class="cell-outline" points="180,200 210,185 240,195 250,220 235,250 200,255 175,235"/>
+          <polygon class="cell-outline" points="320,280 350,265 380,275 390,310 370,335 340,340 315,315"/>
+          <polygon class="cell-outline selected" points="450,180 485,165 520,175 535,205 520,235 485,245 450,230"/>
+          <polygon class="cell-outline" points="550,350 580,330 615,340 625,375 610,400 575,410 545,390"/>
+          <polygon class="cell-outline" points="150,380 180,365 210,375 220,405 205,430 175,435 148,415"/>
+          <polygon class="cell-outline" points="380,420 410,405 440,415 450,445 435,470 405,475 378,455"/>
+          <polygon class="cell-outline" points="620,180 650,165 680,175 690,205 675,230 645,235 618,215"/>
+          <polygon class="cell-outline" points="280,120 310,105 340,115 350,145 335,170 305,175 278,155"/>
+        </svg>
+
+        <!-- Frosted overlay panel -->
+        <div class="overlay-panel">
+          <div class="section-label">Overlays</div>
+          <div class="toggle-row"><div class="toggle-dot active"></div><span class="toggle-label">Segmentation</span></div>
+          <div class="toggle-row"><div class="toggle-dot"></div><span class="toggle-label">Glycocalyx</span></div>
+          <div class="toggle-row"><div class="toggle-dot"></div><span class="toggle-label">Mechano score</span></div>
+          <div class="channel-chips">
+            <div class="section-label" style="width:100%;margin-bottom:6px">Channels</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <div class="channel-chip" style="background:var(--ch-dapi)"></div>
+            <div class="channel-chip" style="background:var(--ch-glyco)"></div>
+            <div class="channel-chip inactive" style="background:var(--ch-yap)"></div>
+            <div class="channel-chip inactive" style="background:var(--ch-paxillin)"></div>
+            <div class="channel-chip" style="background:var(--ch-actin)"></div>
+          </div>
+        </div>
+
+        <!-- Tooltip on hovered cell -->
+        <div class="tooltip" style="top:155px;left:540px">
+          <div class="tooltip-header">Cell 42</div>
+          <div class="tooltip-row"><span class="tooltip-label">glyco ratio</span><span class="tooltip-value">1.34</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">YAP N/C</span><span class="tooltip-value">1.82</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">mechano</span><span class="tooltip-value">+0.87</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">FA mature</span><span class="tooltip-value">62%</span></div>
+        </div>
+
+        <!-- Scale bar -->
+        <div class="scale-bar" style="width:80px">
+          <div class="scale-line"></div>
+          50 &micro;m
+        </div>
+      </div>
+      <div class="image-caption">RxRx1 &middot; U2OS-01 &middot; Plate1 &middot; B02/S1 &middot; 131 cells</div>
+    </div>
+  </div>
+
+  <!-- Right rail — overview state -->
+  <div class="rail">
+    <!-- Hero metrics card -->
+    <div class="card card-pad">
+      <div class="hero-metrics">
+        <div class="hero-item">
+          <div class="hero-value">131</div>
+          <div class="hero-label">Cells</div>
+        </div>
+        <div class="hero-item">
+          <div class="hero-value">-0.14</div>
+          <div class="hero-label">Mechano</div>
+        </div>
+        <div class="hero-item">
+          <div class="hero-value">0.67</div>
+          <div class="hero-label">Glyco&harr;Mech</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Glyco-Mechano heatmap card -->
+    <div class="card card-pad">
+      <div class="section-title">Glycocalyx &harr; Mechanotransduction</div>
+      <div class="section-subtitle">top |r| = 0.67 &mdash; glycocalyx_heterogeneity &times; yap_nc_ratio</div>
+      <div class="heatmap-grid">
+        <div class="heatmap-cell" style="background:#2166ac"></div><div class="heatmap-cell" style="background:#67a9cf"></div>
+        <div class="heatmap-cell" style="background:#f7f7f7"></div><div class="heatmap-cell" style="background:#ef8a62"></div>
+        <div class="heatmap-cell" style="background:#b2182b"></div><div class="heatmap-cell" style="background:#67a9cf"></div>
+        <div class="heatmap-cell" style="background:#f7f7f7"></div><div class="heatmap-cell" style="background:#d1e5f0"></div>
+        <div class="heatmap-cell" style="background:#2166ac"></div><div class="heatmap-cell" style="background:#ef8a62"></div>
+        <div class="heatmap-cell" style="background:#b2182b"></div><div class="heatmap-cell" style="background:#f7f7f7"></div>
+        <div class="heatmap-cell" style="background:#d1e5f0"></div><div class="heatmap-cell" style="background:#2166ac"></div>
+        <div class="heatmap-cell" style="background:#67a9cf"></div><div class="heatmap-cell" style="background:#f7f7f7"></div>
+        <div class="heatmap-cell" style="background:#ef8a62"></div><div class="heatmap-cell" style="background:#b2182b"></div>
+        <div class="heatmap-cell" style="background:#f7f7f7"></div><div class="heatmap-cell" style="background:#d1e5f0"></div>
+        <div class="heatmap-cell" style="background:#2166ac"></div><div class="heatmap-cell" style="background:#67a9cf"></div>
+        <div class="heatmap-cell" style="background:#ef8a62"></div><div class="heatmap-cell" style="background:#b2182b"></div>
+      </div>
+    </div>
+
+    <!-- Score distribution card -->
+    <div class="card card-pad">
+      <div class="section-title">Score distribution</div>
+      <div class="histogram" style="margin-top:12px">
+        <div class="histogram-bar" style="height:15%"></div>
+        <div class="histogram-bar" style="height:25%"></div>
+        <div class="histogram-bar" style="height:45%"></div>
+        <div class="histogram-bar" style="height:80%"></div>
+        <div class="histogram-bar" style="height:100%"></div>
+        <div class="histogram-bar" style="height:90%"></div>
+        <div class="histogram-bar" style="height:65%"></div>
+        <div class="histogram-bar" style="height:40%"></div>
+        <div class="histogram-bar" style="height:30%"></div>
+        <div class="histogram-bar" style="height:20%"></div>
+        <div class="histogram-bar" style="height:10%"></div>
+        <div class="histogram-bar" style="height:5%"></div>
+      </div>
+    </div>
+
+    <!-- Notable cells card -->
+    <div class="card card-pad">
+      <div class="section-label" style="margin-bottom:4px">Top deviating cells</div>
+      <div class="cell-row"><span class="cell-id">#19</span><span class="cell-mechano pos">m +4.33</span><span class="cell-glyco">glyco 1.87</span></div>
+      <div class="cell-row"><span class="cell-id">#31</span><span class="cell-mechano neg">m -4.27</span><span class="cell-glyco">glyco 0.42</span></div>
+      <div class="cell-row"><span class="cell-id">#18</span><span class="cell-mechano pos">m +4.04</span><span class="cell-glyco">glyco 1.62</span></div>
+      <div class="cell-row"><span class="cell-id">#7</span><span class="cell-mechano neg">m -3.81</span><span class="cell-glyco">glyco 0.55</span></div>
+      <div class="cell-row" style="border-bottom:none"><span class="cell-id">#42</span><span class="cell-mechano pos">m +3.56</span><span class="cell-glyco">glyco 1.34</span></div>
+    </div>
+
+    <!-- Collapsed audit card -->
+    <div class="card card-pad">
+      <div class="collapsed-header">
+        <span class="section-label" style="margin-bottom:0">Full correlation audit</span>
+        <span class="collapsed-arrow">&#9656;</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CELL DOSSIER STATE ================= -->
+<div style="max-width:400px;margin:60px auto;padding:0 20px">
+  <h2 style="font-size:14px;font-weight:600;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid var(--border)">Cell dossier (right rail state)</h2>
+
+  <div class="card card-pad">
+    <a class="back-link">&larr; Overview</a>
+    <div class="cell-heading">Cell #42</div>
+    <div class="cell-summary">thick glycocalyx, nuclear YAP, mature adhesions, aligned stress fibers</div>
+
+    <div class="metric-grid">
+      <div class="metric-mini"><div class="metric-mini-value green">1.34</div><div class="metric-mini-label">Glyco ratio</div></div>
+      <div class="metric-mini"><div class="metric-mini-value">1.82</div><div class="metric-mini-label">YAP N/C</div></div>
+      <div class="metric-mini"><div class="metric-mini-value green">+0.87</div><div class="metric-mini-label">Mechano</div></div>
+      <div class="metric-mini"><div class="metric-mini-value">62%</div><div class="metric-mini-label">FA mature</div></div>
+    </div>
+
+    <!-- Radar chart -->
+    <div class="radar-wrap">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <!-- Grid -->
+        <polygon points="100,26 164,63 164,137 100,174 36,137 36,63" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+        <polygon points="100,51 139,69.5 139,130.5 100,149 61,130.5 61,69.5" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+        <polygon points="100,75 114,84 114,116 100,125 86,116 86,84" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+        <!-- Axis lines -->
+        <line x1="100" y1="100" x2="100" y2="26" stroke="#f3f4f6" stroke-width="0.5"/>
+        <line x1="100" y1="100" x2="164" y2="63" stroke="#f3f4f6" stroke-width="0.5"/>
+        <line x1="100" y1="100" x2="164" y2="137" stroke="#f3f4f6" stroke-width="0.5"/>
+        <line x1="100" y1="100" x2="100" y2="174" stroke="#f3f4f6" stroke-width="0.5"/>
+        <line x1="100" y1="100" x2="36" y2="137" stroke="#f3f4f6" stroke-width="0.5"/>
+        <line x1="100" y1="100" x2="36" y2="63" stroke="#f3f4f6" stroke-width="0.5"/>
+        <!-- Data polygon -->
+        <polygon points="100,38 155,72 148,145 100,162 52,120 48,68" fill="rgba(37,99,235,0.1)" stroke="#2563eb" stroke-width="1.5"/>
+        <!-- Data dots -->
+        <circle cx="100" cy="38" r="2.5" fill="#2563eb"/><circle cx="155" cy="72" r="2.5" fill="#2563eb"/>
+        <circle cx="148" cy="145" r="2.5" fill="#2563eb"/><circle cx="100" cy="162" r="2.5" fill="#2563eb"/>
+        <circle cx="52" cy="120" r="2.5" fill="#2563eb"/><circle cx="48" cy="68" r="2.5" fill="#2563eb"/>
+        <!-- Labels -->
+        <text x="100" y="18" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter">Glycocalyx</text>
+        <text x="175" y="60" text-anchor="start" fill="#9ca3af" font-size="9" font-family="Inter">YAP</text>
+        <text x="175" y="142" text-anchor="start" fill="#9ca3af" font-size="9" font-family="Inter">Adhesions</text>
+        <text x="100" y="192" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter">Actin</text>
+        <text x="25" y="142" text-anchor="end" fill="#9ca3af" font-size="9" font-family="Inter">Area</text>
+        <text x="25" y="60" text-anchor="end" fill="#9ca3af" font-size="9" font-family="Inter">Mechano</text>
+      </svg>
+    </div>
+
+    <!-- Feature groups -->
+    <div class="feature-header">
+      <span class="feature-header-label">Glycocalyx (6)</span>
+      <span class="collapsed-arrow">&#9662;</span>
+    </div>
+    <div class="feature-row"><span class="feature-name">glycocalyx_pericellular_ratio</span><span class="feature-val">1.340</span><span class="badge green">+2.1&sigma;</span></div>
+    <div class="feature-row"><span class="feature-name">glycocalyx_heterogeneity</span><span class="feature-val">0.782</span><span class="badge green">+1.8&sigma;</span></div>
+    <div class="feature-row"><span class="feature-name">glycocalyx_mean_intensity</span><span class="feature-val">4821</span><span class="badge neutral">+0.4</span></div>
+    <div class="feature-row"><span class="feature-name">glycocalyx_shannon_entropy</span><span class="feature-val">3.210</span><span class="badge neutral">-0.2</span></div>
+    <div class="feature-row"><span class="feature-name">glycocalyx_haralick_contrast</span><span class="feature-val">12.40</span><span class="badge red">-1.5&sigma;</span></div>
+    <div class="feature-row"><span class="feature-name">glycocalyx_moran_i</span><span class="feature-val">0.440</span><span class="badge neutral">+0.6</span></div>
+
+    <div class="feature-header">
+      <span class="feature-header-label">YAP (5)</span>
+      <span class="collapsed-arrow">&#9656;</span>
+    </div>
+    <div class="feature-header">
+      <span class="feature-header-label">Focal Adhesions (6)</span>
+      <span class="collapsed-arrow">&#9656;</span>
+    </div>
+    <div class="feature-header">
+      <span class="feature-header-label">Actin (4)</span>
+      <span class="collapsed-arrow">&#9656;</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

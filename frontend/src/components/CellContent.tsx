@@ -1,0 +1,113 @@
+import { useMemo } from "react";
+import { RadarChart, RADAR_AXES } from "./RadarChart";
+import { FeatureGroup } from "./FeatureGroup";
+import { Card } from "./Card";
+import { useJobStore } from "@/lib/jobStore";
+import { type CellFeatures, computePopStats } from "@/lib/canvas/extract";
+import { fmt, fmtSigned } from "@/lib/utils";
+
+const GROUPS = [
+  { name: "Glycocalyx", prefix: "glycocalyx_" },
+  { name: "YAP", prefix: "yap_" },
+  { name: "Focal Adhesions", prefix: "fa_" },
+  { name: "Actin", prefix: "actin_" },
+  { name: "Morphology", prefix: "cell_|nuclear_|nc_" },
+];
+
+interface Props {
+  cell: CellFeatures;
+  cells: CellFeatures[];
+}
+
+export function CellContent({ cell, cells }: Props) {
+  const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
+  const pop = useMemo(() => computePopStats(cells), [cells]);
+
+  const z = (key: string) => {
+    const s = pop[key]; const v = cell[key];
+    if (!s || typeof v !== "number" || !Number.isFinite(v)) return 0;
+    return (v - s.mean) / s.std;
+  };
+
+  const mColor = (key: string) => {
+    const zv = z(key);
+    return zv > 1 ? "text-emerald-600" : zv < -1 ? "text-red-600" : "text-gray-900";
+  };
+
+  const radarValues = RADAR_AXES.map(a => {
+    const s = pop[a.key]; const v = cell[a.key];
+    if (!s || typeof v !== "number") return 0.5;
+    const range = s.max - s.min;
+    return range === 0 ? 0.5 : (v - s.min) / range;
+  });
+
+  const summary = useMemo(() => {
+    const parts: string[] = [];
+    const g = cell.glycocalyx_pericellular_ratio;
+    if (typeof g === "number" && pop.glycocalyx_pericellular_ratio) {
+      if (g > pop.glycocalyx_pericellular_ratio.mean * 1.3) parts.push("thick glycocalyx");
+      else if (g < pop.glycocalyx_pericellular_ratio.mean * 0.7) parts.push("thin glycocalyx");
+    }
+    const y = cell.yap_nc_ratio_size_corrected;
+    if (typeof y === "number") {
+      if (y > 1.3) parts.push("nuclear YAP");
+      else if (y < 0.8) parts.push("cytoplasmic YAP");
+    }
+    const f = cell.fa_mature_fraction;
+    if (typeof f === "number") parts.push(f > 0.5 ? "mature adhesions" : "nascent adhesions");
+    const a = cell.actin_stress_fiber_coherence;
+    if (typeof a === "number" && a > 0.6) parts.push("aligned stress fibers");
+    return parts.length > 0 ? parts.join(", ") : "unremarkable phenotype";
+  }, [cell, pop]);
+
+  const featureGroups = useMemo(() => {
+    const allKeys = Object.keys(cell).filter(k => k !== "cell_id" && !k.startsWith("deep_"));
+    return GROUPS.map(g => {
+      const prefixes = g.prefix.split("|");
+      const features = allKeys
+        .filter(k => prefixes.some(p => k.startsWith(p)))
+        .filter(k => cell[k] != null)
+        .map(k => ({ name: k, value: cell[k] as number, zScore: z(k) }))
+        .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore));
+      return { ...g, features };
+    }).filter(g => g.features.length > 0);
+  }, [cell, pop]);
+
+  const metricItems = [
+    { label: "GLYCO RATIO", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
+    { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: (v: number | null | undefined) => fmt(v) },
+    { label: "MECHANO", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
+    { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <a onClick={() => setSelectedCellId(null)} className="text-[13px] font-medium text-blue-600 cursor-pointer hover:underline mb-4 inline-block">
+          &larr; Overview
+        </a>
+        <div className="text-[20px] font-bold text-gray-900 mb-1">Cell #{cell.cell_id}</div>
+        <div className="text-[12px] italic text-gray-400 mb-5 leading-relaxed">{summary}</div>
+
+        <div className="grid grid-cols-2 gap-2.5 mb-6">
+          {metricItems.map(mi => (
+            <div key={mi.key} className="bg-gray-50 rounded-md p-3">
+              <div className={`text-[20px] font-bold ${mColor(mi.key)}`} style={{ fontFeatureSettings: "'tnum'" }}>
+                {mi.format(cell[mi.key] as number | null | undefined)}
+              </div>
+              <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-[1px] mt-1">{mi.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center mb-6">
+          <RadarChart values={radarValues} size={200} />
+        </div>
+
+        {featureGroups.map((g, i) => (
+          <FeatureGroup key={g.name} name={g.name} features={g.features} defaultOpen={i === 0} />
+        ))}
+      </Card>
+    </div>
+  );
+}
