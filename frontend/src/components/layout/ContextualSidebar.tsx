@@ -13,39 +13,17 @@
  */
 import { cn } from "@/lib/utils";
 
-export type ContextualNavItem =
-  | "selection"
-  | "condition"
-  | "qc"
-  | "channels"
-  | "history";
+export type ContextualNavItem = "prioritization" | "experiment";
 
 interface ContextualSidebarProps {
   activeItem?: ContextualNavItem;
-  onSelectItem?: (item: ContextualNavItem) => void;
   onOpenPrioritization?: () => void;
   onOpenExperiment?: () => void;
   isPrioritizationActive?: boolean;
   isExperimentActive?: boolean;
 }
 
-interface NavRow {
-  id: ContextualNavItem;
-  icon: string;
-  label: string;
-}
-
-const NAV_ROWS: NavRow[] = [
-  { id: "selection", icon: "info", label: "Selection Info" },
-  { id: "condition", icon: "analytics", label: "Condition Summary" },
-  { id: "qc", icon: "biotech", label: "QC Metrics" },
-  { id: "channels", icon: "layers", label: "Channel Controls" },
-  { id: "history", icon: "history", label: "History" },
-];
-
 export function ContextualSidebar({
-  activeItem = "selection",
-  onSelectItem,
   onOpenPrioritization,
   onOpenExperiment,
   isPrioritizationActive = false,
@@ -63,30 +41,6 @@ export function ContextualSidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto no-scrollbar">
-        {NAV_ROWS.map((row) => {
-          const isActive = row.id === activeItem;
-          return (
-            <button
-              key={row.id}
-              type="button"
-              onClick={() => onSelectItem?.(row.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-5 py-4 transition-all duration-200",
-                isActive
-                  ? "bg-surface-container-lowest text-primary border-l-2 border-primary"
-                  : "text-on-surface-variant hover:bg-surface-container",
-              )}
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                {row.icon}
-              </span>
-              <span className="font-label text-[11px] font-semibold tracking-wider uppercase">
-                {row.label}
-              </span>
-            </button>
-          );
-        })}
-
         {/* Other tools section — links to Tab 2 / Tab 3 */}
         {(onOpenPrioritization || onOpenExperiment) && (
           <div className="mt-2">

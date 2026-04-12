@@ -14,20 +14,17 @@
  */
 import { useState } from "react";
 import { AppHeader, type AppView } from "@/components/layout/AppHeader";
-import {
-  ContextualSidebar,
-  type ContextualNavItem,
-} from "@/components/layout/ContextualSidebar";
+import { ContextualSidebar } from "@/components/layout/ContextualSidebar";
 import { ExperimentTab } from "@/features/experiment/ExperimentTab";
 import { ImagingTab } from "@/features/imaging/ImagingTab";
 import { PrioritizationTab } from "@/features/prioritization/PrioritizationTab";
+import { useJobStore } from "@/lib/jobStore";
 
 const IMAGING_VIEWS: AppView[] = ["overview", "single", "compare", "methods"];
 
 export default function App() {
   const [activeView, setActiveView] = useState<AppView>("overview");
-  const [contextualItem, setContextualItem] =
-    useState<ContextualNavItem>("selection");
+  const hasResult = useJobStore((s) => s.latestJobResult !== null);
 
   const isImagingView = IMAGING_VIEWS.includes(activeView);
 
@@ -38,11 +35,10 @@ export default function App() {
         onChangeView={setActiveView}
         canRerun={false}
         canExport={false}
+        showViewTabs={hasResult}
       />
 
       <ContextualSidebar
-        activeItem={contextualItem}
-        onSelectItem={setContextualItem}
         onOpenPrioritization={() => setActiveView("prioritization")}
         onOpenExperiment={() => setActiveView("experiment")}
         isPrioritizationActive={activeView === "prioritization"}

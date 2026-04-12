@@ -19,6 +19,7 @@ interface AppHeaderProps {
   onExport?: () => void;
   canRerun?: boolean;
   canExport?: boolean;
+  showViewTabs?: boolean;
 }
 
 interface NavItem {
@@ -40,6 +41,7 @@ export function AppHeader({
   onExport,
   canRerun = false,
   canExport = false,
+  showViewTabs = true,
 }: AppHeaderProps) {
   return (
     <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-14 bg-surface/80 backdrop-blur-md ghost-border-b">
@@ -61,8 +63,8 @@ export function AppHeader({
           </span>
         </button>
 
-        {/* Imaging sub-view nav links (4 of them, per Stitch) */}
-        <div className="hidden md:flex items-center gap-6">
+        {/* Imaging sub-view nav links — hidden until a result exists */}
+        <div className={`hidden md:flex items-center gap-6 ${showViewTabs ? "" : "invisible"}`}>
           {NAV_ITEMS.map((item) => {
             const isActive = item.id === activeView;
             return (

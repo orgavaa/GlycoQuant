@@ -169,25 +169,48 @@ function EmptyStateLoader({
   }, [pending, uploadPreviewMutation.data]);
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-16">
-      <div className="bg-surface-container-lowest p-8 ghost-border space-y-6">
+    <div className="grid grid-cols-12 gap-0 min-h-[calc(100vh-3.5rem)]">
+      {/* Left: image preview canvas (matches the Overview dark pane) */}
+      <section className="col-span-7 relative bg-inverse-surface overflow-hidden flex items-center justify-center">
+        {previewSrc ? (
+          <img
+            src={previewSrc}
+            alt="Input preview"
+            className="w-full h-full object-cover opacity-80"
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-4 text-white/30">
+            <span className="material-symbols-outlined text-[48px]">
+              microscope
+            </span>
+            <p className="text-[10px] uppercase tracking-[0.2em]">
+              Load an image to begin
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Right: controls panel */}
+      <section className="col-span-5 bg-surface-container-low p-8 overflow-y-auto h-[calc(100vh-3.5rem)] flex flex-col gap-8">
         <div>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-            Single-cell mechanobiology pipeline
+            Image analysis
           </p>
-          <h2 className="mt-2 text-[1.5rem] font-headline font-semibold leading-tight tracking-tighter text-on-surface">
-            Per-cell quantification of glycocalyx organisation and
-            mechanotransduction state from a five-channel confocal image,
-            and the cross-block correlation that links the two.
+          <h2 className="mt-2 text-[1.4rem] font-headline font-semibold leading-tight tracking-tighter text-on-surface">
+            Measure how the cell surface coat shapes mechanical signalling
+            — one cell at a time.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
-            Cellpose-SAM segments each cell and its nucleus. Twelve
-            glycocalyx descriptors are extracted from the pericellular WGA
-            ring, and the mechanotransduction panel reports size-corrected
-            YAP N/C (Jones&nbsp;2024), focal-adhesion maturation classes
-            (Buskermolen&nbsp;2018), actin coherence and nuclear morphology.
-            PC1 over the curated mechano panel yields a per-cell composite
-            score; a Spearman cross-block matrix tests their coupling.
+            This pipeline takes a five-channel fluorescence image (nuclei,
+            glycocalyx lectin stain, YAP, focal-adhesion marker, and actin)
+            and automatically segments every cell. For each cell it measures
+            the thickness and texture of the glycocalyx coat, the balance
+            of YAP between nucleus and cytoplasm (corrected for cell size),
+            the maturity of focal adhesions, and the alignment of actin
+            stress fibres. It then asks: within this population, do cells
+            with a thicker glycocalyx also show stronger mechanical
+            activation? That single-cell correlation has never been measured
+            from imaging data before.
           </p>
         </div>
 
@@ -198,17 +221,7 @@ function EmptyStateLoader({
         />
 
         {pending && (
-          <>
-            {previewSrc && (
-              <div className="bg-inverse-surface p-3 flex justify-center">
-                <img
-                  src={previewSrc}
-                  alt="Input preview"
-                  className="max-h-[260px] w-auto object-contain"
-                />
-              </div>
-            )}
-
+          <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label
@@ -270,7 +283,7 @@ function EmptyStateLoader({
                 </>
               )}
             </Button>
-          </>
+          </div>
         )}
 
         {progress && isRunning && (
@@ -297,7 +310,7 @@ function EmptyStateLoader({
             <p className="text-sm text-on-error-container">{submitError}</p>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
