@@ -373,8 +373,11 @@ export async function runPhenotypeDiscovery(
   if (params?.n_neighbors) query.set("n_neighbors", String(params.n_neighbors));
   if (params?.min_dist) query.set("min_dist", String(params.min_dist));
   if (params?.resolution) query.set("resolution", String(params.resolution));
+  const qs = query.toString();
   const { data } = await api.post<PhenotypeResponse>(
-    `/analysis/ml/phenotype/${jobId}?${query.toString()}`,
+    `/analysis/ml/phenotype/${jobId}${qs ? "?" + qs : ""}`,
+    {},
+    { timeout: 120_000 },
   );
   return data;
 }
@@ -386,6 +389,8 @@ export async function runSpatialGNN(
   const query = maxEdgeDistUm ? `?max_edge_dist_um=${maxEdgeDistUm}` : "";
   const { data } = await api.post<SpatialGNNResponse>(
     `/analysis/ml/spatial-gnn/${jobId}${query}`,
+    {},
+    { timeout: 120_000 },
   );
   return data;
 }
@@ -396,6 +401,8 @@ export async function runCrossModal(
 ): Promise<CrossModalResponse> {
   const { data } = await api.post<CrossModalResponse>(
     `/analysis/ml/cross-modal/${jobId}?direction=${direction}`,
+    {},
+    { timeout: 120_000 },
   );
   return data;
 }

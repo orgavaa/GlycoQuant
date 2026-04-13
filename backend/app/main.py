@@ -22,8 +22,14 @@ def _resolve_cors_origins() -> list[str]:
     env = os.environ.get("CORS_ORIGINS", "").strip()
     if not env:
         return DEFAULT_CORS_ORIGINS
+    # Support wildcard: if CORS_ORIGINS contains "*", allow all
     origins = [o.strip() for o in env.split(",") if o.strip()]
     return origins or DEFAULT_CORS_ORIGINS
+
+
+def _is_wildcard_cors() -> bool:
+    env = os.environ.get("CORS_ORIGINS", "").strip()
+    return env == "*"
 
 
 app = FastAPI(
@@ -37,13 +43,22 @@ app = FastAPI(
     version=__version__,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=_resolve_cors_origins(),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if _is_wildcard_cors():
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_resolve_cors_origins(),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 app.include_router(analysis.router)
 app.include_router(priors.router)

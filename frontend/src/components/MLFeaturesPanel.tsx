@@ -22,6 +22,9 @@ export function MLFeaturesPanel({ result }: Props) {
   const [activeTab, setActiveTab] = useState<MLTab>("phenotype");
   const jobId = useJobStore(s => s.latestJobId);
 
+  // Debug: show jobId status
+  console.log("[MLFeaturesPanel] jobId =", jobId, "has_deep =", result.has_deep_features);
+
   const tabs: { id: MLTab; label: string }[] = [
     { id: "phenotype", label: "Cell Atlas" },
     { id: "spatial", label: "Spatial GNN" },
