@@ -85,9 +85,6 @@ The Ranking tab combines two orthogonal precomputed priors to prioritise glycoca
 
 The **rank-divergence column** (|rank_geneformer - rank_pathway|) is the most scientifically informative output: high-divergence genes are where the two priors disagree, meaning a wet-lab experiment will actively discriminate between transcriptomic and topological hypotheses. Those are the experiments worth doing.
 
----<img width="2816" height="1536" alt="Gemini_Generated_Image_3x63ve3x63ve3x63" src="https://github.com/user-attachments/assets/77e82e78-03b9-45f7-8be3-f45e311718ec" />
-
-
 **Backend** — FastAPI (Python 3.10+) with four routers: `/analysis` (upload, job queue, polling), `/priors` (ranking, contextual reweighting, drill-down, Geneformer generation), `/demo` (bundled HPA microscopy datasets), `/analysis/ml` (phenotype discovery, spatial GNN, cross-modal prediction). GPU inference dispatches to Modal when `GLYCOQUANT_GPU_PROVIDER=modal`.
 
 **Frontend** — React 18 + TypeScript + Vite + Tailwind CSS. Full-bleed microscopy viewer with native channel PNG compositing (mix-blend-mode:screen), Canvas overlay for cell outlines and interactions (hover tooltip, click-to-inspect), sliding results panel with Overview and ML Analysis tabs. TanStack Query for data fetching, Zustand for cross-view state.
