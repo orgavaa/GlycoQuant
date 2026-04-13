@@ -218,9 +218,11 @@ export function LoaderView() {
           />
         )}
 
-        {job.submit.isError && (
+        {(job.submit.isError || job.isFailed) && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-[12px] text-red-700">
-            {(job.submit.error as Error)?.message ?? "Pipeline failed"}
+            {job.isFailed
+              ? (job.status?.error ?? "Pipeline failed on the server. Check Railway deploy logs.")
+              : ((job.submit.error as Error)?.message ?? "Pipeline failed")}
           </div>
         )}
 
