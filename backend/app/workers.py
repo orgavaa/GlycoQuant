@@ -530,13 +530,15 @@ def _build_result_payload(
         ),
     }
 
+    # Strip deep_* columns from the JSON response — they bloat it by 10-50x.
+    # The ML endpoints read deep features from the full DataFrame stored in job.meta.
+    display_cols = [c for c in features_df.columns if not c.startswith("deep_")]
+    features_df_for_response = features_df.reset_index()[["cell_id"] + display_cols]
+
     return JobResult(
         image_hash=image_hash,
         cell_count=len(features_df),
-        # Strip deep_* columns from the JSON response — they bloat it by 10-50x.
-        # The ML endpoints read deep features from the full DataFrame stored in job.meta.
-        display_cols = [c for c in features_df.columns if not c.startswith("deep_")]
-        features_df_json=features_df.reset_index()[["cell_id"] + display_cols].to_json(orient="records"),
+        features_df_json=features_df_for_response.to_json(orient="records"),
         segmentation_figure_json=seg_fig.to_json(),
         channel_trace_indices=channel_trace_indices,
         overlay_trace_ranges=overlay_trace_ranges,
