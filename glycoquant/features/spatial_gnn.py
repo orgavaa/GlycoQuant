@@ -217,11 +217,12 @@ def train_spatial_gnn(
     train_idx = perm[:n_train]
     test_idx = perm[n_train:]
 
-    # Simple 2-layer GCN
-    W1 = torch.randn(n_features, params.hidden_dim, requires_grad=True) * 0.1
-    b1 = torch.zeros(params.hidden_dim, requires_grad=True)
-    W2 = torch.randn(params.hidden_dim, 1, requires_grad=True) * 0.1
-    b2 = torch.zeros(1, requires_grad=True)
+    # Simple 2-layer GCN — use nn.Parameter so optimizer can track them
+    import torch.nn as nn
+    W1 = nn.Parameter(torch.randn(n_features, params.hidden_dim) * 0.1)
+    b1 = nn.Parameter(torch.zeros(params.hidden_dim))
+    W2 = nn.Parameter(torch.randn(params.hidden_dim, 1) * 0.1)
+    b2 = nn.Parameter(torch.zeros(1))
 
     optimizer = torch.optim.Adam([W1, b1, W2, b2], lr=params.lr)
 

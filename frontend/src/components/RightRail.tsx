@@ -27,9 +27,13 @@ export function RightRail({ result, cells, onClose }: Props) {
         </h2>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 text-[18px] leading-none transition-colors p-1"
+          className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md hover:bg-gray-100"
+          title="Close panel"
         >
-          &times;
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <line x1="4" y1="4" x2="12" y2="12" />
+            <line x1="12" y1="4" x2="4" y2="12" />
+          </svg>
         </button>
       </div>
 

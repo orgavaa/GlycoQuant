@@ -63,14 +63,19 @@ export function AnalysisView({ result }: Props) {
         </div>
       </div>
 
-      {/* Rail toggle button */}
+      {/* Rail toggle button — sidebar icon */}
       <button
         onClick={() => setRailOpen(v => !v)}
-        className={`absolute top-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md px-3 py-2 text-[12px] font-medium text-gray-700 hover:bg-white transition-all duration-300 ${
-          railOpen ? "right-[calc(min(640px,60vw)+16px)]" : "right-4"
+        className={`absolute top-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-white hover:text-gray-900 transition-all duration-300 ${
+          railOpen ? "right-[calc(min(640px,60vw)+12px)]" : "right-4"
         }`}
+        title={railOpen ? "Close panel" : "Open results"}
       >
-        {railOpen ? "\u2715 Close" : "\u2190 Results"}
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          {/* Sidebar panel icon */}
+          <rect x="2" y="2" width="14" height="14" rx="2" />
+          <line x1="11" y1="2" x2="11" y2="16" />
+        </svg>
       </button>
 
       {/* Sliding results panel */}
