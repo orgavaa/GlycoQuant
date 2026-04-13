@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { Info, Zap, ChevronLeft, Sparkles, FlaskConical, Network, Table2, BarChart3 } from "lucide-react";
 import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
@@ -99,7 +100,7 @@ export function PrioritizationTab() {
       {isDynamic ? (
         <Card className="!bg-blue-50 !border-blue-200">
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-blue-600 text-[16px]">&#9889;</span>
+            <Zap size={16} strokeWidth={1.5} className="text-blue-600" />
             <span className="text-[13px] font-semibold text-gray-900">Ranking contextualised by your analysis</span>
             {latestDatasetLabel && (
               <span className="text-[11px] font-medium px-2.5 py-1 bg-white border border-blue-200 rounded-full text-blue-700">{latestDatasetLabel}</span>
@@ -127,14 +128,14 @@ export function PrioritizationTab() {
           <div className="pt-4">
             <button type="button" onClick={() => setForceStatic(true)}
               className="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-              &larr; Show static ranking
+              <ChevronLeft size={14} strokeWidth={1.5} /> Show static ranking
             </button>
           </div>
         </Card>
       ) : (
         <Card className="!bg-gray-50">
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-gray-400 text-[16px]">&#9432;</span>
+            <Info size={16} strokeWidth={1.5} className="text-gray-400" />
             <span className="text-[13px] font-semibold text-gray-900">How this ranking is produced</span>
           </div>
           <p className="text-[13px] text-gray-600 leading-relaxed max-w-3xl">
@@ -146,7 +147,7 @@ export function PrioritizationTab() {
             <div className="pt-4">
               <button type="button" onClick={() => setForceStatic(false)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
-                &#9889; Contextualise with my analysis
+                <Zap size={14} strokeWidth={1.5} /> Contextualise with my analysis
               </button>
             </div>
           )}

@@ -296,6 +296,19 @@ def run_analysis_job(
             # the polling response small (~50KB instead of ~5MB).
             job.meta["_features_df_full_json"] = features_df.reset_index().to_json(orient="records")
 
+        # Strip deep_* columns from the response to keep polling fast
+        import pandas as _pd
+        from io import StringIO as _SIO
+        try:
+            _df = _pd.read_json(_SIO(result.features_df_json), orient="records")
+            _deep = [c for c in _df.columns if c.startswith("deep_")]
+            if _deep:
+                _display = [c for c in _df.columns if not c.startswith("deep_")]
+                result.features_df_json = _df[_display].to_json(orient="records")
+                print(f"[worker] stripped {len(_deep)} deep_* cols from response")
+        except Exception:
+            pass
+
         store.update(
             job_id,
             status="complete",
@@ -530,15 +543,12 @@ def _build_result_payload(
         ),
     }
 
-    # Strip deep_* columns from the JSON response — they bloat it by 10-50x.
-    # The ML endpoints read deep features from the full DataFrame stored in job.meta.
-    display_cols = [c for c in features_df.columns if not c.startswith("deep_")]
-    features_df_for_response = features_df.reset_index()[["cell_id"] + display_cols]
-
+    # Return ALL columns including deep_* — the worker strips them
+    # for the polling response after caching the full version for ML endpoints.
     return JobResult(
         image_hash=image_hash,
         cell_count=len(features_df),
-        features_df_json=features_df_for_response.to_json(orient="records"),
+        features_df_json=features_df.reset_index().to_json(orient="records"),
         segmentation_figure_json=_slim_segmentation_figure(seg_fig),
         channel_trace_indices=channel_trace_indices,
         overlay_trace_ranges=overlay_trace_ranges,
@@ -557,29 +567,29 @@ def _build_result_payload(
 
 
 def _slim_segmentation_figure(fig) -> str:
-    """Strip overlay traces from the segmentation figure to reduce JSON size.
+    """Strip the segmentation figure down to just cell outline traces.
 
-    Keeps: heatmap traces (channel images) + cell outline scatter traces
-    (which have customdata with cell IDs for the frontend polygon extraction).
-    Drops: glycocalyx/mechano fill overlays, FA markers, YAP compartment,
-    pericellular ring — these are all hidden by default and the frontend
-    renders its own Canvas overlays anyway.
+    The frontend uses channel PNGs for the image (not Plotly heatmaps)
+    and Canvas for overlays (not Plotly scatter fills). The only data
+    needed from this figure is the cell outline polygons with their
+    customdata (cell IDs) for hover/click hit testing, plus the layout
+    axis ranges for coordinate mapping.
     """
     import json
 
     raw = json.loads(fig.to_json())
+    all_traces = raw.get("data", [])
     kept_traces = []
-    for trace in raw.get("data", []):
-        # Keep heatmap traces (channel images)
-        if trace.get("type") == "heatmap":
+    for trace in all_traces:
+        # Keep cell outline scatter traces — they have customdata with
+        # cell IDs and use hovertemplate (not hoverinfo="skip")
+        has_customdata = bool(trace.get("customdata"))
+        is_visible = trace.get("visible") is not False
+        not_skip = trace.get("hoverinfo") != "skip"
+        if has_customdata and is_visible and not_skip:
             kept_traces.append(trace)
-            continue
-        # Keep scatter traces with customdata (cell outlines with IDs)
-        if trace.get("customdata") and trace.get("visible") is not False:
-            kept_traces.append(trace)
-            continue
-        # Drop everything else (overlays, markers, text labels)
     raw["data"] = kept_traces
+    print(f"[worker] slim seg figure: kept {len(kept_traces)} cell outlines, dropped {len(all_traces) - len(kept_traces)} traces")
     return json.dumps(raw)
 
 

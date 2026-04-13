@@ -75,9 +75,14 @@ export function LoaderView() {
         {previewSrc ? (
           <img src={previewSrc} alt="Preview" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-gray-500 text-[11px] tracking-[0.15em] uppercase">
-              Select a dataset to begin
+          <div className="w-full h-full flex items-center justify-center pr-[380px]">
+            <div className="text-center">
+              <div className="text-gray-400 text-[13px] tracking-[0.1em] uppercase mb-2">
+                Select a dataset to begin
+              </div>
+              <div className="text-gray-600 text-[11px]">
+                Choose a reference dataset or upload your own TIFF
+              </div>
             </div>
           </div>
         )}

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Sparkles, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { Card } from "@/components/Card";
 import {
   fetchGeneformerStatus,
@@ -58,7 +59,7 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
     return (
       <Card className="!bg-emerald-50 !border-emerald-200">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-emerald-500 text-[16px]">&#10003;</span>
+          <CheckCircle size={16} strokeWidth={1.5} className="text-emerald-500" />
           <span className="text-[13px] font-semibold text-gray-900">Transcriptomic prior ready</span>
         </div>
         <p className="text-[13px] text-gray-600">
@@ -72,7 +73,7 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
   return (
     <Card>
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-blue-500 text-[16px]">&#9733;</span>
+        <Sparkles size={16} strokeWidth={1.5} className="text-blue-500" />
         <div>
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Optional upgrade</span>
           <h3 className="text-[13px] font-semibold text-gray-900 mt-0.5">Generate the transcriptomic prior</h3>
