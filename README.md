@@ -8,6 +8,11 @@ The platform segments individual cells (Cellpose-SAM), extracts 26 interpretable
 
 A separate perturbation-ranking module combines curated pathway proximity (STRING v12) with transcriptomic co-regulation (Geneformer) to prioritise glycocalyx gene perturbations against a 15-gene mechanotransduction signature — surfacing the experiments where the two priors disagree as the highest-information targets for the bench.
 
+<br />
+
+<img width="2816" height="1536" alt="Gemini_Generated_Image_3x63ve3x63ve3x63" src="https://github.com/user-attachments/assets/704a7fc1-2ddd-49e3-9291-fae1f9a88175" />
+
+
 ---
 
 ## Why this exists
@@ -80,28 +85,8 @@ The Ranking tab combines two orthogonal precomputed priors to prioritise glycoca
 
 The **rank-divergence column** (|rank_geneformer - rank_pathway|) is the most scientifically informative output: high-divergence genes are where the two priors disagree, meaning a wet-lab experiment will actively discriminate between transcriptomic and topological hypotheses. Those are the experiments worth doing.
 
----
+---<img width="2816" height="1536" alt="Gemini_Generated_Image_3x63ve3x63ve3x63" src="https://github.com/user-attachments/assets/77e82e78-03b9-45f7-8be3-f45e311718ec" />
 
-## Architecture
-
-```
-                          Browser (React + TypeScript + Tailwind)
-                                        |
-                              HTTPS (Railway CDN)
-                                        |
-                          FastAPI backend (Railway, CPU)
-                            /           |           \
-                    /analysis      /priors       /analysis/ml
-                         |              |              |
-                    Background      STRING v12    UMAP / GNN /
-                    job queue       + Geneformer   MLP (CPU)
-                         |
-              ┌──── local ────┐   ┌─── modal ───┐
-              │  Cellpose-SAM │   │  L4 GPU      │
-              │  Cell-DINO    │   │  ~25s/image  │
-              │  (CPU, slow)  │   │  (warm)      │
-              └───────────────┘   └──────────────┘
-```
 
 **Backend** — FastAPI (Python 3.10+) with four routers: `/analysis` (upload, job queue, polling), `/priors` (ranking, contextual reweighting, drill-down, Geneformer generation), `/demo` (bundled HPA microscopy datasets), `/analysis/ml` (phenotype discovery, spatial GNN, cross-modal prediction). GPU inference dispatches to Modal when `GLYCOQUANT_GPU_PROVIDER=modal`.
 
