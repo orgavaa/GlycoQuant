@@ -74,6 +74,9 @@ def extract_morphology_features(
         else math.nan
     )
 
+    # Centroid in (x=col, y=row) pixel coordinates
+    cy, cx = region.centroid
+
     return {
         "cell_area": area,
         "cell_perimeter": perimeter,
@@ -81,6 +84,8 @@ def extract_morphology_features(
         "cell_aspect_ratio": aspect_ratio,
         "cell_solidity": solidity,
         "cell_spread_area": convex_area,
+        "centroid_x": float(cx),
+        "centroid_y": float(cy),
     }
 
 
@@ -93,4 +98,6 @@ def _nan_features() -> dict[str, float]:
         "cell_aspect_ratio": nan,
         "cell_solidity": nan,
         "cell_spread_area": nan,
+        "centroid_x": nan,
+        "centroid_y": nan,
     }

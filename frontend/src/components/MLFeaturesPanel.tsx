@@ -68,16 +68,20 @@ function PhenotypeTab({ result, jobId }: { result: JobResult; jobId: string | nu
   const canRun = result.has_deep_features;
 
   const handleRun = async () => {
+    console.log("[PhenotypeTab] handleRun called, jobId =", jobId, "has_deep =", result.has_deep_features);
     if (!jobId) {
-      setError("No job ID available. Please re-run the analysis.");
+      setError("No job ID available — jobId is null. Re-run the analysis.");
       return;
     }
     setLoading(true);
     setError(null);
     try {
+      console.log("[PhenotypeTab] calling runPhenotypeDiscovery with jobId =", jobId);
       const res = await runPhenotypeDiscovery(jobId);
+      console.log("[PhenotypeTab] got result:", res.n_clusters, "clusters");
       setPhenotype(res);
     } catch (e) {
+      console.error("[PhenotypeTab] error:", e);
       setError((e as Error).message);
     } finally {
       setLoading(false);

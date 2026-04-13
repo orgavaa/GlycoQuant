@@ -116,12 +116,36 @@ async def run_spatial_gnn(
     if job and job.result and hasattr(job.result, "pixel_size_um") and job.result.pixel_size_um:
         pixel_size_um = job.result.pixel_size_um
 
-    # Ensure centroid columns exist
+    # Compute centroids from segmentation figure polygons if not in features
+    if "centroid_x" not in df.columns or "centroid_y" not in df.columns:
+        if job and job.result and job.result.segmentation_figure_json:
+            import json
+            try:
+                fig = json.loads(job.result.segmentation_figure_json)
+                cx_map: dict[float, float] = {}
+                cy_map: dict[float, float] = {}
+                for trace in fig.get("data", []):
+                    if trace.get("type") == "heatmap" or not trace.get("customdata"):
+                        continue
+                    cd = trace["customdata"][0] if trace.get("customdata") else None
+                    if cd is None:
+                        continue
+                    cid = float(cd[0]) if isinstance(cd, list) else float(cd)
+                    xs = [float(v) for v in trace.get("x", []) if v is not None]
+                    ys = [float(v) for v in trace.get("y", []) if v is not None]
+                    if xs and ys:
+                        cx_map[cid] = sum(xs) / len(xs)
+                        cy_map[cid] = sum(ys) / len(ys)
+                if cx_map:
+                    df["centroid_x"] = df.index.map(lambda c: cx_map.get(float(c), float("nan")))
+                    df["centroid_y"] = df.index.map(lambda c: cy_map.get(float(c), float("nan")))
+            except Exception:
+                pass
+
     if "centroid_x" not in df.columns or "centroid_y" not in df.columns:
         raise HTTPException(
             409,
-            "Cell centroids not found in features. "
-            "The morphology extractor must produce centroid_x/centroid_y."
+            "Cell centroids not available. Re-run the analysis with the latest backend."
         )
 
     from glycoquant.features.spatial_gnn import SpatialGNNParams, train_spatial_gnn

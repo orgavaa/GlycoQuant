@@ -71,7 +71,14 @@
       "Bash(curl -s http://localhost:5174/src/index.css)",
       "Bash(netstat -ano)",
       "Bash(taskkill //PID 19120 //F)",
-      "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/phenotype/test123\")"
+      "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/phenotype/test123\")",
+      "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/spatial-gnn/test\")",
+      "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/cross-modal/test\")",
+      "Bash(curl -s \"https://glycoquant-production.up.railway.app/health\")",
+      "Bash(curl -s \"https://glycoquant-production.up.railway.app/openapi.json\")",
+      "Bash(curl -s -I -X OPTIONS https://glycoquant-production.up.railway.app/analysis/ml/phenotype/test -H 'Origin: https://glycoquant-production.up.railway.app' -H 'Access-Control-Request-Method: POST')",
+      "Bash(curl -s -I -X OPTIONS https://glycoquant-production.up.railway.app/analysis/ml/phenotype/test -H 'Origin: https://glycoquant-web-production.up.railway.app' -H 'Access-Control-Request-Method: POST')",
+      "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/spatial-gnn/null\")"
     ],
     "deny": [
       "Bash(rm -rf /)",
