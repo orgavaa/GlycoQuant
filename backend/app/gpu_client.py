@@ -86,20 +86,31 @@ def run_pipeline_remote(
     Parameters match the worker's local code path so the dispatcher
     branch can be a one-liner.
     """
+    import time
+
     fn = _lookup_modal_function()
     payload = _serialize_channels(channels)
+    print(f"[gpu_client] dispatching to Modal (payload={len(payload)/1024:.0f} KB, deep={include_deep_features})")
+    t0 = time.monotonic()
     try:
         raw = fn.remote(payload, int(cell_diameter), bool(include_deep_features))
     except Exception as exc:  # noqa: BLE001
+        elapsed = time.monotonic() - t0
+        print(f"[gpu_client] Modal call FAILED after {elapsed:.1f}s: {type(exc).__name__}: {exc}")
         raise RuntimeError(
-            f"Modal call failed: {type(exc).__name__}: {exc}"
+            f"Modal call failed after {elapsed:.0f}s: {type(exc).__name__}: {exc}"
         ) from exc
+    elapsed = time.monotonic() - t0
+    print(f"[gpu_client] Modal call returned in {elapsed:.1f}s, type={type(raw).__name__}")
     if not isinstance(raw, dict):
         raise RuntimeError(
             f"Modal function returned unexpected type {type(raw).__name__}; "
             "expected a dict matching JobResult."
         )
-    return JobResult.model_validate(raw)
+    # Log payload size for debugging
+    result = JobResult.model_validate(raw)
+    print(f"[gpu_client] JobResult parsed OK: {result.cell_count} cells, deep={result.has_deep_features}")
+    return result
 
 
 # ---------------------------------------------------------------------------

@@ -155,11 +155,17 @@ def run_analysis_job(
                 pct=20,
                 message="Running on remote GPU",
             )
-            remote_result = run_pipeline_remote(
-                channels=channels,
-                cell_diameter=cell_diameter,
-                include_deep_features=include_deep_features,
-            )
+            print(f"[worker] dispatching job {job_id} to Modal GPU")
+            try:
+                remote_result = run_pipeline_remote(
+                    channels=channels,
+                    cell_diameter=cell_diameter,
+                    include_deep_features=include_deep_features,
+                )
+            except Exception as modal_exc:
+                print(f"[worker] Modal dispatch FAILED: {modal_exc}")
+                raise
+            print(f"[worker] Modal returned result for job {job_id}: {remote_result.cell_count} cells")
             if channel_warnings:
                 remote_result.warnings = list(remote_result.warnings) + channel_warnings
             store.update(
