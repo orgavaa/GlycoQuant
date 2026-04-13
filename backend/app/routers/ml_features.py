@@ -26,7 +26,12 @@ _log = logging.getLogger(__name__)
 
 
 def _get_features_df(job_id: str) -> pd.DataFrame:
-    """Fetch and parse features_df_json from a completed job."""
+    """Fetch and parse features DataFrame from a completed job.
+
+    Prefers the full cached DataFrame (with deep_* columns) from
+    job.meta, falling back to the stripped features_df_json in the
+    JobResult if the cache is unavailable.
+    """
     store = get_job_store()
     job = store.get(job_id)
     if job is None:
@@ -37,7 +42,13 @@ def _get_features_df(job_id: str) -> pd.DataFrame:
         raise HTTPException(409, f"Job {job_id} has no result")
 
     from io import StringIO
-    df = pd.read_json(StringIO(job.result.features_df_json), orient="records")
+
+    # Prefer full DataFrame with deep_* columns (cached in job.meta)
+    full_json = job.meta.get("_features_df_full_json")
+    if full_json:
+        df = pd.read_json(StringIO(full_json), orient="records")
+    else:
+        df = pd.read_json(StringIO(job.result.features_df_json), orient="records")
     if "cell_id" in df.columns:
         df = df.set_index("cell_id")
     return df

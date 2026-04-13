@@ -173,6 +173,18 @@ def run_analysis_job(
             if job_for_meta is not None:
                 remote_result.substitute_channels = list(job_for_meta.meta.get("substitute_channels", []))
                 remote_result.channel_assignments = job_for_meta.meta.get("channel_assignments")
+                # Cache full features (with deep_*) for ML endpoints,
+                # then strip deep_* from the response to keep polling fast
+                job_for_meta.meta["_features_df_full_json"] = remote_result.features_df_json
+            import pandas as _pd
+            from io import StringIO as _SIO
+            try:
+                _df = _pd.read_json(_SIO(remote_result.features_df_json), orient="records")
+                _display = [c for c in _df.columns if not c.startswith("deep_")]
+                remote_result.features_df_json = _df[_display].to_json(orient="records")
+                print(f"[worker] stripped deep_* from response ({len(_df.columns)} -> {len(_display)} cols)")
+            except Exception:
+                pass  # keep original if stripping fails
             store.update(
                 job_id,
                 status="complete",
@@ -272,13 +284,17 @@ def run_analysis_job(
             result.substitute_channels = list(job_meta.meta.get("substitute_channels", []))
             result.channel_assignments = job_meta.meta.get("channel_assignments")
 
-        # Cache channels + masks for the per-cell crops endpoint.
-        # ~50 MB per job; fine for a demo with <10 concurrent jobs.
+        # Cache channels, masks, and full features (with deep_* columns)
+        # for the per-cell crops endpoint and ML feature endpoints.
         job = store.get(job_id)
         if job is not None:
             job.meta["_channels"] = channels
             job.meta["_cell_mask"] = cell_mask
             job.meta["_nuclear_mask"] = nuclear_mask
+            # Store full features_df JSON (with deep_* columns) for ML endpoints.
+            # The JobResult.features_df_json is stripped of deep_* to keep
+            # the polling response small (~50KB instead of ~5MB).
+            job.meta["_features_df_full_json"] = features_df.reset_index().to_json(orient="records")
 
         store.update(
             job_id,
@@ -517,7 +533,10 @@ def _build_result_payload(
     return JobResult(
         image_hash=image_hash,
         cell_count=len(features_df),
-        features_df_json=features_df.reset_index().to_json(orient="records"),
+        # Strip deep_* columns from the JSON response — they bloat it by 10-50x.
+        # The ML endpoints read deep features from the full DataFrame stored in job.meta.
+        display_cols = [c for c in features_df.columns if not c.startswith("deep_")]
+        features_df_json=features_df.reset_index()[["cell_id"] + display_cols].to_json(orient="records"),
         segmentation_figure_json=seg_fig.to_json(),
         channel_trace_indices=channel_trace_indices,
         overlay_trace_ranges=overlay_trace_ranges,
