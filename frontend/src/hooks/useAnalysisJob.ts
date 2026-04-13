@@ -14,6 +14,7 @@ export function useAnalysisJob() {
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);
   const [includesDeep, setIncludesDeep] = useState(false);
   const setLatestJobResult = useJobStore((s) => s.setLatestJobResult);
+  const storeJobId = useJobStore((s) => s.setLatestJobId);
   const datasetLabelRef = useRef<string | null>(null);
 
   const submit = useMutation({
@@ -25,6 +26,9 @@ export function useAnalysisJob() {
     onSuccess: (response) => {
       setJobId(response.job_id);
       setSubmittedAt(Date.now());
+      // Store jobId immediately so ML features panel can use it
+      // even if the LoaderView unmounts before the effect fires
+      storeJobId(response.job_id);
       queryClient.setQueryData<JobStatusResponse>(
         ["job", response.job_id],
         {

@@ -12,6 +12,7 @@ interface JobStoreState {
   spatialGNNResult: SpatialGNNResponse | null;
   crossModalResult: CrossModalResponse | null;
   // Actions
+  setLatestJobId: (jobId: string) => void;
   setLatestJobResult: (result: JobResult, datasetLabel?: string | null, jobId?: string | null) => void;
   clearLatestJobResult: () => void;
   setSelectedCellId: (cellId: number | null) => void;
@@ -29,6 +30,7 @@ export const useJobStore = create<JobStoreState>((set) => ({
   phenotypeResult: null,
   spatialGNNResult: null,
   crossModalResult: null,
+  setLatestJobId: (jobId) => set({ latestJobId: jobId }),
   setLatestJobResult: (result, datasetLabel = null, jobId = null) =>
     set((state) => ({
       latestJobResult: result,
