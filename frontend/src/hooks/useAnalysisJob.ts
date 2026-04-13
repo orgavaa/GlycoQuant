@@ -11,16 +11,20 @@ import { useJobStore } from "@/lib/jobStore";
 export function useAnalysisJob() {
   const queryClient = useQueryClient();
   const [jobId, setJobId] = useState<string | null>(null);
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
+  const [includesDeep, setIncludesDeep] = useState(false);
   const setLatestJobResult = useJobStore((s) => s.setLatestJobResult);
   const datasetLabelRef = useRef<string | null>(null);
 
   const submit = useMutation({
     mutationFn: async (args: SubmitAnalyzeArgs) => {
       datasetLabelRef.current = args.demoCondition ?? args.upload?.name ?? null;
+      setIncludesDeep(args.includeDeepFeatures);
       return submitAnalyze(args);
     },
     onSuccess: (response) => {
       setJobId(response.job_id);
+      setSubmittedAt(Date.now());
       queryClient.setQueryData<JobStatusResponse>(
         ["job", response.job_id],
         {
@@ -63,6 +67,7 @@ export function useAnalysisJob() {
 
   const reset = () => {
     setJobId(null);
+    setSubmittedAt(null);
     submit.reset();
   };
 
@@ -76,6 +81,8 @@ export function useAnalysisJob() {
     isFailed,
     result,
     progress,
+    submittedAt,
+    includesDeep,
     reset,
   } as const;
 }

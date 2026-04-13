@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
+import { PipelineProgress } from "@/components/PipelineProgress";
 import {
   demoPreviewUrl,
   fetchDemoList,
@@ -185,17 +186,13 @@ export function LoaderView() {
         )}
 
         {/* Progress */}
-        {job.progress && isRunning && (
-          <div className="mt-5 space-y-2">
-            <div className="flex justify-between text-[11px] text-gray-500">
-              <span className="font-medium capitalize">{job.progress.phase}</span>
-              <span style={{ fontFeatureSettings: "'tnum'" }}>{job.progress.pct}%</span>
-            </div>
-            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${job.progress.pct}%` }} />
-            </div>
-            <div className="text-[11px] text-gray-400">{job.progress.message}</div>
-          </div>
+        {isRunning && (
+          <PipelineProgress
+            progress={job.progress}
+            submittedAt={job.submittedAt}
+            includesDeep={job.includesDeep}
+            isGpu={job.progress?.message?.includes("remote GPU") || job.progress?.message?.includes("Modal") || true}
+          />
         )}
 
         {job.submit.isError && (
