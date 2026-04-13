@@ -61,6 +61,37 @@ ACCENT_BLUE_DESAT = "#6baed6"  # desaturated blue for bars
 ACCENT_BLUE_LIGHT = "#93c5fd"  # light blue for score bars
 
 
+# ---------------------------------------------------------------------------
+# Backward-compatible Palette dataclass (used by radial_profile.py etc.)
+# ---------------------------------------------------------------------------
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Palette:
+    bg_base: str = "#FFFFFF"
+    bg_subtle: str = "#F8FAFC"
+    bg_muted: str = "#F1F5F9"
+    bg_elevated: str = "#FFFFFF"
+    border_subtle: str = "#E2E8F0"
+    border_strong: str = "#CBD5E1"
+    text_primary: str = TEXT_PRIMARY
+    text_secondary: str = TEXT_SECONDARY
+    text_muted: str = TEXT_MUTED
+    accent_primary: str = ACCENT_BLUE
+    accent_brand: str = "#0D9488"
+    accent_violet: str = "#7C3AED"
+    accent_amber: str = "#F59E0B"
+    success: str = "#16A34A"
+    warning: str = "#EA580C"
+    error: str = "#DC2626"
+    info: str = ACCENT_BLUE
+
+
+PALETTE = Palette()
+
+
 def get_plotly_layout_template() -> dict:
     """Publication-grade Plotly layout template.
 
