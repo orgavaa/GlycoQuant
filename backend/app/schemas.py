@@ -180,6 +180,22 @@ class JobResult(BaseModel):
             "skipped. Rendered as a yellow banner above the result card."
         ),
     )
+    channel_assignments: dict[str, str] | None = Field(
+        default=None,
+        description=(
+            "The {channel_index: canonical_role} mapping used for this run. "
+            "Echoed so the frontend can display which channel was assigned "
+            "to which biological role."
+        ),
+    )
+    substitute_channels: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Canonical channel names (e.g. 'yap', 'paxillin') that were "
+            "identified as synthetic or substitute stains and excluded "
+            "from feature extraction. The UI shows '—' for those features."
+        ),
+    )
 
 
 class JobStatusResponse(BaseModel):

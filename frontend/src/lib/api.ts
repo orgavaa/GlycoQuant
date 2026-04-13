@@ -71,6 +71,8 @@ export interface JobResult {
   deep_embedding_backend?: DeepEmbeddingBackend | null;
   warnings?: string[];
   pixel_size_um?: number;
+  channel_assignments?: Record<string, string> | null;
+  substitute_channels?: string[];
 }
 
 export interface JobStatusResponse {
@@ -258,6 +260,7 @@ export interface SubmitAnalyzeArgs {
   cellDiameter: number;
   includeDeepFeatures: boolean;
   pixelSizeUm?: number;
+  channelAssignments?: Record<string, string>;
 }
 
 export async function submitAnalyze(args: SubmitAnalyzeArgs): Promise<AnalyzeResponse> {
@@ -268,6 +271,9 @@ export async function submitAnalyze(args: SubmitAnalyzeArgs): Promise<AnalyzeRes
   form.append("include_deep_features", args.includeDeepFeatures ? "true" : "false");
   if (args.pixelSizeUm !== undefined) {
     form.append("pixel_size_um", String(args.pixelSizeUm));
+  }
+  if (args.channelAssignments) {
+    form.append("channel_assignments", JSON.stringify(args.channelAssignments));
   }
   const { data } = await api.post<AnalyzeResponse>("/analysis/analyze", form, {
     headers: { "Content-Type": "multipart/form-data" },

@@ -31,15 +31,19 @@ DEMO_DIR = Path(__file__).resolve().parents[3] / "data" / "demo"
 CANONICAL_CHANNELS = ("dapi", "glycocalyx", "yap", "paxillin", "actin")
 
 
-def _partial_channel_mapping(n_channels: int) -> tuple[dict[str, int], list[str]]:
-    """Return a ``{name: index}`` mapping for an image with ``n_channels``.
+EXTRACTOR_NAMES = {
+    "dapi": "nuclear segmentation",
+    "glycocalyx": "glycocalyx shell features",
+    "yap": "YAP nuclear/cytoplasmic features",
+    "paxillin": "focal-adhesion features",
+    "actin": "actin cytoskeleton features",
+}
 
-    Handles non-canonical uploads gracefully: if the image has fewer
-    than 5 channels we take the first N in canonical order and record
-    a warning listing which extractors will be skipped. If it has more
-    than 5, we use the first 5 slots and warn about the extra channels.
-    """
+
+def _partial_channel_mapping(n_channels: int) -> tuple[dict[str, int], list[str], list[str]]:
+    """Return ``({name: index}, warnings, substitute_channels)`` for positional assignment."""
     warnings: list[str] = []
+    substitutes: list[str] = []
     if n_channels >= 5:
         if n_channels > 5:
             warnings.append(
@@ -47,25 +51,116 @@ def _partial_channel_mapping(n_channels: int) -> tuple[dict[str, int], list[str]
                 "canonical order DAPI, WGA, YAP, paxillin, phalloidin. "
                 "Re-order your channels if this is wrong."
             )
-        return {name: i for i, name in enumerate(CANONICAL_CHANNELS)}, warnings
+        return {name: i for i, name in enumerate(CANONICAL_CHANNELS)}, warnings, substitutes
 
     mapping = {name: i for i, name in enumerate(CANONICAL_CHANNELS[:n_channels])}
     missing = CANONICAL_CHANNELS[n_channels:]
-    human_missing = ", ".join(missing)
-    extractors = {
-        "dapi": "nuclear segmentation",
-        "glycocalyx": "glycocalyx shell features",
-        "yap": "YAP nuclear/cytoplasmic features",
-        "paxillin": "focal-adhesion features",
-        "actin": "actin cytoskeleton features",
-    }
-    skipped = [extractors[m] for m in missing]
+    skipped = [EXTRACTOR_NAMES[m] for m in missing]
     warnings.append(
         f"Image has {n_channels} channels; expected 5 in the order DAPI, WGA, "
-        f"YAP, paxillin, phalloidin. Missing slots ({human_missing}) will be "
+        f"YAP, paxillin, phalloidin. Missing slots ({', '.join(missing)}) will be "
         f"skipped — no {', '.join(skipped)} computed."
     )
-    return mapping, warnings
+    return mapping, warnings, substitutes
+
+
+def _explicit_channel_mapping(
+    assignments_json: str,
+    n_channels: int,
+) -> tuple[dict[str, int], list[str], list[str], dict[str, str]]:
+    """Parse user-provided channel assignments.
+
+    Returns (mapping, warnings, substitute_channels, assignments_echo).
+    """
+    import json
+
+    try:
+        raw = json.loads(assignments_json)
+    except (json.JSONDecodeError, TypeError) as exc:
+        raise HTTPException(422, f"Invalid channel_assignments JSON: {exc}") from exc
+
+    if not isinstance(raw, dict):
+        raise HTTPException(422, "channel_assignments must be a JSON object")
+
+    warnings: list[str] = []
+    substitutes: list[str] = []
+    mapping: dict[str, int] = {}
+    echo: dict[str, str] = {}
+
+    for idx_str, role in raw.items():
+        idx = int(idx_str)
+        if idx >= n_channels:
+            continue
+        echo[idx_str] = str(role)
+        role_lower = str(role).lower().strip()
+        if role_lower in ("unknown", "other", ""):
+            continue
+        # Map display names to canonical names
+        role_map = {
+            "dapi": "dapi",
+            "wga-lectin": "glycocalyx", "wga": "glycocalyx", "glycocalyx": "glycocalyx",
+            "yap": "yap", "yap antibody": "yap",
+            "paxillin": "paxillin",
+            "phalloidin": "actin", "actin": "actin",
+        }
+        canonical = role_map.get(role_lower)
+        if canonical and canonical in CANONICAL_CHANNELS:
+            mapping[canonical] = idx
+
+    # Report skipped extractors
+    for ch in CANONICAL_CHANNELS:
+        if ch not in mapping and ch != "dapi":
+            warnings.append(
+                f"{ch.capitalize()} channel not assigned — {EXTRACTOR_NAMES[ch]} will be skipped."
+            )
+
+    return mapping, warnings, substitutes, echo
+
+
+def _demo_channel_mapping(
+    demo_condition: str,
+    n_channels: int,
+) -> tuple[dict[str, int], list[str], list[str], dict[str, str]]:
+    """Build mapping from demo manifest slot_sources.
+
+    Real channels (matches_labouesse_protocol=True) get assigned.
+    Synthetic channels are excluded and added to substitute_channels.
+    """
+    from backend.app.routers.demo import _find_dataset
+
+    dataset = _find_dataset(demo_condition)
+    if not dataset or "slot_sources" not in dataset:
+        mapping, warnings, subs = _partial_channel_mapping(n_channels)
+        return mapping, warnings, subs, {}
+
+    slot_sources = dataset.get("slot_sources", {})
+    warnings: list[str] = []
+    substitutes: list[str] = []
+    mapping: dict[str, int] = {}
+    echo: dict[str, str] = {}
+
+    for i, ch_name in enumerate(CANONICAL_CHANNELS):
+        if i >= n_channels:
+            break
+        source = slot_sources.get(ch_name, {})
+        is_real = source.get("matches_labouesse_protocol", False)
+        bio_id = source.get("biological_identity", ch_name)
+
+        echo[str(i)] = ch_name if is_real else "substitute"
+
+        if is_real:
+            mapping[ch_name] = i
+        else:
+            substitutes.append(ch_name)
+            note = source.get("note", "")
+            short_note = note[:120] + "..." if len(note) > 120 else note
+            warnings.append(
+                f"{ch_name.capitalize()} slot contains \"{bio_id}\" (substitute) — "
+                f"{EXTRACTOR_NAMES.get(ch_name, ch_name + ' features')} skipped. "
+                f"{short_note}"
+            )
+
+    return mapping, warnings, substitutes, echo
 
 
 @router.post("/preview")
@@ -112,6 +207,7 @@ async def submit_analysis(
     cell_diameter: int = Form(default=80),  # noqa: B008
     include_deep_features: bool = Form(default=False),  # noqa: B008
     pixel_size_um: float | None = Form(default=None),  # noqa: B008
+    channel_assignments: str | None = Form(default=None),  # noqa: B008
     upload: UploadFile | None = File(default=None),  # noqa: B008
 ) -> AnalyzeResponse:
     """Queue an analysis job and return its ``job_id`` immediately.
@@ -165,7 +261,24 @@ async def submit_analysis(
             detail="Image has no channels.",
         )
 
-    mapping, channel_warnings = _partial_channel_mapping(n_channels)
+    # 3-way channel mapping:
+    # A) Explicit assignments from frontend
+    # B) Demo dataset → use manifest slot_sources (real vs synthetic)
+    # C) Upload with no assignments → positional default
+    substitute_channels: list[str] = []
+    assignments_echo: dict[str, str] = {}
+
+    if channel_assignments is not None:
+        mapping, channel_warnings, substitute_channels, assignments_echo = (
+            _explicit_channel_mapping(channel_assignments, n_channels)
+        )
+    elif demo_condition is not None:
+        mapping, channel_warnings, substitute_channels, assignments_echo = (
+            _demo_channel_mapping(demo_condition, n_channels)
+        )
+    else:
+        mapping, channel_warnings, substitute_channels = _partial_channel_mapping(n_channels)
+
     try:
         channels = split_into_channels(raw, mapping)
     except ValueError as exc:
@@ -175,9 +288,7 @@ async def submit_analysis(
         ) from exc
 
     # Resolve pixel size: explicit form value > demo manifest entry >
-    # default. Demo manifests carry the per-image µm/px so bundled
-    # HPA datasets are classified with their actual acquisition
-    # optics rather than a hardcoded fallback.
+    # default.
     resolved_pixel_size_um = pixel_size_um
     if resolved_pixel_size_um is None and demo_condition is not None:
         from backend.app.routers.demo import _find_dataset
@@ -196,6 +307,8 @@ async def submit_analysis(
             "include_deep_features": include_deep_features,
             "pixel_size_um": resolved_pixel_size_um,
             "channel_warnings": channel_warnings,
+            "substitute_channels": substitute_channels,
+            "channel_assignments": assignments_echo,
         }
     )
 

@@ -64,8 +64,22 @@ function OverviewTab({ result, cells }: Props) {
 
   const glycoMechR = m.top_glyco_mechano_r ?? summary?.top_correlation_r ?? null;
 
+  const subs = result.substitute_channels ?? [];
+
   return (
     <div className="flex flex-col gap-5">
+      {/* Substitute channel warning */}
+      {subs.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="text-[12px] font-medium text-amber-800 mb-1">Channel substitutions active</div>
+          <div className="text-[11px] text-amber-700 leading-relaxed">
+            Features for {subs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ")} were
+            not computed — those channels contained synthetic or substitute stains.
+            Values shown as — are placeholders. Assign real channels in the analysis panel to enable these features.
+          </div>
+        </div>
+      )}
+
       <Card>
         <HeroMetrics metrics={[
           { value: String(result.cell_count), label: "Cells" },

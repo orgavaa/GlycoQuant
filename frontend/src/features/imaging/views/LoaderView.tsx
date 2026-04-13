@@ -3,6 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import {
+  ChannelAssignmentPanel,
+  defaultAssignmentsFromManifest,
+  defaultPositionalAssignments,
+} from "@/components/ChannelAssignmentPanel";
+import {
   demoPreviewUrl,
   fetchDemoList,
   uploadPreview,
@@ -18,6 +23,9 @@ export function LoaderView() {
   const [cellDiameter, setCellDiameter] = useState(80);
   const [pixelSizeUm, setPixelSizeUm] = useState(0.656);
   const [includeDeep, setIncludeDeep] = useState(false);
+  const [channelAssignments, setChannelAssignments] = useState<Record<string, string>>(
+    defaultPositionalAssignments()
+  );
 
   const isRunning = job.isRunning || job.submit.isPending;
 
@@ -54,6 +62,7 @@ export function LoaderView() {
       cellDiameter,
       includeDeepFeatures: includeDeep,
       pixelSizeUm,
+      channelAssignments,
     });
   };
 
@@ -97,6 +106,7 @@ export function LoaderView() {
               if (found) {
                 setPending({ kind: "demo", dataset: found });
                 if (found.pixel_size_um) setPixelSizeUm(found.pixel_size_um);
+                setChannelAssignments(defaultAssignmentsFromManifest(found.slot_sources));
                 job.reset();
               }
             }}
@@ -127,7 +137,11 @@ export function LoaderView() {
           <input ref={fileRef} type="file" accept=".tif,.tiff,.png" className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) { setPending({ kind: "upload", file: f }); job.reset(); }
+              if (f) {
+                setPending({ kind: "upload", file: f });
+                setChannelAssignments(defaultPositionalAssignments());
+                job.reset();
+              }
             }}
           />
           <button
@@ -165,6 +179,15 @@ export function LoaderView() {
                 />
               </div>
             </div>
+
+            {/* Channel assignment */}
+            <ChannelAssignmentPanel
+              slotSources={pending.kind === "demo" ? pending.dataset.slot_sources : null}
+              nChannels={5}
+              value={channelAssignments}
+              onChange={setChannelAssignments}
+              disabled={isRunning}
+            />
 
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={includeDeep} onChange={(e) => setIncludeDeep(e.target.checked)}

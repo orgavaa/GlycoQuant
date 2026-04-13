@@ -168,6 +168,11 @@ def run_analysis_job(
             print(f"[worker] Modal returned result for job {job_id}: {remote_result.cell_count} cells")
             if channel_warnings:
                 remote_result.warnings = list(remote_result.warnings) + channel_warnings
+            # Propagate channel metadata
+            job_for_meta = store.get(job_id)
+            if job_for_meta is not None:
+                remote_result.substitute_channels = list(job_for_meta.meta.get("substitute_channels", []))
+                remote_result.channel_assignments = job_for_meta.meta.get("channel_assignments")
             store.update(
                 job_id,
                 status="complete",
@@ -232,6 +237,12 @@ def run_analysis_job(
         print(f"[worker] total pipeline: {_t4 - _t0:.1f}s")
         if channel_warnings:
             result.warnings = list(result.warnings) + channel_warnings
+
+        # Propagate channel metadata from the job store
+        job_meta = store.get(job_id)
+        if job_meta is not None:
+            result.substitute_channels = list(job_meta.meta.get("substitute_channels", []))
+            result.channel_assignments = job_meta.meta.get("channel_assignments")
 
         # Cache channels + masks for the per-cell crops endpoint.
         # ~50 MB per job; fine for a demo with <10 concurrent jobs.
