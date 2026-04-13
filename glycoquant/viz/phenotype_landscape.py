@@ -50,8 +50,11 @@ def plot_phenotype_landscape(
             ))
 
     from glycoquant.theme import get_plotly_layout_template
+    template = get_plotly_layout_template()
+    template.pop("xaxis", None)
+    template.pop("yaxis", None)
     fig.update_layout(
-        **get_plotly_layout_template(),
+        **template,
         xaxis=dict(title="UMAP 1", showgrid=False, zeroline=False),
         yaxis=dict(title="UMAP 2", showgrid=False, zeroline=False),
         height=400,
