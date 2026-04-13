@@ -158,12 +158,16 @@ def run_pipeline(
 
     embedder = _get_embedder() if include_deep_features else None
     assembler = ProfileAssembler(
-        config=AssemblerConfig(include_deep_features=include_deep_features),
+        config=AssemblerConfig(
+            include_deep_features=include_deep_features,
+            include_radial_profile=True,
+        ),
         dinov2_embedder=embedder,
     )
     features_df = assembler.process_image(
         channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
     )
+    mechano_summary = assembler.last_mechano_summary
 
     result = _build_result_payload(
         channels=channels,
@@ -171,6 +175,10 @@ def run_pipeline(
         nuclear_mask=nuclear_mask,
         features_df=features_df,
         include_deep_features=include_deep_features,
+        mechano_summary=mechano_summary,
+        embedder_backend=(
+            embedder.backend_name() if embedder is not None else None
+        ),
     )
     # Pydantic v2 — prefer model_dump, fall back to dict() for v1.
     dump = getattr(result, "model_dump", None)
