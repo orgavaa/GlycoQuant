@@ -77,6 +77,7 @@ image = (
             "HF_HOME": f"{CACHE_MOUNT}/huggingface",
             "CELLPOSE_LOCAL_MODELS_PATH": f"{CACHE_MOUNT}/cellpose",
             "GLYCOQUANT_DEVICE": "cuda",
+            "GLYCOQUANT_BUILD_VERSION": "v3",  # cache bust
             # Cell-DINO checkpoint — uploaded via:
             #   modal volume put glycoquant-models models/channel_adaptive_dino_vitl16.pth /cell_dino/channel_adaptive_dino_vitl16.pth
             "GLYCOQUANT_CELL_DINO_CKPT": f"{CACHE_MOUNT}/cell_dino/channel_adaptive_dino_vitl16.pth",
@@ -86,8 +87,11 @@ image = (
     # ``import glycoquant`` and ``import backend`` exactly like Railway.
     # third_party/dinov2 is included so torch.hub.load(source='local')
     # finds the channel_adaptive_dino_vitl16 entry point.
-    # copy=True on all local additions so subsequent build steps work.
-    .add_local_python_source("glycoquant", "backend", copy=True)
+    # Mount source code as local dirs for explicit copying.
+    # Using add_local_dir instead of add_local_python_source to ensure
+    # Modal picks up file changes on every deploy.
+    .add_local_dir("glycoquant", remote_path="/root/glycoquant", copy=True)
+    .add_local_dir("backend", remote_path="/root/backend", copy=True)
     .add_local_dir(
         "third_party/dinov2",
         remote_path="/root/third_party/dinov2",
