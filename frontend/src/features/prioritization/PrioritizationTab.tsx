@@ -190,29 +190,51 @@ export function PrioritizationTab() {
         </section>
       )}
 
-      {/* Hero: top 3 */}
+      {/* Hero: top 3 with evidence micro-badges */}
       <section>
         <div className="mb-6">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Top candidates</span>
           <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
             Highest pathway proximity to the mechanotransduction signature
           </h2>
+          <p className="mt-1 text-[12px] text-gray-500">
+            {isDynamic ? "Ranked using image-aware reweighting against your observed phenotype." : "Ranked by precomputed STRING v12 pathway proximity."}
+          </p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {top3.map((g, i) => (
-            <Card key={g.gene} className="hover:shadow-md transition-shadow cursor-pointer" noPadding={false}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Rank {g.pathway_rank}</span>
-                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold ${
-                  i === 0 ? "bg-blue-100 text-blue-700" : i === 1 ? "bg-gray-100 text-gray-600" : "bg-gray-50 text-gray-500"
-                }`}>{i + 1}</span>
-              </div>
-              <div className="text-[28px] font-semibold tracking-tight text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{g.gene}</div>
-              {g.pathway_score !== null && (
-                <div className="text-[13px] text-gray-500 mt-2" style={{ fontFeatureSettings: "'tnum'" }}>score {g.pathway_score.toFixed(3)}</div>
-              )}
-            </Card>
-          ))}
+          {top3.map((g, i) => {
+            // Evidence micro-badges
+            const badges: string[] = [];
+            if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High pathway proximity");
+            if (g.pathway_score !== null && g.pathway_score > 0.5) badges.push("Reachable mechano targets");
+            if (isDynamic) badges.push("Phenotype-weighted");
+            if (["CD44", "SDC1", "SDC2", "SDC4"].includes(g.gene)) badges.push("Surface proteoglycan");
+            if (["GFPT1", "OGT", "MGAT5"].includes(g.gene)) badges.push("Metabolic target");
+
+            return (
+              <Card key={g.gene} className="hover:shadow-md transition-shadow cursor-pointer" noPadding={false}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Rank {g.pathway_rank}</span>
+                    {isDynamic && <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium">reweighted</span>}
+                  </div>
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold ${
+                    i === 0 ? "bg-blue-100 text-blue-700" : i === 1 ? "bg-gray-100 text-gray-600" : "bg-gray-50 text-gray-500"
+                  }`}>{i + 1}</span>
+                </div>
+                <div className="text-[24px] font-semibold tracking-tight text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{g.gene}</div>
+                {g.pathway_score !== null && (
+                  <div className="text-[12px] text-gray-500 mt-1" style={{ fontFeatureSettings: "'tnum'" }}>score {g.pathway_score.toFixed(3)}</div>
+                )}
+                {/* Evidence micro-badges */}
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {badges.slice(0, 3).map(b => (
+                    <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100">{b}</span>
+                  ))}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
