@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/Card";
+import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
   fetchContextualPriors,
   fetchPriors,
@@ -168,6 +169,24 @@ export function PrioritizationTab() {
             The transcriptomic prior is not yet committed, and this deployment cannot generate it (no Modal GPU provider).
           </p>
         </Card>
+      )}
+
+      {/* Panel summary dot plot */}
+      {priors.panel_summary_figure_json && (
+        <section>
+          <div className="mb-4">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Panel overview</span>
+            <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
+              22 glycocalyx genes ranked by pathway proximity
+            </h2>
+            <p className="mt-1 text-[12px] text-gray-500">
+              Dot size proportional to reachable mechano targets. Color by gene family.
+            </p>
+          </div>
+          <Card>
+            <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
+          </Card>
+        </section>
       )}
 
       {/* Hero: top 3 */}

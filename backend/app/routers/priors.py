@@ -81,6 +81,40 @@ def _build_response(
             )
         )
 
+    # Mechanism descriptions for each metabolic inhibitor
+    MECHANISMS: dict[str, str] = {
+        "2-DG": (
+            "Competitively inhibits hexokinase (HK2), blocking glucose-6-phosphate "
+            "entry into the hexosamine biosynthetic pathway. Reduces UDP-GlcNAc "
+            "availability, limiting glycocalyx biosynthesis and O-GlcNAcylation "
+            "of mechanotransduction effectors."
+        ),
+        "DON": (
+            "Glutamine analogue that irreversibly inhibits GFPT1, the rate-limiting "
+            "enzyme of the hexosamine pathway. Directly reduces UDP-GlcNAc flux, "
+            "depleting substrate for both N- and O-linked glycosylation of the "
+            "glycocalyx and intracellular O-GlcNAc signalling."
+        ),
+        "tunicamycin": (
+            "Blocks DPAGT1, the first enzyme in dolichol-linked oligosaccharide "
+            "assembly, completely inhibiting N-glycosylation in the ER. Prevents "
+            "glycoprotein maturation of syndecans, glypicans, and integrins — "
+            "disrupting both glycocalyx structure and integrin-mediated mechanosensing."
+        ),
+        "benzyl-GalNAc": (
+            "Competitive inhibitor of GalNAc-transferases (GALNT family), blocking "
+            "mucin-type O-glycosylation. Reduces O-glycan decoration of membrane "
+            "mucins (MUC1) and other surface glycoproteins that contribute to "
+            "glycocalyx thickness and charge."
+        ),
+        "PUGNAc": (
+            "Inhibits O-GlcNAcase (OGA), the enzyme that removes O-GlcNAc from "
+            "intracellular proteins. Causes hyper-O-GlcNAcylation, including of "
+            "YAP (Ser109) and cytoskeletal regulators, altering mechanotransduction "
+            "signalling downstream of the glycocalyx."
+        ),
+    }
+
     inhibitors_raw = get_metabolic_inhibitors()
     df_indexed = df.set_index("gene")
     inhibitors: list[MetabolicInhibitor] = []
@@ -100,19 +134,30 @@ def _build_response(
                 name=name,
                 target=target,
                 pathway=pathway_name,
+                mechanism=MECHANISMS.get(name, ""),
                 pathway_rank=rank,
                 pathway_score=score,
             )
         )
 
+    # Panel summary dot plot
+    from glycoquant.viz.prior_table import plot_panel_summary
+    mechano_sig = get_mechano_signature()
+    gene_dicts = [
+        {"gene": g.gene, "pathway_score": g.pathway_score, "pathway_rank": g.pathway_rank}
+        for g in genes
+    ]
+    summary_fig = plot_panel_summary(gene_dicts, mechano_sig)
+
     return PriorsResponse(
         pathway_available=pathway.available,
         geneformer_available=geneformer.available,
         genes=genes,
-        mechano_signature=get_mechano_signature(),
+        mechano_signature=mechano_sig,
         metabolic_inhibitors=inhibitors,
         pathway_metadata=pathway.metadata,
         geneformer_metadata=geneformer.metadata,
+        panel_summary_figure_json=summary_fig.to_json(),
         dynamic=dynamic,
         mechano_weights=mechano_weights,
         used_fallback_reference=used_fallback_reference,
@@ -194,9 +239,21 @@ async def get_gene_drill_down(gene: str) -> DrillDownResponse:
                 ],
             )
 
+    # Network graph showing shortest paths from gene to all reachable targets
+    from glycoquant.viz.prior_table import plot_pathway_network
+
+    # Convert evidence to raw dict format for the network viz
+    evidence_raw = {}
+    if PATHWAY_EVIDENCE_PATH.is_file():
+        blob_raw = json.loads(PATHWAY_EVIDENCE_PATH.read_text(encoding="utf-8"))
+        evidence_raw = blob_raw.get(gene, {})
+
+    network_fig = plot_pathway_network(gene, evidence_raw, mechano_genes)
+
     return DrillDownResponse(
         gene=gene,
         heatmap_figure_json=fig.to_json(),
+        network_figure_json=network_fig.to_json(),
         evidence_per_target=evidence_per_target,
     )
 

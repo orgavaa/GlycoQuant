@@ -25,6 +25,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
 
   return (
     <div className="space-y-6">
+      {/* Gene selector */}
       <div className="flex items-center gap-4">
         <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Glycocalyx gene</label>
         <select
@@ -36,24 +37,49 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
         </select>
       </div>
 
+      {/* Proximity heatmap — full width */}
+      <Card>
+        <h3 className="text-[13px] font-semibold text-gray-900 mb-1">Per-target proximity</h3>
+        <p className="text-[11px] text-gray-400 mb-3">
+          How close {gene} is to each of the 15 mechanotransduction targets in STRING v12.
+          Dark = close (high score), light = far.
+        </p>
+        {drillQuery.isLoading ? (
+          <div className="flex h-[120px] items-center justify-center">
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        ) : drill ? (
+          <PlotlyFigure figureJson={drill.heatmap_figure_json} />
+        ) : (
+          <div className="flex h-[120px] items-center justify-center text-[13px] text-gray-400">
+            Select a gene
+          </div>
+        )}
+      </Card>
+
+      {/* Network graph + evidence side by side */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Heatmap */}
-        <Card className="!p-4 bg-gray-50">
+        {/* Network graph */}
+        <Card>
+          <h3 className="text-[13px] font-semibold text-gray-900 mb-1">Pathway network</h3>
+          <p className="text-[11px] text-gray-400 mb-3">
+            Shortest paths from {gene} to reachable mechano targets. Edge thickness = STRING confidence.
+          </p>
           {drillQuery.isLoading ? (
-            <div className="flex h-[240px] items-center justify-center">
+            <div className="flex h-[250px] items-center justify-center">
               <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
             </div>
-          ) : drill ? (
-            <PlotlyFigure figureJson={drill.heatmap_figure_json} height={240} />
+          ) : drill?.network_figure_json ? (
+            <PlotlyFigure figureJson={drill.network_figure_json} />
           ) : (
-            <div className="flex h-[240px] items-center justify-center text-[13px] text-gray-400">
-              Select a gene to view the heatmap
+            <div className="flex h-[250px] items-center justify-center text-[13px] text-gray-400">
+              No reachable targets
             </div>
           )}
         </Card>
 
-        {/* STRING evidence */}
-        <Card className="!p-5 bg-gray-50">
+        {/* STRING evidence for selected target */}
+        <Card>
           <div className="mb-4 flex items-center gap-3">
             <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Mechano target</label>
             <select
@@ -71,10 +97,11 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
             </p>
           ) : evidence.path.length === 0 ? (
             <p className="text-[13px] text-gray-500">
-              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-[11px]">{gene} &rarr; {selectedTarget}</code> unreachable in STRING v12 at confidence &ge; 0.7
+              <code className="bg-gray-100 px-1.5 py-0.5 rounded text-[11px]">{gene} &rarr; {selectedTarget}</code> unreachable in STRING v12
             </p>
           ) : (
             <div className="space-y-4">
+              {/* Path nodes */}
               <div className="flex flex-wrap items-center gap-2">
                 {evidence.path.map((node, i) => (
                   <span key={i} className="flex items-center gap-2">

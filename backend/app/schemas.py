@@ -249,6 +249,7 @@ class MetabolicInhibitor(BaseModel):
     name: str
     target: str
     pathway: str
+    mechanism: str = ""
     pathway_rank: int | None = None
     pathway_score: float | None = None
 
@@ -275,6 +276,7 @@ class PriorsResponse(BaseModel):
     metabolic_inhibitors: list[MetabolicInhibitor]
     pathway_metadata: dict[str, Any]
     geneformer_metadata: dict[str, Any]
+    panel_summary_figure_json: str | None = None
     # Axis A — dynamic image-aware re-weighting
     dynamic: bool = False
     mechano_weights: dict[str, float] | None = None
@@ -352,6 +354,7 @@ class CompareResult(BaseModel):
 class DrillDownResponse(BaseModel):
     gene: str
     heatmap_figure_json: str
+    network_figure_json: str | None = None
     evidence_per_target: dict[str, PathwayEvidence]
 
 

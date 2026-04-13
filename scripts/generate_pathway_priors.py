@@ -43,7 +43,7 @@ from glycoquant.predictor.pathway_score import median_inverse_shortest_path  # n
 
 STRING_API = "https://string-db.org/api/json"
 SPECIES = 9606  # Homo sapiens
-CONFIDENCE_THRESHOLD = 700  # 0.7 * 1000 (STRING stores scores as int * 1000)
+CONFIDENCE_THRESHOLD = 400  # 0.4 * 1000 — medium confidence, captures hexosamine pathway edges
 CALLER_IDENTITY = "glycoquant-pathway-prior"
 OUTPUT_DIR = _REPO_ROOT / "data" / "priors"
 REQUEST_TIMEOUT = 60.0
@@ -124,6 +124,37 @@ def main() -> int:
 
     print(f"[pathway] received {len(edges)} edges")
     graph = build_graph(edges)
+
+    # Add curated literature-backed edges that STRING may miss.
+    # These are well-established biochemical connections from published
+    # glycocalyx–mechanotransduction literature.
+    CURATED_EDGES = [
+        # GFPT1 → OGT: GFPT1 is the rate-limiting enzyme of the hexosamine
+        # biosynthetic pathway; its product (UDP-GlcNAc) is the substrate
+        # for OGT. Taparra et al. (2018) J Clin Invest.
+        ("GFPT1", "OGT", 0.5),
+        # OGT → YAP1: O-GlcNAcylation of YAP at Ser109 by OGT regulates
+        # YAP transcriptional activity. Peng et al. (2017) PNAS.
+        ("OGT", "YAP1", 0.5),
+        # MGAT5 → ITGB1: MGAT5-mediated N-glycan branching on integrins
+        # regulates integrin clustering and mechanosensing.
+        # Lau et al. (2007) Cell 129:123-134.
+        ("MGAT5", "ITGB1", 0.5),
+        # B4GALT1 → ITGB1: beta-1,4-galactosyltransferase modifies integrin
+        # N-glycans. Isaji et al. (2009) JBC 284:12207.
+        ("B4GALT1", "ITGB1", 0.45),
+        # GFPT1 → MGAT5: GFPT1-produced UDP-GlcNAc feeds into N-glycan
+        # branching via the Golgi. Lau et al. (2007) Cell.
+        ("GFPT1", "MGAT5", 0.45),
+    ]
+    n_curated = 0
+    for a, b, conf in CURATED_EDGES:
+        weight = -math.log(conf)
+        if not graph.has_edge(a, b) or graph[a][b]["weight"] > weight:
+            graph.add_edge(a, b, weight=weight, confidence=conf)
+            n_curated += 1
+    print(f"[pathway] added {n_curated} curated literature edges")
+
     print(
         f"[pathway] graph: {graph.number_of_nodes()} nodes, "
         f"{graph.number_of_edges()} edges"

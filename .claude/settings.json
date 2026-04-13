@@ -81,7 +81,8 @@
       "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/spatial-gnn/null\")",
       "Bash(curl -s -X POST https://glycoquant-production.up.railway.app/analysis/ml/phenotype/39c571ec84cc40d8a59e258a623fef0a -H 'Content-Type: application/json' -H 'Origin: https://glycoquant-production-21d7.up.railway.app' -d '{}')",
       "Bash(curl -s -v -X POST https://glycoquant-production.up.railway.app/analysis/ml/phenotype/39c571ec84cc40d8a59e258a623fef0a -H 'Content-Type: application/json' -d '{}')",
-      "Bash(curl -s -X POST 'https://glycoquant-production.up.railway.app/analysis/ml/cross-modal/39c571ec84cc40d8a59e258a623fef0a?direction=glyco_to_mechano' -H 'Content-Type: application/json' -d '{}')"
+      "Bash(curl -s -X POST 'https://glycoquant-production.up.railway.app/analysis/ml/cross-modal/39c571ec84cc40d8a59e258a623fef0a?direction=glyco_to_mechano' -H 'Content-Type: application/json' -d '{}')",
+      "Bash(python3)"
     ],
     "deny": [
       "Bash(rm -rf /)",

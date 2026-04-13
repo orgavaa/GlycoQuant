@@ -431,9 +431,42 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8704906231483176,
+      "path": [
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "SDC2": {
@@ -796,9 +829,36 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.859343356741308,
+      "path": [
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "SDC3": {
@@ -1305,9 +1365,48 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0132069253499127,
+      "path": [
+        "SDC3",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC3",
+          "to": "SDC1",
+          "confidence": 0.867
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "SDC4": {
@@ -1598,9 +1697,30 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8432139748114243,
+      "path": [
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "GPC1": {
@@ -1963,9 +2083,36 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8664826017507787,
+      "path": [
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "GPC3": {
@@ -2400,9 +2547,42 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0799900278569305,
+      "path": [
+        "GPC3",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC3",
+          "to": "SDC2",
+          "confidence": 0.802
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "GPC4": {
@@ -2837,9 +3017,42 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0737749674534962,
+      "path": [
+        "GPC4",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC4",
+          "to": "SDC2",
+          "confidence": 0.807
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "GPC6": {
@@ -3274,9 +3487,42 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.1090875898526966,
+      "path": [
+        "GPC6",
+        "SDC2",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "GPC6",
+          "to": "SDC2",
+          "confidence": 0.779
+        },
+        {
+          "from": "SDC2",
+          "to": "SDC4",
+          "confidence": 0.984
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "EXT1": {
@@ -3711,9 +3957,42 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.135670091566395,
+      "path": [
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "EXT2": {
@@ -4220,9 +4499,48 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.1366705918999787,
+      "path": [
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "NDST1": {
@@ -4801,17 +5119,61 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.1921833018302377,
+      "path": [
+        "NDST1",
+        "EXT2",
+        "EXT1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST1",
+          "to": "EXT2",
+          "confidence": 0.946
+        },
+        {
+          "from": "EXT2",
+          "to": "EXT1",
+          "confidence": 0.999
+        },
+        {
+          "from": "EXT1",
+          "to": "GPC1",
+          "confidence": 0.764
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "NDST2": {
     "YAP1": {
-      "distance": 0.9042209870020979,
+      "distance": 0.7874243877342473,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "CCN2",
@@ -4820,13 +5182,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -4846,10 +5203,9 @@
       ]
     },
     "WWTR1": {
-      "distance": 0.9492183529328336,
+      "distance": 0.832421753664983,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "CCN2",
@@ -4859,13 +5215,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -4900,10 +5251,9 @@
       "path_edges": []
     },
     "ANKRD1": {
-      "distance": 1.0591135066259887,
+      "distance": 0.9423169073581381,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "CCN2",
@@ -4912,13 +5262,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -4938,10 +5283,9 @@
       ]
     },
     "RHOA": {
-      "distance": 0.6361346764625647,
+      "distance": 0.519338077194714,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -4950,13 +5294,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -4976,10 +5315,9 @@
       ]
     },
     "ROCK1": {
-      "distance": 0.6371351767961483,
+      "distance": 0.5203385775282976,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -4989,13 +5327,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5020,10 +5353,9 @@
       ]
     },
     "ROCK2": {
-      "distance": 0.6381366791332378,
+      "distance": 0.5213400798653871,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -5033,13 +5365,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5064,10 +5391,9 @@
       ]
     },
     "MYL9": {
-      "distance": 0.6852755521240833,
+      "distance": 0.5684789528562326,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -5078,13 +5404,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5114,10 +5435,9 @@
       ]
     },
     "ITGB1": {
-      "distance": 0.6209895182947613,
+      "distance": 0.5041929190269107,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -5127,13 +5447,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5158,10 +5473,9 @@
       ]
     },
     "PTK2": {
-      "distance": 0.6189885176275942,
+      "distance": 0.5021919183597435,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2"
@@ -5169,13 +5483,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5190,10 +5499,9 @@
       ]
     },
     "VCL": {
-      "distance": 0.6209895182947613,
+      "distance": 0.5041929190269107,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -5203,13 +5511,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5234,10 +5537,9 @@
       ]
     },
     "PXN": {
-      "distance": 0.6199890179611778,
+      "distance": 0.5031924186933271,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -5246,13 +5548,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5272,10 +5569,9 @@
       ]
     },
     "TLN1": {
-      "distance": 0.6199890179611778,
+      "distance": 0.5031924186933271,
       "path": [
         "NDST2",
-        "EXT1",
         "GPC1",
         "SDC4",
         "PTK2",
@@ -5284,13 +5580,8 @@
       "path_edges": [
         {
           "from": "NDST2",
-          "to": "EXT1",
-          "confidence": 0.757
-        },
-        {
-          "from": "EXT1",
           "to": "GPC1",
-          "confidence": 0.764
+          "confidence": 0.65
         },
         {
           "from": "GPC1",
@@ -5310,9 +5601,42 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.297265517843233,
+      "path": [
+        "NDST2",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "NDST2",
+          "to": "GPC1",
+          "confidence": 0.65
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "HPSE": {
@@ -5819,21 +6143,96 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9144425106775004,
+      "path": [
+        "HPSE",
+        "SDC1",
+        "GPC1",
+        "SDC4",
+        "PTK2",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "HPSE",
+          "to": "SDC1",
+          "confidence": 0.957
+        },
+        {
+          "from": "SDC1",
+          "to": "GPC1",
+          "confidence": 0.996
+        },
+        {
+          "from": "GPC1",
+          "to": "SDC4",
+          "confidence": 0.977
+        },
+        {
+          "from": "SDC4",
+          "to": "PTK2",
+          "confidence": 0.953
+        },
+        {
+          "from": "PTK2",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "GFPT1": {
     "YAP1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0328245481301066,
+      "path": [
+        "GFPT1",
+        "OGT",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "OGT",
+          "confidence": 0.712
+        },
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        }
+      ]
     },
     "WWTR1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0778219140608425,
+      "path": [
+        "GFPT1",
+        "OGT",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "OGT",
+          "confidence": 0.712
+        },
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
     },
     "CTGF": {
       "distance": null,
@@ -5846,71 +6245,548 @@
       "path_edges": []
     },
     "ANKRD1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.3585546882194175,
+      "path": [
+        "GFPT1",
+        "OGT",
+        "YAP1",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "OGT",
+          "confidence": 0.712
+        },
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "ANKRD1",
+          "confidence": 0.722
+        }
+      ]
     },
     "RHOA": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9465128953562506,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
     },
     "ROCK1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9475133956898342,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
     },
     "ROCK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9485148980269237,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
     },
     "MYL9": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9956537710177692,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
     },
     "ITGB1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.927365735854113,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        }
+      ]
     },
     "PTK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9293667365212801,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
     },
     "VCL": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9293667365212801,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
     },
     "PXN": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9293667365212801,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
     },
     "TLN1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9283662361876965,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.7224393353376024,
+      "path": [
+        "GFPT1",
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT1",
+          "to": "GFPT2",
+          "confidence": 0.973
+        },
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "GFPT2": {
     "YAP1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0342300297388416,
+      "path": [
+        "GFPT2",
+        "OGT",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "OGT",
+          "confidence": 0.711
+        },
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        }
+      ]
     },
     "WWTR1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0792273956695775,
+      "path": [
+        "GFPT2",
+        "OGT",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "OGT",
+          "confidence": 0.711
+        },
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
     },
     "CTGF": {
       "distance": null,
@@ -5923,71 +6799,476 @@
       "path_edges": []
     },
     "ANKRD1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.3599601698281525,
+      "path": [
+        "GFPT2",
+        "OGT",
+        "YAP1",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "OGT",
+          "confidence": 0.711
+        },
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "ANKRD1",
+          "confidence": 0.722
+        }
+      ]
     },
     "RHOA": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9191416985601187,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
     },
     "ROCK1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9201421988937023,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
     },
     "ROCK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9211437012307918,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
     },
     "MYL9": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9682825742216373,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
     },
     "ITGB1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8999945390579811,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        }
+      ]
     },
     "PTK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9019955397251482,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
     },
     "VCL": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9019955397251482,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
     },
     "PXN": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9019955397251482,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
     },
     "TLN1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.9009950393915647,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.6950681385414705,
+      "path": [
+        "GFPT2",
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "GFPT2",
+          "to": "HAS2",
+          "confidence": 0.52
+        },
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "OGT": {
     "YAP1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.6931471805599453,
+      "path": [
+        "OGT",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        }
+      ]
     },
     "WWTR1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.7381445464906811,
+      "path": [
+        "OGT",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
     },
     "CTGF": {
       "distance": null,
@@ -6000,71 +7281,494 @@
       "path_edges": []
     },
     "ANKRD1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.018877320649256,
+      "path": [
+        "OGT",
+        "YAP1",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "ANKRD1",
+          "confidence": 0.722
+        }
+      ]
     },
     "RHOA": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.049438402307601,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
     },
     "ROCK1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0504389026411847,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
     },
     "ROCK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0514404049782742,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
     },
     "MYL9": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0985792779691197,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
     },
     "ITGB1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0302912428054634,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        }
+      ]
     },
     "PTK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0322922434726305,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
     },
     "VCL": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0322922434726305,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
     },
     "PXN": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0322922434726305,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
     },
     "TLN1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.031291743139047,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.8253648422889528,
+      "path": [
+        "OGT",
+        "YAP1",
+        "CCN2",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "OGT",
+          "to": "YAP1",
+          "confidence": 0.5
+        },
+        {
+          "from": "YAP1",
+          "to": "CCN2",
+          "confidence": 0.899
+        },
+        {
+          "from": "CCN2",
+          "to": "ITGB1",
+          "confidence": 0.794
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "MGAT5": {
     "YAP1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0302912428054634,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
     },
     "WWTR1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0752886087361992,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
     },
     "CTGF": {
       "distance": null,
@@ -6077,71 +7781,380 @@
       "path_edges": []
     },
     "ANKRD1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.185183762429354,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
     },
     "RHOA": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.7122943400620829,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
     },
     "ROCK1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.7132948403956665,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
     },
     "ROCK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.714296342732756,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
     },
     "MYL9": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.7614352157236015,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
     },
     "ITGB1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.6931471805599453,
+      "path": [
+        "MGAT5",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        }
+      ]
     },
     "PTK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.6951481812271124,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
     },
     "VCL": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.6951481812271124,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
     },
     "PXN": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.6951481812271124,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
     },
     "TLN1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.6941476808935289,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.4882207800434348,
+      "path": [
+        "MGAT5",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "MGAT5",
+          "to": "ITGB1",
+          "confidence": 0.5
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "B4GALT1": {
     "YAP1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.1356517584632897,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "CCN2",
+        "YAP1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        }
+      ]
     },
     "WWTR1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.1806491243940256,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "CCN2",
+        "YAP1",
+        "WWTR1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "YAP1",
+          "confidence": 0.899
+        },
+        {
+          "from": "YAP1",
+          "to": "WWTR1",
+          "confidence": 0.956
+        }
+      ]
     },
     "CTGF": {
       "distance": null,
@@ -6154,59 +8167,320 @@
       "path_edges": []
     },
     "ANKRD1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.2905442780871803,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "CCN2",
+        "ANKRD1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "CCN2",
+          "confidence": 0.794
+        },
+        {
+          "from": "CCN2",
+          "to": "ANKRD1",
+          "confidence": 0.77
+        }
+      ]
     },
     "RHOA": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8176548557199093,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        }
+      ]
     },
     "ROCK1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8186553560534928,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        }
+      ]
     },
     "ROCK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8196568583905823,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK2"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK2",
+          "confidence": 0.998
+        }
+      ]
     },
     "MYL9": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8667957313814278,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PTK2",
+        "RHOA",
+        "ROCK1",
+        "MYL9"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        },
+        {
+          "from": "PTK2",
+          "to": "RHOA",
+          "confidence": 0.983
+        },
+        {
+          "from": "RHOA",
+          "to": "ROCK1",
+          "confidence": 0.999
+        },
+        {
+          "from": "ROCK1",
+          "to": "MYL9",
+          "confidence": 0.953
+        }
+      ]
     },
     "ITGB1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.7985076962177716,
+      "path": [
+        "B4GALT1",
+        "ITGB1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        }
+      ]
     },
     "PTK2": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8005086968849388,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PTK2"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PTK2",
+          "confidence": 0.999
+        }
+      ]
     },
     "VCL": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8005086968849388,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "VCL"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "VCL",
+          "confidence": 0.999
+        }
+      ]
     },
     "PXN": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8005086968849388,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PXN"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PXN",
+          "confidence": 0.999
+        }
+      ]
     },
     "TLN1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.7995081965513552,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        }
+      ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.5935812957012612,
+      "path": [
+        "B4GALT1",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "B4GALT1",
+          "to": "ITGB1",
+          "confidence": 0.45
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "HAS1": {
@@ -6641,9 +8915,36 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.1121474081331235,
+      "path": [
+        "HAS1",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS1",
+          "to": "CD44",
+          "confidence": 0.761
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "HAS2": {
@@ -7078,9 +9379,36 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.0411416711348065,
+      "path": [
+        "HAS2",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS2",
+          "to": "CD44",
+          "confidence": 0.817
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "HAS3": {
@@ -7515,9 +9843,36 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 1.054697023488181,
+      "path": [
+        "HAS3",
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "HAS3",
+          "to": "CD44",
+          "confidence": 0.806
+        },
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   },
   "CD44": {
@@ -7880,9 +10235,30 @@
       ]
     },
     "PIEZO1": {
-      "distance": null,
-      "path": [],
-      "path_edges": []
+      "distance": 0.8390254870126722,
+      "path": [
+        "CD44",
+        "ITGB1",
+        "TLN1",
+        "PIEZO1"
+      ],
+      "path_edges": [
+        {
+          "from": "CD44",
+          "to": "ITGB1",
+          "confidence": 0.957
+        },
+        {
+          "from": "ITGB1",
+          "to": "TLN1",
+          "confidence": 0.999
+        },
+        {
+          "from": "TLN1",
+          "to": "PIEZO1",
+          "confidence": 0.452
+        }
+      ]
     }
   }
 }

@@ -130,6 +130,7 @@ export interface MetabolicInhibitor {
   name: string;
   target: string;
   pathway: string;
+  mechanism: string;
   pathway_rank: number | null;
   pathway_score: number | null;
 }
@@ -142,6 +143,7 @@ export interface PriorsResponse {
   metabolic_inhibitors: MetabolicInhibitor[];
   pathway_metadata: Record<string, unknown>;
   geneformer_metadata: Record<string, unknown>;
+  panel_summary_figure_json?: string | null;
   dynamic?: boolean;
   mechano_weights?: Record<string, number> | null;
   used_fallback_reference?: boolean;
@@ -178,6 +180,7 @@ export interface PathwayEvidence {
 export interface DrillDownResponse {
   gene: string;
   heatmap_figure_json: string;
+  network_figure_json?: string | null;
   evidence_per_target: Record<string, PathwayEvidence>;
 }
 
