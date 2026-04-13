@@ -539,7 +539,7 @@ def _build_result_payload(
         image_hash=image_hash,
         cell_count=len(features_df),
         features_df_json=features_df_for_response.to_json(orient="records"),
-        segmentation_figure_json=seg_fig.to_json(),
+        segmentation_figure_json=_slim_segmentation_figure(seg_fig),
         channel_trace_indices=channel_trace_indices,
         overlay_trace_ranges=overlay_trace_ranges,
         channel_pngs=channel_pngs,
@@ -554,6 +554,33 @@ def _build_result_payload(
             embedder_backend if include_deep_features else None
         ),
     )
+
+
+def _slim_segmentation_figure(fig) -> str:
+    """Strip overlay traces from the segmentation figure to reduce JSON size.
+
+    Keeps: heatmap traces (channel images) + cell outline scatter traces
+    (which have customdata with cell IDs for the frontend polygon extraction).
+    Drops: glycocalyx/mechano fill overlays, FA markers, YAP compartment,
+    pericellular ring — these are all hidden by default and the frontend
+    renders its own Canvas overlays anyway.
+    """
+    import json
+
+    raw = json.loads(fig.to_json())
+    kept_traces = []
+    for trace in raw.get("data", []):
+        # Keep heatmap traces (channel images)
+        if trace.get("type") == "heatmap":
+            kept_traces.append(trace)
+            continue
+        # Keep scatter traces with customdata (cell outlines with IDs)
+        if trace.get("customdata") and trace.get("visible") is not False:
+            kept_traces.append(trace)
+            continue
+        # Drop everything else (overlays, markers, text labels)
+    raw["data"] = kept_traces
+    return json.dumps(raw)
 
 
 def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
