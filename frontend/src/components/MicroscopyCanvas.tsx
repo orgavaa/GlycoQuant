@@ -225,15 +225,10 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
           />
         ))}
 
-        {/* Debug: polygon count indicator */}
-        {polygons.length === 0 && (
-          <div className="absolute top-3 right-3 z-[5] bg-red-500/80 text-white text-[10px] px-2 py-1 rounded">
-            No cell polygons found
-          </div>
-        )}
+        {/* Cell count indicator */}
         {polygons.length > 0 && (
-          <div className="absolute bottom-10 right-3 z-[5] bg-black/50 text-white text-[10px] px-2 py-1 rounded">
-            {polygons.length} cells interactive
+          <div className="absolute bottom-10 right-3 z-[5] bg-black/50 text-white/80 text-[10px] px-2 py-1 rounded">
+            {polygons.length} cells &middot; hover to inspect
           </div>
         )}
 

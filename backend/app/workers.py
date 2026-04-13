@@ -184,7 +184,21 @@ def run_analysis_job(
                 remote_result.features_df_json = _df[_display].to_json(orient="records")
                 print(f"[worker] stripped deep_* from response ({len(_df.columns)} -> {len(_display)} cols)")
             except Exception:
-                pass  # keep original if stripping fails
+                pass
+            # Slim the segmentation figure — drop heatmap z-arrays and overlay traces
+            try:
+                import json as _json
+                _seg = _json.loads(remote_result.segmentation_figure_json)
+                _all = _seg.get("data", [])
+                _kept = []
+                for _tr in _all:
+                    if _tr.get("customdata") and _tr.get("visible") is not False and _tr.get("hoverinfo") != "skip":
+                        _kept.append(_tr)
+                _seg["data"] = _kept
+                remote_result.segmentation_figure_json = _json.dumps(_seg)
+                print(f"[worker] slimmed seg figure: {len(_kept)}/{len(_all)} traces kept")
+            except Exception as _e:
+                print(f"[worker] seg figure slim failed: {_e}")
             store.update(
                 job_id,
                 status="complete",
