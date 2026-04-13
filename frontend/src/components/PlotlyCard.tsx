@@ -32,8 +32,9 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 300 }: Plo
       height: maxHeight,
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "#ffffff",
+      plot_bgcolor: "rgba(0,0,0,0)",
       font: { family: "Inter, sans-serif", color: "#6b7280", size: 11 },
+      colorway: ["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3"],
       margin: { l: 52, r: 20, t: 6, b: 48, pad: 2 },
       xaxis: {
         ...backendXaxis,

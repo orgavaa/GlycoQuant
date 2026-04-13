@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { X } from "lucide-react";
 import { OverviewContent } from "./OverviewContent";
 import { CellContent } from "./CellContent";
 import { useJobStore } from "@/lib/jobStore";
@@ -30,10 +31,7 @@ export function RightRail({ result, cells, onClose }: Props) {
           className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md hover:bg-gray-100"
           title="Close panel"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <line x1="4" y1="4" x2="12" y2="12" />
-            <line x1="12" y1="4" x2="4" y2="12" />
-          </svg>
+          <X size={16} strokeWidth={1.5} />
         </button>
       </div>
 

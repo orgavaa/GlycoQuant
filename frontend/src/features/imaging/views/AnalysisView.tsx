@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PanelRightOpen, PanelRightClose } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -63,7 +64,7 @@ export function AnalysisView({ result }: Props) {
         </div>
       </div>
 
-      {/* Rail toggle button — sidebar icon */}
+      {/* Rail toggle button */}
       <button
         onClick={() => setRailOpen(v => !v)}
         className={`absolute top-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-white hover:text-gray-900 transition-all duration-300 ${
@@ -71,11 +72,7 @@ export function AnalysisView({ result }: Props) {
         }`}
         title={railOpen ? "Close panel" : "Open results"}
       >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          {/* Sidebar panel icon */}
-          <rect x="2" y="2" width="14" height="14" rx="2" />
-          <line x1="11" y1="2" x2="11" y2="16" />
-        </svg>
+        {railOpen ? <PanelRightClose size={18} strokeWidth={1.5} /> : <PanelRightOpen size={18} strokeWidth={1.5} />}
       </button>
 
       {/* Sliding results panel */}

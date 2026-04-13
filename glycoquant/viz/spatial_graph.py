@@ -69,7 +69,7 @@ def plot_feature_importance(
 
     fig = go.Figure(go.Bar(
         x=values, y=names, orientation="h",
-        marker=dict(color="#2563eb"),
+        marker=dict(color="#6baed6"),
     ))
     fig.update_layout(
         xaxis=dict(title="Relative importance"),

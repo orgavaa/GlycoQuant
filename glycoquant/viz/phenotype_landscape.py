@@ -49,23 +49,20 @@ def plot_phenotype_landscape(
                 hovertemplate="Cell %{customdata[0]:.0f}<extra>Cluster " + str(cid) + "</extra>",
             ))
 
+    from glycoquant.theme import get_plotly_layout_template
     fig.update_layout(
+        **get_plotly_layout_template(),
         xaxis=dict(title="UMAP 1", showgrid=False, zeroline=False),
         yaxis=dict(title="UMAP 2", showgrid=False, zeroline=False),
-        plot_bgcolor="#fff",
-        paper_bgcolor="#fff",
-        font=dict(family="Inter, sans-serif", size=11),
-        margin=dict(l=50, r=20, t=30, b=50),
-        legend=dict(font=dict(size=10), bgcolor="rgba(255,255,255,0.8)"),
         height=400,
     )
     return fig
 
 
 def _cluster_palette(n: int) -> list[str]:
-    """Colorblind-safe categorical palette (Tableau-10)."""
+    """ColorBrewer Set2 — the publication standard for UMAP clusters."""
     T10 = [
-        "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
-        "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac",
+        "#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854",
+        "#ffd92f", "#e5c494", "#b3b3b3", "#1b9e77", "#d95f02",
     ]
     return (T10 * ((n // len(T10)) + 1))[:n]

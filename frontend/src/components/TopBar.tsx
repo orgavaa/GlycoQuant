@@ -1,3 +1,5 @@
+import { Download } from "lucide-react";
+
 export type ViewId = "analysis" | "ranking";
 
 interface TopBarProps {
@@ -15,8 +17,9 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         <NavTab label="Ranking" active={activeView === "ranking"} onClick={() => onChangeView("ranking")} />
       </div>
       <div className="flex-1" />
-      <button className="text-xs font-medium text-gray-500 border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors">
-        Export &#8595;
+      <button className="flex items-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors">
+        <Download size={14} strokeWidth={1.5} />
+        Export
       </button>
     </nav>
   );

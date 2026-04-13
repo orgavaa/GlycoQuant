@@ -51,7 +51,7 @@ def plot_predicted_vs_actual(
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=a, y=p, mode="markers",
-        marker=dict(size=5, color="#2563eb", opacity=0.6, line=dict(width=0)),
+        marker=dict(size=5, color="#6baed6", opacity=0.6, line=dict(width=0)),
         hovertemplate="Actual: %{x:.3f}<br>Predicted: %{y:.3f}<extra></extra>",
     ))
     # Identity line
@@ -90,7 +90,7 @@ def plot_feature_importance(
 
     fig = go.Figure(go.Bar(
         x=values, y=names, orientation="h",
-        marker=dict(color="#7c3aed"),
+        marker=dict(color="#6baed6"),
         text=[f"{v:.3f}" for v in values],
         textposition="outside",
         textfont=dict(size=9),

@@ -78,7 +78,7 @@ function ScoreBar({ value }: { value: number | null }) {
   return (
     <div className="flex items-center gap-2">
       <div className="relative h-1.5 w-16 overflow-hidden bg-gray-100 rounded-full">
-        <div className="absolute inset-y-0 left-0 bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct}%`, background: "#93c5fd" }} />
       </div>
       <span className="text-[11px] text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>{value.toFixed(3)}</span>
     </div>
