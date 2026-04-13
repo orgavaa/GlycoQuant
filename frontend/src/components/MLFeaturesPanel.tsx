@@ -22,6 +22,19 @@ export function MLFeaturesPanel({ result }: Props) {
   const [activeTab, setActiveTab] = useState<MLTab>("phenotype");
   const jobId = useJobStore(s => s.latestJobId);
 
+  if (!jobId) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+          <div className="text-[13px] font-medium text-amber-800 mb-1">Re-run analysis to enable ML features</div>
+          <div className="text-[11px] text-amber-600">
+            The current results were loaded from a previous session. Run a new analysis to unlock Cell Atlas, Spatial GNN, and Cross-Modal prediction.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const tabs: { id: MLTab; label: string }[] = [
     { id: "phenotype", label: "Cell Atlas" },
     { id: "spatial", label: "Spatial GNN" },
@@ -65,10 +78,13 @@ function PhenotypeTab({ result, jobId }: { result: JobResult; jobId: string | nu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canRun = result.has_deep_features && jobId;
+  const canRun = result.has_deep_features;
 
   const handleRun = async () => {
-    if (!jobId) return;
+    if (!jobId) {
+      setError("No job ID available. Please re-run the analysis.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -189,7 +205,7 @@ function SpatialTab({ jobId }: { jobId: string | null }) {
   const [error, setError] = useState<string | null>(null);
 
   const handleRun = async () => {
-    if (!jobId) return;
+    if (!jobId) { setError("No job ID available. Please re-run the analysis."); return; }
     setLoading(true);
     setError(null);
     try {
@@ -300,7 +316,7 @@ function CrossModalTab({ jobId }: { jobId: string | null }) {
   const [direction, setDirection] = useState<"glyco_to_mechano" | "mechano_to_glyco">("glyco_to_mechano");
 
   const handleRun = async () => {
-    if (!jobId) return;
+    if (!jobId) { setError("No job ID available. Please re-run the analysis."); return; }
     setLoading(true);
     setError(null);
     try {

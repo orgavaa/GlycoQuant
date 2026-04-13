@@ -70,7 +70,8 @@
       "Bash(curl -s http://localhost:5174/src/App.tsx)",
       "Bash(curl -s http://localhost:5174/src/index.css)",
       "Bash(netstat -ano)",
-      "Bash(taskkill //PID 19120 //F)"
+      "Bash(taskkill //PID 19120 //F)",
+      "Bash(curl -s -X POST \"https://glycoquant-production.up.railway.app/analysis/ml/phenotype/test123\")"
     ],
     "deny": [
       "Bash(rm -rf /)",
