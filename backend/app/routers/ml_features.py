@@ -36,7 +36,8 @@ def _get_features_df(job_id: str) -> pd.DataFrame:
     if job.result is None:
         raise HTTPException(409, f"Job {job_id} has no result")
 
-    df = pd.read_json(job.result.features_df_json, orient="records")
+    from io import StringIO
+    df = pd.read_json(StringIO(job.result.features_df_json), orient="records")
     if "cell_id" in df.columns:
         df = df.set_index("cell_id")
     return df
