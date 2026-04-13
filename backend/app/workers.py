@@ -561,14 +561,17 @@ def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
 
     The frontend stacks these as <img> elements with mix-blend-mode:screen
     for additive compositing — the standard microscopy channel display.
-    Uses FULL resolution — no downsampling — so the image quality matches
-    the raw input exactly.
+    Downsampled to max 1024px on the longest side to keep the JSON
+    response small (~200KB per channel instead of ~2MB). The frontend
+    stretches images to fill the viewport via object-fill anyway.
     """
     import base64
     import io
 
     import numpy as np
     from PIL import Image
+
+    from glycoquant.io import downsample_for_display
 
     # Channel-specific RGB LUT colors (applied as a tint on grayscale)
     LUTS: dict[str, tuple[int, int, int]] = {
@@ -583,7 +586,7 @@ def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
     for ch_name in ("dapi", "glycocalyx", "yap", "paxillin", "actin"):
         if ch_name not in channels:
             continue
-        ch = channels[ch_name].astype(np.float32)
+        ch = downsample_for_display(channels[ch_name]).astype(np.float32)
         # Percentile contrast stretch
         finite = ch[np.isfinite(ch)]
         if finite.size:
@@ -605,9 +608,9 @@ def _build_channel_pngs(channels: dict[str, Any]) -> dict[str, str]:
 
         img = Image.fromarray(rgb, "RGB")
         buf = io.BytesIO()
-        img.save(buf, format="PNG", optimize=True)
+        img.save(buf, format="JPEG", quality=85)
         b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-        result[ch_name] = f"data:image/png;base64,{b64}"
+        result[ch_name] = f"data:image/jpeg;base64,{b64}"
 
     return result
 
