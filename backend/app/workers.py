@@ -198,20 +198,48 @@ def run_analysis_job(
         print(f"[worker] segmentation: {_t2 - _t1:.1f}s ({n_cells} cells)")
 
         store.update(job_id, phase="extracting", pct=55, message="Measuring features for every detected cell")
+
+        # Separate channels for feature extraction vs deep embedding.
+        # Substitute channels (synthetic stains) are excluded from
+        # interpretable feature extraction but kept for Cell-DINO
+        # which just needs pixel data regardless of biological identity.
+        job_meta = store.get(job_id)
+        subs = list((job_meta.meta.get("substitute_channels", []) if job_meta else []) or [])
+        channels_for_features = {k: v for k, v in channels.items() if k not in subs}
+
         embedder = None
         if include_deep_features:
             embedder = _get_embedder()
+        # Run interpretable features on filtered channels (no substitute stains).
+        # Deep features run separately on ALL channels (Cell-DINO is stain-agnostic).
+        has_subs = len(subs) > 0
         assembler = ProfileAssembler(
             config=AssemblerConfig(
-                include_deep_features=include_deep_features,
+                include_deep_features=include_deep_features and not has_subs,
                 include_radial_profile=True,
                 pixel_size_um=pixel_size_um,
             ),
-            dinov2_embedder=embedder,
+            dinov2_embedder=embedder if not has_subs else None,
         )
         features_df = assembler.process_image(
-            channels, cell_mask=cell_mask, nuclear_mask=nuclear_mask
+            channels_for_features, cell_mask=cell_mask, nuclear_mask=nuclear_mask
         )
+
+        # When channels were filtered, run deep embedding separately on ALL channels
+        if include_deep_features and has_subs and embedder is not None:
+            try:
+                used_ids, embeddings = embedder.embed_image_with_masks(channels, cell_mask)
+                import pandas as pd
+                deep_col_names = embedder.column_names()
+                deep_df = pd.DataFrame(
+                    embeddings,
+                    index=pd.Index(used_ids, name="cell_id"),
+                    columns=deep_col_names,
+                ).reindex(features_df.index)
+                features_df = features_df.join(deep_df)
+                print(f"[worker] deep embedding on full channels: {embeddings.shape}")
+            except Exception as emb_exc:
+                print(f"[worker] deep embedding failed (non-fatal): {emb_exc}")
         _t3 = _time.monotonic()
         print(f"[worker] feature extraction + embeddings: {_t3 - _t2:.1f}s ({len(features_df)} cells)")
         mechano_summary = assembler.last_mechano_summary

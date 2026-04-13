@@ -279,8 +279,12 @@ async def submit_analysis(
     else:
         mapping, channel_warnings, substitute_channels = _partial_channel_mapping(n_channels)
 
+    # Always split ALL available channels so Cell-DINO gets pixel data
+    # for every slot. The substitute_channels list tells the assembler
+    # which ones to skip for interpretable feature extraction.
+    all_mapping = {name: i for i, name in enumerate(CANONICAL_CHANNELS) if i < n_channels}
     try:
-        channels = split_into_channels(raw, mapping)
+        channels = split_into_channels(raw, all_mapping)
     except ValueError as exc:
         raise HTTPException(
             status_code=422,
