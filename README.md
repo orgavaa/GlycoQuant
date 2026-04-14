@@ -4,6 +4,8 @@
 
 GlycoQuant is an open-source analysis platform that measures how the cell-surface glycocalyx relates to intracellular mechanotransduction — at single-cell resolution, from a five-channel confocal image, with no custom optics and no manual annotation.
 
+GlycoQuant is cell-type agnostic — it operates on any adherent cell imaged with standard epifluorescence in 2D; the feature extractors make no assumptions about cell lineage, tissue origin, or disease state. The platform is designed for 2D monolayer cultures; extension to 3D volumetric imaging (confocal z-stacks, light-sheet) is architecturally straightforward but not yet implemented.
+
 The platform segments individual cells (Cellpose-SAM), extracts 26 interpretable biophysical features spanning glycocalyx spatial organisation, YAP/TAZ nuclear translocation, focal-adhesion maturation, actin cytoskeletal coherence, and nuclear morphology, optionally augments them with 5120-dimensional Cell-DINO ViT-L/16 embeddings, and provides three post-hoc ML analyses: UMAP phenotype discovery, spatial graph neural network prediction, and cross-modal glyco-mechano predictability quantification.
 
 A separate perturbation-ranking module combines curated pathway proximity (STRING v12) with transcriptomic co-regulation (Geneformer) to prioritise glycocalyx gene perturbations against a 15-gene mechanotransduction signature — surfacing the experiments where the two priors disagree as the highest-information targets for the bench.

@@ -86,7 +86,8 @@
       "Bash(wsl -- bash -c \"cd /mnt/c/Users/uzanv/Documents/GlycoQuant && pip install modal -q 2>&1 | tail -3 && python -m modal deploy backend/modal_app.py 2>&1\")",
       "Bash(pip uninstall:*)",
       "Bash(.venv/Scripts/python.exe -c \"import modal; print\\('Modal version:', modal.__version__\\)\")",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(ls -la /c/Users/uzanv/Documents/GlycoQuant/backend/modal*)"
     ],
     "deny": [
       "Bash(rm -rf /)",

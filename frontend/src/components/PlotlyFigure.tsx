@@ -65,10 +65,21 @@ export function PlotlyFigure({ figureJson, height, onReady }: Props) {
       if (ref.current && onReady) onReady(ref.current);
     });
 
+    // Resize on both window resize AND container resize. The latter matters when
+    // the figure lives inside a draggable rail (RightRail) or a collapsible panel —
+    // those width changes never fire a window resize event, so a bare window
+    // listener leaves the Plotly chart stuck at its initial width.
     const el = ref.current;
     const onResizeFn = () => { if (el) Plotly.Plots.resize(el); };
     window.addEventListener("resize", onResizeFn);
-    return () => { window.removeEventListener("resize", onResizeFn); if (el) Plotly.purge(el); };
+    const parent = el.parentElement;
+    const ro = parent ? new ResizeObserver(() => onResizeFn()) : null;
+    if (ro && parent) ro.observe(parent);
+    return () => {
+      window.removeEventListener("resize", onResizeFn);
+      if (ro) ro.disconnect();
+      if (el) Plotly.purge(el);
+    };
   }, [figureJson, height, onReady]);
 
   return <div ref={ref} className="w-full" />;

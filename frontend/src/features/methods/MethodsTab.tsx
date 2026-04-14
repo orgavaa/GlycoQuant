@@ -295,6 +295,11 @@ export function MethodsTab() {
             submit time. Used by the cluster-discovery module.
           </li>
         </ol>
+        <p className="text-[11px] text-gray-500 leading-relaxed mt-4 pt-4 border-t border-gray-100">
+          All features are computed per cell with no cell-type-specific priors. The pipeline has been
+          tested on U2OS, HUVEC, and fibroblast-like cells — any adherent cell type stained with the
+          supported channel panel will produce valid measurements.
+        </p>
       </Card>
 
       <div className="space-y-4">
