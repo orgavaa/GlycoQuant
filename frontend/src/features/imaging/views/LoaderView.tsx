@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Microscope, Upload, Settings, Layers, Play } from "lucide-react";
+import { Upload, Settings, Layers, Play } from "lucide-react";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import {
@@ -76,14 +76,19 @@ export function LoaderView() {
         {previewSrc ? (
           <img src={previewSrc} alt="Preview" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center pr-[380px]">
-            <div className="text-center">
-              <Microscope size={32} strokeWidth={1} className="text-gray-500 mx-auto mb-3" />
-              <div className="text-gray-400 text-[13px] tracking-[0.08em] uppercase mb-1">
+          <div className="w-full h-full flex items-center justify-center pr-[380px] px-8">
+            <div className="text-center max-w-xl">
+              <h1 className="text-white text-[32px] font-bold tracking-tight mb-4">GlycoQuant</h1>
+              <p className="text-gray-400 text-[14px] leading-relaxed">
+                Single-cell glycocalyx&ndash;mechanotransduction coupling from standard fluorescence microscopy.
+              </p>
+              <p className="text-gray-500 text-[12px] leading-relaxed mt-3">
+                Segments every cell with Cellpose-SAM, extracts 26 interpretable biophysical features
+                spanning glycocalyx organisation, YAP localisation, focal-adhesion maturation, and actin
+                coherence, then maps the per-cell coupling between surface coat and mechanical signalling.
+              </p>
+              <div className="text-gray-600 text-[10px] tracking-[0.1em] uppercase mt-6">
                 Select a dataset to begin
-              </div>
-              <div className="text-gray-600 text-[11px]">
-                Choose a reference dataset or upload your own multi-channel TIFF
               </div>
             </div>
           </div>
@@ -117,8 +122,8 @@ export function LoaderView() {
 
           {/* 2. Dataset choice */}
           <section>
-            <div className="flex items-center gap-2 mb-2">
-              <Layers size={14} strokeWidth={1.5} className="text-gray-400" />
+            <div className="flex items-center gap-1.5 mb-2 leading-none">
+              <Layers size={12} strokeWidth={1.5} className="text-gray-400 flex-shrink-0" />
               <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-[1px]">
                 Dataset
               </span>
@@ -183,8 +188,8 @@ export function LoaderView() {
 
               {/* 4. Acquisition parameters */}
               <section>
-                <div className="flex items-center gap-2 mb-2">
-                  <Settings size={14} strokeWidth={1.5} className="text-gray-400" />
+                <div className="flex items-center gap-1.5 mb-2 leading-none">
+                  <Settings size={12} strokeWidth={1.5} className="text-gray-400 flex-shrink-0" />
                   <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-[1px]">
                     Acquisition
                   </span>

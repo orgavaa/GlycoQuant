@@ -330,8 +330,8 @@ function CrossModalTab({ jobId }: { jobId: string | null }) {
           <div className="text-[14px] font-semibold text-gray-900 mb-2">Cross-Modal Prediction</div>
           <p className="text-[12px] text-gray-500 mb-4 leading-relaxed max-w-md mx-auto">
             Trains an MLP to predict mechanotransduction features from glycocalyx features
-            (or reverse). Answers: <em>"How much of a cell's mechanical state can you infer
-            from its surface coat alone?"</em>
+            (or reverse). Answers: "How much of a cell's mechanical state can you infer
+            from its surface coat alone?"
           </p>
 
           {/* Direction toggle */}

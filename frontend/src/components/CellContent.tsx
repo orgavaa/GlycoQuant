@@ -123,7 +123,7 @@ export function CellContent({ cell, cells }: Props) {
 
       {/* Summary */}
       <div>
-        <div className="text-[12px] italic text-gray-400 leading-relaxed">{summary}</div>
+        <div className="text-[12px] text-gray-500 leading-relaxed">{summary}</div>
       </div>
 
       {/* 2x2 metric cards */}

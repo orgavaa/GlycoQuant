@@ -62,7 +62,7 @@ export function TopCells({ cells, onClick }: Props) {
           </div>
         );
       })}
-      <div className="text-[9px] text-gray-400 mt-2 italic">
+      <div className="text-[9px] text-gray-400 mt-2">
         Deviation measured against within-image score distribution.
       </div>
     </div>

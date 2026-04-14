@@ -101,7 +101,7 @@ export function MetabolicInhibitorTable({ inhibitors }: Props) {
 
                 {/* Confidence note */}
                 {cons && (
-                  <div className="flex items-start gap-2 text-[9px] text-gray-400 italic">
+                  <div className="flex items-start gap-2 text-[9px] text-gray-400">
                     <AlertTriangle size={10} strokeWidth={1.5} className="mt-0.5 flex-shrink-0" />
                     Evidence strength: {cons.confidence}
                   </div>

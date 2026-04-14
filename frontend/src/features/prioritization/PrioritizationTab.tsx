@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Info, Zap, ChevronLeft, Sparkles, FlaskConical, Network, Table2, BarChart3 } from "lucide-react";
-import { Card } from "@/components/Card";
+import { Info, Zap, ChevronLeft, FlaskConical, Network, Table2, BarChart3, Layers } from "lucide-react";
+import { CompassSection, CompassPill } from "@/components/CompassSection";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
   fetchContextualPriors,
@@ -76,12 +76,12 @@ export function PrioritizationTab() {
 
   if (isError) {
     return (
-      <Card className="!bg-red-50 !border-red-200">
+      <div className="bg-red-50 border border-red-200 rounded-md p-4">
         <span className="text-[13px] font-semibold text-gray-900">Failed to load priors</span>
         <p className="text-[13px] text-gray-600 mt-1">
           Make sure the backend is running and <code className="bg-red-100 px-1.5 py-0.5 rounded text-[11px]">data/priors/pathway_ranks.json</code> exists.
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -95,161 +95,160 @@ export function PrioritizationTab() {
     : [];
 
   return (
-    <div className="space-y-8">
-      {/* Mode banner */}
+    <div>
+      {/* Page title */}
+      <div className="mb-5">
+        <h1 className="text-[20px] font-semibold text-gray-900 tracking-tight">Perturbation Prioritization</h1>
+        <p className="text-[12px] text-gray-500 mt-1">
+          Twenty-two glycocalyx genes ranked against a 15-gene mechanotransduction signature.
+        </p>
+      </div>
+
+      {/* Mode banner — compact COMPASS style */}
       {isDynamic ? (
-        <Card className="!bg-blue-50 !border-blue-200">
-          <div className="flex items-center gap-3 mb-3">
-            <Zap size={16} strokeWidth={1.5} className="text-blue-600" />
-            <span className="text-[13px] font-semibold text-gray-900">Ranking contextualised by your analysis</span>
-            {latestDatasetLabel && (
-              <span className="text-[11px] font-medium px-2.5 py-1 bg-white border border-blue-200 rounded-full text-blue-700">{latestDatasetLabel}</span>
-            )}
-            {latestJobResult && (
-              <span className="text-[11px] font-medium px-2.5 py-1 bg-white border border-blue-200 rounded-full text-blue-700" style={{ fontFeatureSettings: "'tnum'" }}>
-                {latestJobResult.cell_count} cells
-              </span>
-            )}
+        <div className="bg-blue-50 border border-blue-200 rounded-md px-4 py-3 mb-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Zap size={14} strokeWidth={1.5} className="text-blue-600" />
+            <span className="text-[13px] font-semibold text-gray-900">Image-aware ranking active</span>
+            {latestDatasetLabel && <CompassPill variant="blue">{latestDatasetLabel}</CompassPill>}
+            {latestJobResult && <CompassPill variant="blue">{latestJobResult.cell_count} cells</CompassPill>}
           </div>
-          <p className="text-[13px] text-gray-600 leading-relaxed max-w-3xl">
-            The pathway prior has been re-aggregated via a weighted median of the per-target inverse shortest-paths,
-            where the weights come from z-scored deviations of your observed per-cell features against a reference cohort.
+          <p className="text-[11px] text-gray-600 leading-relaxed">
+            Pathway prior re-aggregated using z-scored deviations of your observed per-cell features.
           </p>
           {topWeights.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Most weighted:</span>
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Most weighted:</span>
               {topWeights.map(([gene, weight]) => (
-                <span key={gene} className="text-[11px] font-semibold px-2 py-1 bg-white border border-gray-200 rounded text-gray-800" style={{ fontFeatureSettings: "'tnum'" }}>
-                  {gene} &middot; {weight.toFixed(2)}
+                <span key={gene} className="text-[10px] font-medium px-1.5 py-0.5 bg-white border border-blue-200 rounded text-blue-700" style={{ fontFeatureSettings: "'tnum'" }}>
+                  {gene} {weight.toFixed(2)}
                 </span>
               ))}
             </div>
           )}
-          <div className="pt-4">
-            <button type="button" onClick={() => setForceStatic(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-              <ChevronLeft size={14} strokeWidth={1.5} /> Show static ranking
-            </button>
-          </div>
-        </Card>
+          <button
+            type="button"
+            onClick={() => setForceStatic(true)}
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800"
+          >
+            <ChevronLeft size={12} strokeWidth={1.5} />
+            Show static ranking
+          </button>
+        </div>
       ) : (
-        <Card className="!bg-gray-50">
-          <div className="flex items-center gap-3 mb-3">
-            <Info size={16} strokeWidth={1.5} className="text-gray-400" />
-            <span className="text-[13px] font-semibold text-gray-900">How this ranking is produced</span>
-          </div>
-          <p className="text-[13px] text-gray-600 leading-relaxed max-w-3xl">
-            This tab loads a pre-computed pathway ranking of twenty-two glycocalyx-relevant genes
-            against a fixed 15-gene mechanotransduction signature. The ranking combines curated pathway
-            proximity from STRING v12 with transcriptomic co-regulation from Geneformer (Theodoris 2023).
+        <CompassSection
+          title="How this ranking is produced"
+          icon={<Info size={14} strokeWidth={1.5} />}
+          collapsible
+          defaultOpen={false}
+        >
+          <p className="text-[12px] text-gray-600 leading-relaxed">
+            Pre-computed pathway ranking of twenty-two glycocalyx-relevant genes against a fixed
+            15-gene mechanotransduction signature. Combines STRING v12 pathway proximity with
+            transcriptomic co-regulation from Geneformer (Theodoris 2023).
           </p>
           {latestJobResult !== null && forceStatic && (
-            <div className="pt-4">
-              <button type="button" onClick={() => setForceStatic(false)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
-                <Zap size={14} strokeWidth={1.5} /> Contextualise with my analysis
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setForceStatic(false)}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+            >
+              <Zap size={12} strokeWidth={1.5} />
+              Contextualise with my analysis
+            </button>
           )}
           {latestJobResult === null && (
-            <p className="mt-4 text-[11px] text-gray-400">
-              Run an image analysis in the Analysis tab to see a contextualised ranking.
-            </p>
+            <p className="mt-2 text-[10px] text-gray-400">Run an image analysis to enable contextualised ranking.</p>
           )}
-        </Card>
+        </CompassSection>
       )}
 
       {/* Geneformer bootstrap */}
       {!priors.geneformer_available && priors.can_generate_geneformer && (
-        <GeneformerRunCard onComplete={() => queryClient.invalidateQueries({ queryKey: ["priors"] })} />
+        <div className="mb-3">
+          <GeneformerRunCard onComplete={() => queryClient.invalidateQueries({ queryKey: ["priors"] })} />
+        </div>
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
-        <Card className="!bg-amber-50 !border-amber-200">
-          <span className="text-[13px] font-semibold text-gray-900">Running in pathway-only mode</span>
-          <p className="text-[13px] text-gray-600 mt-1">
-            The transcriptomic prior is not yet committed, and this deployment cannot generate it (no Modal GPU provider).
-          </p>
-        </Card>
-      )}
-
-      {/* Panel summary dot plot */}
-      {priors.panel_summary_figure_json && (
-        <section>
-          <div className="mb-4">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Panel overview</span>
-            <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
-              22 glycocalyx genes ranked by pathway proximity
-            </h2>
-            <p className="mt-1 text-[12px] text-gray-500">
-              Dot size proportional to reachable mechano targets. Color by gene family.
-            </p>
-          </div>
-          <Card>
-            <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
-          </Card>
-        </section>
-      )}
-
-      {/* Hero: top 3 with evidence micro-badges */}
-      <section>
-        <div className="mb-6">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Top candidates</span>
-          <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
-            Highest pathway proximity to the mechanotransduction signature
-          </h2>
-          <p className="mt-1 text-[12px] text-gray-500">
-            {isDynamic ? "Ranked using image-aware reweighting against your observed phenotype." : "Ranked by precomputed STRING v12 pathway proximity."}
+        <div className="bg-amber-50 border border-amber-200 rounded-md px-4 py-3 mb-3">
+          <span className="text-[12px] font-semibold text-gray-900">Pathway-only mode</span>
+          <p className="text-[11px] text-gray-600 mt-0.5">
+            Transcriptomic prior not yet committed and no Modal GPU provider available.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      )}
+
+      {/* Top 3 candidates */}
+      <CompassSection
+        title="Top candidates"
+        icon={<Layers size={14} strokeWidth={1.5} />}
+        rightLabel={isDynamic ? "image-aware reweighted" : "STRING v12 baseline"}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((g, i) => {
-            // Evidence micro-badges
             const badges: string[] = [];
-            if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High pathway proximity");
-            if (g.pathway_score !== null && g.pathway_score > 0.5) badges.push("Reachable mechano targets");
+            if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High proximity");
+            if (g.pathway_score !== null && g.pathway_score > 0.5) badges.push("Reachable targets");
             if (isDynamic) badges.push("Phenotype-weighted");
             if (["CD44", "SDC1", "SDC2", "SDC4"].includes(g.gene)) badges.push("Surface proteoglycan");
             if (["GFPT1", "OGT", "MGAT5"].includes(g.gene)) badges.push("Metabolic target");
 
+            const isFirst = i === 0;
             return (
-              <Card key={g.gene} className="hover:shadow-md transition-shadow cursor-pointer" noPadding={false}>
+              <button
+                key={g.gene}
+                onClick={() => setSelectedGene(g.gene)}
+                className={`text-left p-3 rounded-md border transition-colors ${
+                  isFirst
+                    ? "border-blue-300 bg-blue-50/50"
+                    : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Rank {g.pathway_rank}</span>
-                    {isDynamic && <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium">reweighted</span>}
-                  </div>
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold ${
-                    i === 0 ? "bg-blue-100 text-blue-700" : i === 1 ? "bg-gray-100 text-gray-600" : "bg-gray-50 text-gray-500"
-                  }`}>{i + 1}</span>
+                  <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                    Rank {g.pathway_rank}
+                  </span>
+                  {isDynamic && <CompassPill variant="blue">reweighted</CompassPill>}
                 </div>
-                <div className="text-[24px] font-semibold tracking-tight text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{g.gene}</div>
+                <div className="text-[20px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>
+                  {g.gene}
+                </div>
                 {g.pathway_score !== null && (
-                  <div className="text-[12px] text-gray-500 mt-1" style={{ fontFeatureSettings: "'tnum'" }}>score {g.pathway_score.toFixed(3)}</div>
+                  <div className="text-[11px] text-gray-500 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>
+                    score {g.pathway_score.toFixed(3)}
+                  </div>
                 )}
-                {/* Evidence micro-badges */}
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {badges.slice(0, 3).map(b => (
-                    <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100">{b}</span>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {badges.slice(0, 2).map(b => (
+                    <CompassPill key={b}>{b}</CompassPill>
                   ))}
                 </div>
-              </Card>
+              </button>
             );
           })}
         </div>
-      </section>
+      </CompassSection>
+
+      {/* Panel summary dot plot */}
+      {priors.panel_summary_figure_json && (
+        <CompassSection
+          title="Panel overview"
+          icon={<BarChart3 size={14} strokeWidth={1.5} />}
+          rightLabel="22 genes"
+          description="Dot size proportional to reachable mechano targets. Color by gene family."
+          collapsible
+        >
+          <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
+        </CompassSection>
+      )}
 
       {/* Ranking table */}
-      <section className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Ranked perturbations</span>
-            <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
-              Twenty-two glycocalyx genes, sorted by pathway rank
-            </h2>
-          </div>
-          <span className="text-[11px] text-gray-400 hidden lg:block">Click any row to drill into its per-target evidence</span>
-        </div>
-        <Card noPadding>
+      <CompassSection
+        title="Ranked perturbations"
+        icon={<Table2 size={14} strokeWidth={1.5} />}
+        rightLabel="click row to drill in"
+      >
+        <div className="-mx-4 -mb-4">
           <RankingTable
             genes={priors.genes}
             geneformerAvailable={priors.geneformer_available}
@@ -257,38 +256,38 @@ export function PrioritizationTab() {
             onSelectGene={setSelectedGene}
             staticRankByGene={staticRankByGene}
           />
-        </Card>
-      </section>
+        </div>
+      </CompassSection>
 
       {/* Drill-down */}
-      <section className="space-y-4">
-        <div>
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Per-gene drill-down</span>
-          <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
-            Shortest-path evidence for the selected gene
-          </h2>
-        </div>
-        <Card>
-          {activeGene ? (
-            <DrillDownPanel gene={activeGene} mechanoSignature={priors.mechano_signature} onGeneChange={setSelectedGene} availableGenes={priors.genes.map(g => g.gene)} />
-          ) : (
-            <p className="text-[13px] text-gray-400">No genes available.</p>
-          )}
-        </Card>
-      </section>
+      <CompassSection
+        title="Per-gene drill-down"
+        icon={<Network size={14} strokeWidth={1.5} />}
+        rightLabel={activeGene ?? undefined}
+      >
+        {activeGene ? (
+          <DrillDownPanel
+            gene={activeGene}
+            mechanoSignature={priors.mechano_signature}
+            onGeneChange={setSelectedGene}
+            availableGenes={priors.genes.map(g => g.gene)}
+          />
+        ) : (
+          <p className="text-[12px] text-gray-400">No genes available.</p>
+        )}
+      </CompassSection>
 
       {/* Metabolic inhibitors */}
-      <section className="space-y-4">
-        <div>
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Metabolic inhibitors</span>
-          <h2 className="mt-1 text-[18px] font-semibold tracking-tight text-gray-900">
-            Where each drug sits in the ranked panel
-          </h2>
-        </div>
-        <Card noPadding>
+      <CompassSection
+        title="Metabolic inhibitors"
+        icon={<FlaskConical size={14} strokeWidth={1.5} />}
+        rightLabel={`${priors.metabolic_inhibitors.length} compounds`}
+        collapsible
+      >
+        <div className="-mx-4 -mb-4">
           <MetabolicInhibitorTable inhibitors={priors.metabolic_inhibitors} />
-        </Card>
-      </section>
+        </div>
+      </CompassSection>
     </div>
   );
 }

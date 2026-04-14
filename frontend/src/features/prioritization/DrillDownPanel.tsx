@@ -112,7 +112,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
               <div className="text-[11px] text-gray-600 leading-relaxed">{effects.mechano}</div>
             </div>
           </div>
-          <div className="mt-2 text-[9px] text-gray-400 italic">
+          <div className="mt-2 text-[9px] text-gray-400">
             Based on published literature. Experimental evidence indirect.
           </div>
         </Card>

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Info } from "lucide-react";
 import type { DemoChannelSlotSource } from "@/lib/api";
 
 const CANONICAL_ORDER = ["dapi", "glycocalyx", "yap", "paxillin", "actin"];
@@ -32,11 +34,14 @@ interface Props {
 
 export function ChannelAssignmentPanel({ slotSources, nChannels, value, onChange, disabled }: Props) {
   const hasDapi = Object.values(value).includes("dapi");
+  const [showHints, setShowHints] = useState(false);
 
   return (
     <div className="space-y-2">
-      <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-[1px]">
-        Channel assignment
+      <div className="flex items-center gap-1.5 leading-none">
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-[1px]">
+          Channel assignment
+        </span>
       </div>
 
       {Array.from({ length: Math.min(nChannels, 5) }, (_, i) => {
@@ -63,7 +68,7 @@ export function ChannelAssignmentPanel({ slotSources, nChannels, value, onChange
               value={currentRole}
               onChange={(e) => onChange({ ...value, [idx]: e.target.value })}
               disabled={disabled}
-              className="flex-1 bg-white border border-gray-300 rounded-md px-2 py-1 text-[11px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 min-w-0 bg-white border border-gray-300 rounded-md px-2 py-1 text-[11px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {ROLE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -80,19 +85,37 @@ export function ChannelAssignmentPanel({ slotSources, nChannels, value, onChange
         );
       })}
 
-      {/* Biological identity hints from manifest */}
+      {/* Channel source hints — collapsible to fit the sidebar */}
       {slotSources && (
-        <div className="mt-1 space-y-0.5">
-          {Array.from({ length: Math.min(nChannels, 5) }, (_, i) => {
-            const source = slotSources[CANONICAL_ORDER[i]];
-            if (!source) return null;
-            return (
-              <div key={i} className="text-[9px] text-gray-400 pl-[52px]">
-                Ch {i}: {source.biological_identity}
-                {source.note && <span className="italic"> — {source.note.slice(0, 80)}{source.note.length > 80 ? "..." : ""}</span>}
-              </div>
-            );
-          })}
+        <div className="pt-1">
+          <button
+            onClick={() => setShowHints(v => !v)}
+            className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <Info size={10} strokeWidth={1.5} />
+            {showHints ? "Hide" : "Show"} channel sources
+          </button>
+          {showHints && (
+            <div className="mt-2 space-y-1.5 p-2 bg-gray-50 rounded-md">
+              {Array.from({ length: Math.min(nChannels, 5) }, (_, i) => {
+                const source = slotSources[CANONICAL_ORDER[i]];
+                if (!source) return null;
+                return (
+                  <div key={i} className="text-[10px] leading-snug">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-gray-400 font-medium flex-shrink-0">Ch {i}</span>
+                      <span className="text-gray-700">{source.biological_identity}</span>
+                    </div>
+                    {source.note && (
+                      <div className="text-gray-400 pl-[28px] mt-0.5 break-words">
+                        {source.note}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
