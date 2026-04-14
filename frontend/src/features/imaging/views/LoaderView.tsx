@@ -14,9 +14,11 @@ import {
   uploadPreview,
   type DemoCondition,
 } from "@/lib/api";
+import { useJobStore } from "@/lib/jobStore";
 
 export function LoaderView() {
   const job = useAnalysisJob();
+  const setLatestRawPreviewUrl = useJobStore(s => s.setLatestRawPreviewUrl);
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<
     { kind: "demo"; dataset: DemoCondition } | { kind: "upload"; file: File } | null
@@ -43,16 +45,21 @@ export function LoaderView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending]);
 
-  useEffect(() => {
-    const url = uploadPreviewMut.data;
-    return () => { if (url) URL.revokeObjectURL(url); };
-  }, [uploadPreviewMut.data]);
+  // Note: previously we revoked the upload blob URL on unmount. The URL now outlives
+  // this component because AnalysisView re-displays it in "Raw image" mode. It is
+  // revoked together with clearLatestJobResult() when the user submits a new analysis.
 
   const previewSrc = useMemo(() => {
     if (!pending) return null;
     if (pending.kind === "demo") return demoPreviewUrl(pending.dataset.name);
     return uploadPreviewMut.data ?? null;
   }, [pending, uploadPreviewMut.data]);
+
+  // Push the raw preview URL into the global store whenever it changes, so the
+  // Analysis view's Raw toggle can render the untouched source composite.
+  useEffect(() => {
+    setLatestRawPreviewUrl(previewSrc);
+  }, [previewSrc, setLatestRawPreviewUrl]);
 
   const handleRun = () => {
     if (!pending) return;

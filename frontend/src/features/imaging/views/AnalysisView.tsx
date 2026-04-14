@@ -35,6 +35,7 @@ export function AnalysisView({ result }: Props) {
   });
   const datasetLabel = useJobStore(s => s.latestDatasetLabel);
   const selectedCellId = useJobStore(s => s.selectedCellId);
+  const rawPreviewUrl = useJobStore(s => s.latestRawPreviewUrl);
   const cells = useMemo(() => extractFeatures(result.features_df_json), [result.features_df_json]);
 
   // Auto-open rail when the user selects a cell on the image.
@@ -114,16 +115,31 @@ export function AnalysisView({ result }: Props) {
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      {/* Full-bleed microscopy image */}
+      {/* Full-bleed image layer — the analysis canvas, or the original raw preview in Raw mode. */}
       <div className="absolute inset-0">
-        <MicroscopyCanvas
-          result={result}
-          showSegmentation={effectiveShowSeg}
-          activeOverlay={effectiveOverlay}
-          cells={cells}
-          channelVisibility={channelVis}
-          visibleCellIds={effectiveVisibleIds}
-        />
+        {isRaw ? (
+          rawPreviewUrl ? (
+            <img
+              src={rawPreviewUrl}
+              alt="Original image"
+              className="w-full h-full object-contain bg-black"
+              draggable={false}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/60 text-[12px]">
+              Original image preview is not available for this job.
+            </div>
+          )
+        ) : (
+          <MicroscopyCanvas
+            result={result}
+            showSegmentation={effectiveShowSeg}
+            activeOverlay={effectiveOverlay}
+            cells={cells}
+            channelVisibility={channelVis}
+            visibleCellIds={effectiveVisibleIds}
+          />
+        )}
       </div>
 
       {/* Top-centre view-mode toggle — Raw vs Analysis. Raw hides every analysis artefact. */}

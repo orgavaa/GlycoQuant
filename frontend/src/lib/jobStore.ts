@@ -5,6 +5,10 @@ interface JobStoreState {
   latestJobResult: JobResult | null;
   latestDatasetLabel: string | null;
   latestJobId: string | null;
+  // URL of the originally-selected/-uploaded image (demo preview URL or upload blob URL).
+  // Surfaced on Analysis view's "Raw image" toggle so the user can return to the
+  // untouched source composite at any time.
+  latestRawPreviewUrl: string | null;
   selectedCellId: number | null;
   completedJobs: { result: JobResult; label: string }[];
   // ML feature results
@@ -14,6 +18,7 @@ interface JobStoreState {
   // Actions
   setLatestJobId: (jobId: string) => void;
   setLatestJobResult: (result: JobResult, datasetLabel?: string | null, jobId?: string | null) => void;
+  setLatestRawPreviewUrl: (url: string | null) => void;
   clearLatestJobResult: () => void;
   setSelectedCellId: (cellId: number | null) => void;
   setPhenotypeResult: (r: PhenotypeResponse | null) => void;
@@ -25,12 +30,14 @@ export const useJobStore = create<JobStoreState>((set) => ({
   latestJobResult: null,
   latestDatasetLabel: null,
   latestJobId: null,
+  latestRawPreviewUrl: null,
   selectedCellId: null,
   completedJobs: [],
   phenotypeResult: null,
   spatialGNNResult: null,
   crossModalResult: null,
   setLatestJobId: (jobId) => set({ latestJobId: jobId }),
+  setLatestRawPreviewUrl: (url) => set({ latestRawPreviewUrl: url }),
   setLatestJobResult: (result, datasetLabel = null, jobId = null) =>
     set((state) => ({
       latestJobResult: result,
@@ -51,6 +58,7 @@ export const useJobStore = create<JobStoreState>((set) => ({
       latestJobResult: null,
       latestDatasetLabel: null,
       latestJobId: null,
+      latestRawPreviewUrl: null,
       selectedCellId: null,
       phenotypeResult: null,
       spatialGNNResult: null,
