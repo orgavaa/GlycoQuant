@@ -187,9 +187,22 @@ export function PrioritizationTab() {
         </Card>
       )}
 
-      {/* Geneformer bootstrap */}
+      {/* Geneformer bootstrap — after the GF prior lands, refresh BOTH the static priors
+          query and (if we're in image-aware mode) the contextual priors mutation, since
+          the current ranking comes from the latter and would otherwise stay GF-less. */}
       {!priors.geneformer_available && priors.can_generate_geneformer && (
-        <GeneformerRunCard onComplete={() => queryClient.invalidateQueries({ queryKey: ["priors"] })} />
+        <GeneformerRunCard
+          onComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["priors"] });
+            if (canGoDynamic && latestJobResult) {
+              contextualMutation.mutate({
+                features_df_json: latestJobResult.features_df_json,
+                cell_count: latestJobResult.cell_count,
+                dataset_label: latestDatasetLabel,
+              });
+            }
+          }}
+        />
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
         <Card className="!bg-amber-50 !border-amber-200">
