@@ -12,9 +12,10 @@ interface Props {
   activeOverlay: string | null;
   cells: CellFeatures[];
   channelVisibility: Record<string, boolean>;
+  visibleCellIds?: Set<number> | null;
 }
 
-export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells, channelVisibility }: Props) {
+export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells, channelVisibility, visibleCellIds }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
@@ -152,6 +153,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
 
     for (const poly of polygons) {
       if (poly.vertices.length < 3) continue;
+      const isVisible = !visibleCellIds || visibleCellIds.has(poly.cellId);
       ctx.beginPath();
       const [sx0, sy0] = toScreen(poly.vertices[0][0], poly.vertices[0][1]);
       ctx.moveTo(sx0, sy0);
@@ -164,8 +166,8 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       const isSelected = poly.cellId === selectedCellId;
       const isHovered = poly.cellId === hoveredCellId;
 
-      // Overlay fill (viridis/rdbu colormaps)
-      if (overlayValues) {
+      // Overlay fill (viridis/rdbu colormaps) — only for visible cells
+      if (overlayValues && isVisible) {
         const val = overlayValues.map.get(poly.cellId);
         if (val != null) {
           ctx.fillStyle = overlayValues.isSigned ? rdbuRgba(val, 0.35) : viridisRgba(val, 0.35);
@@ -183,7 +185,10 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
         ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fill();
         ctx.stroke();
       } else if (showSegmentation) {
-        ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 0.8;
+        // Quiet non-visible cells — present but subdued (honest: shows what was filtered)
+        const strokeAlpha = isVisible ? 0.3 : 0.08;
+        ctx.strokeStyle = `rgba(255,255,255,${strokeAlpha})`;
+        ctx.lineWidth = isVisible ? 0.8 : 0.5;
         ctx.stroke();
       }
     }
@@ -199,13 +204,14 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       ctx.font = "600 10px Inter, sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.textAlign = "center";
       ctx.fillText("50 \u00b5m", bx + barPx / 2, by - 8);
     }
-  }, [size, polygons, showSegmentation, activeOverlay, overlayValues, selectedCellId, hoveredCellId, imgDims, toScreen, getTransform, result.pixel_size_um]);
+  }, [size, polygons, showSegmentation, activeOverlay, overlayValues, selectedCellId, hoveredCellId, imgDims, toScreen, getTransform, result.pixel_size_um, visibleCellIds]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return;
     const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     const [ix, iy] = toImage(sx, sy);
-    const cid = hitTestPolygons(polygons, ix, iy);
+    const rawCid = hitTestPolygons(polygons, ix, iy);
+    const cid = rawCid != null && (!visibleCellIds || visibleCellIds.has(rawCid)) ? rawCid : null;
     setHoveredCellId(cid);
     if (cid != null) {
       const cell = cellMap.get(cid);
@@ -219,13 +225,15 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     } else {
       setTooltip(null);
     }
-  }, [polygons, cellMap, toImage]);
+  }, [polygons, cellMap, toImage, visibleCellIds]);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return;
     const [ix, iy] = toImage(e.clientX - rect.left, e.clientY - rect.top);
-    setSelectedCellId(hitTestPolygons(polygons, ix, iy));
-  }, [polygons, toImage, setSelectedCellId]);
+    const hit = hitTestPolygons(polygons, ix, iy);
+    const allowed = hit != null && (!visibleCellIds || visibleCellIds.has(hit)) ? hit : null;
+    setSelectedCellId(allowed);
+  }, [polygons, toImage, setSelectedCellId, visibleCellIds]);
 
   return (
     <>
