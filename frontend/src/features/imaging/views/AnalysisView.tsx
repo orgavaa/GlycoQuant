@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanelRightOpen, PanelRightClose, Image as ImageIcon, SlidersHorizontal } from "lucide-react";
+import { PanelRightOpen, PanelRightClose, Image as ImageIcon, SlidersHorizontal, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
 import type { JobResult } from "@/lib/api";
 import { extractFeatures } from "@/lib/canvas/extract";
 import { useJobStore } from "@/lib/jobStore";
+import { usePanZoom } from "@/lib/usePanZoom";
 
 const RAIL_MIN_PX = 380;
 const RAIL_STORAGE_KEY = "glycoquant.rail.width";
@@ -107,6 +108,9 @@ export function AnalysisView({ result }: Props) {
     return { visibleCellIds: visible, nRaw: totalDetected, nReady: readyIds.size, statusText: status };
   }, [result, cells, cellFilter]);
 
+  // Independent pan/zoom controller for the Raw image viewport.
+  const rawPanZoom = usePanZoom();
+
   // Effective overlay state — forced off in Raw view.
   const isRaw = viewMode === "raw";
   const effectiveShowSeg = isRaw ? false : showSeg;
@@ -115,18 +119,51 @@ export function AnalysisView({ result }: Props) {
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      {/* Full-bleed image layer — the analysis canvas, or the original raw preview in Raw mode. */}
+      {/* Full-bleed image layer — analysis canvas or raw preview; both support pan/zoom. */}
       <div className="absolute inset-0">
         {isRaw ? (
           rawPreviewUrl ? (
-            <img
-              src={rawPreviewUrl}
-              alt="Original image"
-              className="w-full h-full object-contain bg-black"
-              draggable={false}
-            />
+            <div
+              ref={rawPanZoom.containerRef}
+              onMouseDown={rawPanZoom.onMouseDown}
+              className={`w-full h-full bg-black relative overflow-hidden select-none ${
+                rawPanZoom.panning ? "cursor-grabbing" : "cursor-grab"
+              }`}
+            >
+              <div
+                className="absolute top-0 left-0 w-full h-full"
+                style={{
+                  transform: `translate3d(${rawPanZoom.state.panX}px, ${rawPanZoom.state.panY}px, 0) scale(${rawPanZoom.state.zoom})`,
+                  transformOrigin: "0 0",
+                  willChange: "transform",
+                }}
+              >
+                <img
+                  src={rawPreviewUrl}
+                  alt="Original image"
+                  className="w-full h-full object-fill pointer-events-none"
+                  draggable={false}
+                />
+              </div>
+
+              {/* Zoom controls for the raw view */}
+              <div className="absolute bottom-10 left-3 z-[5] flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-md p-1">
+                <button type="button" onClick={rawPanZoom.zoomOut} className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded" title="Zoom out">
+                  <ZoomOut size={14} strokeWidth={1.8} />
+                </button>
+                <div className="px-2 text-[10px] font-mono text-white/80 min-w-[38px] text-center" style={{ fontFeatureSettings: "'tnum'" }}>
+                  {(rawPanZoom.state.zoom * 100).toFixed(0)}%
+                </div>
+                <button type="button" onClick={rawPanZoom.zoomIn} className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded" title="Zoom in">
+                  <ZoomIn size={14} strokeWidth={1.8} />
+                </button>
+                <button type="button" onClick={rawPanZoom.reset} disabled={rawPanZoom.isAtDefault} className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded disabled:opacity-40 disabled:cursor-not-allowed" title="Reset view">
+                  <RotateCcw size={14} strokeWidth={1.8} />
+                </button>
+              </div>
+            </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-white/60 text-[12px]">
+            <div className="w-full h-full flex items-center justify-center bg-black text-white/60 text-[12px]">
               Original image preview is not available for this job.
             </div>
           )

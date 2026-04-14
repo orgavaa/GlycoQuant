@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { extractPolygons, type CellFeatures } from "@/lib/canvas/extract";
 import { hitTestPolygons } from "@/lib/canvas/hitTest";
 import { viridisRgba, rdbuRgba } from "@/lib/canvas/colormap";
 import { useJobStore } from "@/lib/jobStore";
+import { usePanZoom } from "@/lib/usePanZoom";
 import type { JobResult } from "@/lib/api";
 import { fmt, fmtSigned } from "@/lib/utils";
 
@@ -17,12 +19,28 @@ interface Props {
 
 export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells, channelVisibility, visibleCellIds }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const selectedCellId = useJobStore(s => s.selectedCellId);
   const [hoveredCellId, setHoveredCellId] = useState<number | null>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [tooltip, setTooltip] = useState<{ x: number; y: number; cellId: number; lines: { l: string; v: string }[] } | null>(null);
+
+  // Pan/zoom controller. containerRef is bound to the outer viewport div below.
+  // onClick receives viewport client coords — we translate via clientToContent()
+  // to image-space coords for polygon hit-testing.
+  const panZoom = usePanZoom({
+    onClick: (clientX, clientY) => {
+      const pt = panZoom.clientToContent(clientX, clientY);
+      if (!pt) return;
+      const imgScaleX = imgDimsRef.current ? size.w / imgDimsRef.current.w : 1;
+      const imgScaleY = imgDimsRef.current ? size.h / imgDimsRef.current.h : 1;
+      const ix = pt.x / imgScaleX;
+      const iy = pt.y / imgScaleY;
+      const hit = hitTestPolygons(polygonsRef.current, ix, iy);
+      const allowed = hit != null && (!visibleCellIds || visibleCellIds.has(hit)) ? hit : null;
+      setSelectedCellId(allowed);
+    },
+  });
 
   // Prefer the explicit overlay payload; fall back to extracting from figure JSON
   const polygons = useMemo(() => {
@@ -107,9 +125,16 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     );
   }, [result.channel_pngs, channelVisibility]);
 
+  // Stable refs for use inside the usePanZoom onClick closure (which captures
+  // at hook creation time). Avoids stale reads of polygons / imgDims.
+  const polygonsRef = useRef(polygons);
+  polygonsRef.current = polygons;
+  const imgDimsRef = useRef(imgDims);
+  imgDimsRef.current = imgDims;
+
   // Resize observer
   useEffect(() => {
-    const el = containerRef.current;
+    const el = panZoom.containerRef.current;
     if (!el) return;
     const obs = new ResizeObserver(entries => {
       const { width, height } = entries[0].contentRect;
@@ -117,7 +142,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     });
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [panZoom.containerRef]);
 
   // Coordinate transforms — independent X/Y scaling (image fills container).
   // With native <img> rendering, y=0 is always at the top — no flip needed.
@@ -206,10 +231,14 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     }
   }, [size, polygons, showSegmentation, activeOverlay, overlayValues, selectedCellId, hoveredCellId, imgDims, toScreen, getTransform, result.pixel_size_um, visibleCellIds]);
 
+  // Hover: translate viewport → image coords through the current pan/zoom.
+  // Suppressed while panning to avoid flickering tooltips.
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return;
-    const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-    const [ix, iy] = toImage(sx, sy);
+    if (panZoom.panning) { setTooltip(null); setHoveredCellId(null); return; }
+    const pt = panZoom.clientToContent(e.clientX, e.clientY);
+    if (!pt || !imgDims) return;
+    const ix = pt.x / (size.w / imgDims.w);
+    const iy = pt.y / (size.h / imgDims.h);
     const rawCid = hitTestPolygons(polygons, ix, iy);
     const cid = rawCid != null && (!visibleCellIds || visibleCellIds.has(rawCid)) ? rawCid : null;
     setHoveredCellId(cid);
@@ -225,35 +254,52 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     } else {
       setTooltip(null);
     }
-  }, [polygons, cellMap, toImage, visibleCellIds]);
+  }, [polygons, cellMap, panZoom, imgDims, size, visibleCellIds]);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return;
-    const [ix, iy] = toImage(e.clientX - rect.left, e.clientY - rect.top);
-    const hit = hitTestPolygons(polygons, ix, iy);
-    const allowed = hit != null && (!visibleCellIds || visibleCellIds.has(hit)) ? hit : null;
-    setSelectedCellId(allowed);
-  }, [polygons, toImage, setSelectedCellId, visibleCellIds]);
+  const { zoom, panX, panY } = panZoom.state;
 
   return (
     <>
-      <div ref={containerRef} className="w-full h-full bg-black relative overflow-hidden">
-        {/* Channel PNGs as native <img> — full original resolution, additive blend */}
-        {visibleChannels.map(([name, src]) => (
-          <img
-            key={name}
-            src={src}
-            alt={name}
-            className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-            style={{ mixBlendMode: "screen" }}
-            draggable={false}
-          />
-        ))}
+      <div
+        ref={panZoom.containerRef}
+        onMouseDown={panZoom.onMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => { setHoveredCellId(null); setTooltip(null); }}
+        className={`w-full h-full bg-black relative overflow-hidden select-none ${
+          panZoom.panning ? "cursor-grabbing" : "cursor-grab"
+        }`}
+      >
+        {/* Transformed content layer — every pannable/zoomable child lives inside this div. */}
+        <div
+          className="absolute top-0 left-0"
+          style={{
+            width: size.w,
+            height: size.h,
+            transform: `translate3d(${panX}px, ${panY}px, 0) scale(${zoom})`,
+            transformOrigin: "0 0",
+            willChange: "transform",
+          }}
+        >
+          {/* Channel PNGs — stacked with screen blend for additive compositing. */}
+          {visibleChannels.map(([name, src]) => (
+            <img
+              key={name}
+              src={src}
+              alt={name}
+              className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+              style={{ mixBlendMode: "screen" }}
+              draggable={false}
+            />
+          ))}
 
-        {/* Cell count indicator (truthful state) */}
+          {/* Canvas overlay (outlines, hover, selection) — shares the same transform. */}
+          <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
+        </div>
+
+        {/* Cell count indicator (truthful state) — pinned to the viewport, not transformed. */}
         {polygons.length > 0 ? (
           <div className="absolute bottom-10 right-3 z-[5] bg-black/50 text-white/80 text-[10px] px-2 py-1 rounded">
-            {polygons.length} cells &middot; hover to inspect
+            {polygons.length} cells &middot; click to inspect
           </div>
         ) : result.cell_count > 0 && result.cell_overlay?.fallback_reason ? (
           <div className="absolute bottom-10 right-3 z-[5] bg-amber-600/80 text-white text-[10px] px-2 py-1.5 rounded max-w-[280px]">
@@ -261,14 +307,40 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
           </div>
         ) : null}
 
-        {/* Canvas overlay for cell outlines, hover, click */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 z-[2] cursor-crosshair"
-          onMouseMove={handleMouseMove}
-          onClick={handleClick}
-          onMouseLeave={() => { setHoveredCellId(null); setTooltip(null); }}
-        />
+        {/* Zoom controls — pinned to the viewport. */}
+        <div className="absolute bottom-10 left-3 z-[5] flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-md p-1">
+          <button
+            type="button"
+            onClick={panZoom.zoomOut}
+            className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded"
+            title="Zoom out"
+          >
+            <ZoomOut size={14} strokeWidth={1.8} />
+          </button>
+          <div
+            className="px-2 text-[10px] font-mono text-white/80 min-w-[38px] text-center"
+            style={{ fontFeatureSettings: "'tnum'" }}
+          >
+            {(zoom * 100).toFixed(0)}%
+          </div>
+          <button
+            type="button"
+            onClick={panZoom.zoomIn}
+            className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded"
+            title="Zoom in"
+          >
+            <ZoomIn size={14} strokeWidth={1.8} />
+          </button>
+          <button
+            type="button"
+            onClick={panZoom.reset}
+            disabled={panZoom.isAtDefault}
+            className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Reset view"
+          >
+            <RotateCcw size={14} strokeWidth={1.8} />
+          </button>
+        </div>
       </div>
 
       {/* Hover tooltip */}
