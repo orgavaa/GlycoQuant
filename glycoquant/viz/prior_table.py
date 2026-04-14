@@ -121,7 +121,6 @@ def plot_panel_summary(
     names = []
     scores = []
     sizes = []
-    colors = []
     families = []
     hover_texts = []
 
@@ -131,15 +130,13 @@ def plot_panel_summary(
         names.append(gene)
         scores.append(score)
 
-        # Count reachable targets (non-zero per_mechano entries)
-        # This info isn't directly in the PriorGeneEntry, so estimate from score
-        # A score > 0 means at least some targets are reachable
+        # Size encodes reachable-target count; colour encodes pathway proximity
+        # via the same Blues scale used by the per-target heatmap for consistency.
         n_reachable = max(1, int(score * 15)) if score > 0 else 0
-        sizes.append(max(8, n_reachable * 3))
+        sizes.append(max(10, n_reachable * 3))
 
         family = GENE_FAMILIES.get(gene, "Other")
         families.append(family)
-        colors.append(FAMILY_COLORS.get(family, "#9ca3af"))
 
         hover_texts.append(
             f"<b>{gene}</b><br>"
@@ -150,23 +147,30 @@ def plot_panel_summary(
 
     fig = go.Figure()
 
-    # Group by family for legend
-    seen_families: set[str] = set()
-    for i, gene in enumerate(names):
-        family = families[i]
-        show_legend = family not in seen_families
-        seen_families.add(family)
-
-        fig.add_trace(go.Scatter(
-            x=[scores[i]],
-            y=[gene],
-            mode="markers",
-            marker=dict(size=sizes[i], color=colors[i], line=dict(width=0.5, color="white")),
-            name=family,
-            legendgroup=family,
-            showlegend=show_legend,
-            hovertemplate=hover_texts[i] + "<extra></extra>",
-        ))
+    fig.add_trace(go.Scatter(
+        x=scores,
+        y=names,
+        mode="markers",
+        marker=dict(
+            size=sizes,
+            color=scores,
+            colorscale="Blues",
+            cmin=0.0,
+            cmax=1.0,
+            line=dict(width=0.5, color="white"),
+            colorbar=dict(
+                title=dict(text="Proximity", font=dict(size=10, family="Inter, sans-serif", color="#6b7280")),
+                thickness=12,
+                len=0.7,
+                tickfont=dict(size=9, family="Inter, sans-serif", color="#9ca3af"),
+                outlinewidth=0,
+                xpad=6,
+            ),
+        ),
+        customdata=families,
+        hovertemplate="<b>%{y}</b><br>Family: %{customdata}<br>Pathway score: %{x:.3f}<extra></extra>",
+        showlegend=False,
+    ))
 
     fig.update_layout(
         template="plotly_white",
@@ -175,7 +179,6 @@ def plot_panel_summary(
         yaxis=dict(autorange="reversed", tickfont=dict(size=10)),
         margin=dict(l=80, r=20, t=10, b=50),
         height=max(300, 24 * len(names) + 60),
-        legend=dict(font=dict(size=10), bgcolor="rgba(255,255,255,0.9)"),
         plot_bgcolor="#fff",
         paper_bgcolor="#fff",
     )

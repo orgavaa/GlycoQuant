@@ -31,7 +31,7 @@ function phenotypeTag(cell: CellFeatures): { text: string; color: string; bg: st
 }
 
 export function TopCells({ cells, onClick }: Props) {
-  // Compute a magnitude scale to size the deviation bar
+  // Max |z| across the selected cells anchors the diverging bar (0 → maxAbs on each side).
   const maxAbs = useMemo(() => {
     let m = 0;
     for (const c of cells) {
@@ -43,12 +43,17 @@ export function TopCells({ cells, onClick }: Props) {
 
   return (
     <div>
+      {/* Scale legend — explicitly orients the reader on the diverging axis */}
+      <div className="flex items-center gap-2 pb-2 mb-1 border-b border-gray-100 text-[9px] font-medium tracking-wider uppercase">
+        <span className="text-blue-700">{"\u2190"} below image mean</span>
+        <div className="flex-1 h-[3px] rounded-full bg-gradient-to-r from-blue-500 via-gray-200 to-red-500" />
+        <span className="text-red-700">above image mean {"\u2192"}</span>
+      </div>
       {cells.map((cell, i) => {
         const ms = (cell.mechano_score as number) ?? 0;
         const tag = phenotypeTag(cell);
         const isPos = ms >= 0;
-        const barPct = Math.min(100, (Math.abs(ms) / maxAbs) * 100);
-        const barColor = isPos ? "bg-red-500" : "bg-blue-600";
+        const halfPct = Math.min(50, (Math.abs(ms) / maxAbs) * 50);
         return (
           <div
             key={cell.cell_id}
@@ -62,27 +67,37 @@ export function TopCells({ cells, onClick }: Props) {
               #{cell.cell_id}
             </span>
 
-            {/* Deviation bar + value + tag */}
             <div className="min-w-0">
-              <div className="flex items-baseline gap-2 mb-1">
+              <div className="flex items-baseline gap-2 mb-1.5">
                 <span
-                  className={`text-[13px] font-semibold ${isPos ? "text-red-600" : "text-blue-700"}`}
+                  className={`text-[13px] font-semibold ${isPos ? "text-red-700" : "text-blue-700"}`}
                   style={{ fontFeatureSettings: "'tnum'" }}
                 >
                   {fmtSigned(ms)}
                 </span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider">mechano</span>
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider">mechano z</span>
                 <span className="text-[10px] text-gray-300">·</span>
                 <span className="text-[11px] text-gray-500" style={{ fontFeatureSettings: "'tnum'" }}>
                   glyco {fmt(cell.glycocalyx_pericellular_ratio as number | null)}
                 </span>
               </div>
-              <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${barColor} transition-all`}
-                  style={{ width: `${barPct}%` }}
-                />
+
+              {/* Diverging bar: anchored at image mean (centre). Blue grows leftward (below mean), red grows rightward (above mean). */}
+              <div className="relative h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="absolute top-0 bottom-0 left-1/2 w-px bg-gray-300" aria-hidden />
+                {isPos ? (
+                  <div
+                    className="absolute top-0 bottom-0 bg-red-500 rounded-r-full"
+                    style={{ left: "50%", width: `${halfPct}%` }}
+                  />
+                ) : (
+                  <div
+                    className="absolute top-0 bottom-0 bg-blue-600 rounded-l-full"
+                    style={{ right: "50%", width: `${halfPct}%` }}
+                  />
+                )}
               </div>
+
               {tag.text && (
                 <div className={`mt-1.5 inline-flex text-[9px] font-medium px-1.5 py-0.5 rounded border ${tag.color} ${tag.bg}`}>
                   {tag.text}
@@ -90,7 +105,6 @@ export function TopCells({ cells, onClick }: Props) {
               )}
             </div>
 
-            {/* Affordance */}
             <ChevronRight
               size={14}
               strokeWidth={1.5}
@@ -100,7 +114,7 @@ export function TopCells({ cells, onClick }: Props) {
         );
       })}
       <div className="text-[10px] text-gray-400 mt-3 leading-relaxed">
-        Mechano score is z-scored within this image. Bar length encodes |deviation| relative to the most extreme cell shown.
+        Mechano z-score is computed within this image (population mean = 0). The bar diverges from the centre: red <strong>right</strong> = above mean, blue <strong>left</strong> = below mean. Length is proportional to |z|.
       </div>
     </div>
   );

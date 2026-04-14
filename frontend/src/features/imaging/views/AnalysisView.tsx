@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PanelRightOpen, PanelRightClose } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
@@ -6,6 +6,14 @@ import { RightRail } from "@/components/RightRail";
 import type { JobResult } from "@/lib/api";
 import { extractFeatures } from "@/lib/canvas/extract";
 import { useJobStore } from "@/lib/jobStore";
+
+const RAIL_MIN_PX = 380;
+const RAIL_STORAGE_KEY = "glycoquant.rail.width";
+
+function clampRailWidth(px: number): number {
+  const maxPx = Math.round(window.innerWidth * 0.85);
+  return Math.max(RAIL_MIN_PX, Math.min(maxPx, px));
+}
 
 interface Props {
   result: JobResult;
@@ -22,9 +30,56 @@ export function AnalysisView({ result }: Props) {
     dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
   });
   const datasetLabel = useJobStore(s => s.latestDatasetLabel);
+  const selectedCellId = useJobStore(s => s.selectedCellId);
   const cells = useMemo(() => extractFeatures(result.features_df_json), [result.features_df_json]);
-  // Cell selection is handled by the user — no auto-open of the rail.
-  // Users can inspect cells on the image without forcing a context switch.
+
+  // Auto-open rail when the user selects a cell on the image.
+  useEffect(() => {
+    if (selectedCellId != null) setRailOpen(true);
+  }, [selectedCellId]);
+
+  // Resizable rail — width persisted across sessions.
+  const [railWidth, setRailWidth] = useState<number>(() => {
+    if (typeof window === "undefined") return 640;
+    const stored = Number(window.localStorage.getItem(RAIL_STORAGE_KEY));
+    const fallback = Math.min(640, Math.round(window.innerWidth * 0.6));
+    return clampRailWidth(Number.isFinite(stored) && stored > 0 ? stored : fallback);
+  });
+  const dragStateRef = useRef<{ startX: number; startW: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent) => {
+      const st = dragStateRef.current;
+      if (!st) return;
+      const deltaToLeft = st.startX - e.clientX;
+      setRailWidth(clampRailWidth(st.startW + deltaToLeft));
+    };
+    const onUp = () => {
+      setDragging(false);
+      dragStateRef.current = null;
+      window.localStorage.setItem(RAIL_STORAGE_KEY, String(railWidth));
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [dragging, railWidth]);
+
+  useEffect(() => {
+    const onResize = () => setRailWidth(w => clampRailWidth(w));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const startDrag = (e: React.MouseEvent) => {
+    dragStateRef.current = { startX: e.clientX, startW: railWidth };
+    setDragging(true);
+    e.preventDefault();
+  };
 
   // Compute visible cell IDs based on filter (truthful: explain what's shown)
   const { visibleCellIds, nRaw, nReady, statusText } = useMemo(() => {
@@ -121,12 +176,14 @@ export function AnalysisView({ result }: Props) {
         </div>
       </div>
 
-      {/* Rail toggle button */}
+      {/* Rail toggle button — follows the rail's current width so it never sits under the panel. */}
       <button
         onClick={() => setRailOpen(v => !v)}
-        className={`absolute top-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-white hover:text-gray-900 transition-all duration-300 ${
-          railOpen ? "right-[calc(min(640px,60vw)+12px)]" : "right-4"
-        }`}
+        className="absolute top-4 z-30 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-lg shadow-md w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-white hover:text-gray-900 transition-colors"
+        style={{
+          right: railOpen ? railWidth + 12 : 16,
+          transition: dragging ? "none" : "right 300ms ease-in-out",
+        }}
         title={railOpen ? "Close panel" : "Open results"}
       >
         {railOpen ? <PanelRightClose size={18} strokeWidth={1.5} /> : <PanelRightOpen size={18} strokeWidth={1.5} />}
@@ -134,13 +191,35 @@ export function AnalysisView({ result }: Props) {
 
       {/* Sliding results panel */}
       <div
-        className={`absolute top-0 right-0 h-full z-20 transition-transform duration-300 ease-in-out ${
-          railOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-        style={{ width: "min(640px, 60vw)" }}
+        className="absolute top-0 right-0 h-full z-20"
+        style={{
+          width: railWidth,
+          transform: railOpen ? "translateX(0)" : "translateX(100%)",
+          transition: dragging ? "none" : "transform 300ms ease-in-out",
+        }}
       >
+        {/* Drag handle on the left border — pull left to expand, right to shrink. */}
+        {railOpen && (
+          <div
+            onMouseDown={startDrag}
+            onDoubleClick={() => setRailWidth(clampRailWidth(640))}
+            title="Drag to resize · double-click to reset"
+            className={`absolute top-0 left-0 h-full w-1.5 -translate-x-1/2 z-30 cursor-col-resize group`}
+          >
+            <div className={`h-full w-px mx-auto transition-colors ${dragging ? "bg-blue-500" : "bg-gray-200 group-hover:bg-blue-400"}`} />
+            {/* Grip dots */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="w-1 h-1 rounded-full bg-blue-500" />
+              <span className="w-1 h-1 rounded-full bg-blue-500" />
+              <span className="w-1 h-1 rounded-full bg-blue-500" />
+            </div>
+          </div>
+        )}
         <RightRail result={result} cells={cells} onClose={() => setRailOpen(false)} />
       </div>
+
+      {/* Whole-viewport overlay during drag — keeps pointer captured. */}
+      {dragging && <div className="absolute inset-0 z-40 cursor-col-resize" />}
     </div>
   );
 }

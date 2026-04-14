@@ -50,7 +50,7 @@ interface DrillDownPanelProps {
 
 export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, availableGenes }: DrillDownPanelProps) {
   const [selectedTarget, setSelectedTarget] = useState<string>(mechanoSignature[0] ?? "YAP1");
-  const [showNetwork, setShowNetwork] = useState(false);
+  const [showNetwork, setShowNetwork] = useState(true);
 
   const drillQuery = useQuery({
     queryKey: ["drill", gene],
@@ -185,20 +185,28 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
         )}
       </Card>
 
-      {/* 5. Network graph (optional, collapsed by default) */}
+      {/* 5. Network graph — re-fetched on gene change via useQuery(["drill", gene]). */}
       {drill?.network_figure_json && (
         <Card>
           <div
             className="flex items-center justify-between cursor-pointer"
             onClick={() => setShowNetwork(v => !v)}
           >
-            <h3 className="text-[13px] font-semibold text-gray-900">Pathway network</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-[13px] font-semibold text-gray-900">Pathway network</h3>
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                {gene}
+              </span>
+              {drillQuery.isFetching && (
+                <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+              )}
+            </div>
             <span className="text-[12px] text-gray-300">{showNetwork ? "\u25BE" : "\u25B8"}</span>
           </div>
           {showNetwork && (
             <div className="mt-3">
               <p className="text-[10px] text-gray-400 mb-2">
-                All shortest paths from {gene} to reachable targets. Edge width proportional to STRING confidence.
+                All shortest paths from <strong className="text-gray-600">{gene}</strong> to reachable mechano targets. Edge width proportional to STRING v12 confidence. Regenerated whenever you switch the glycocalyx gene above.
               </p>
               <PlotlyFigure figureJson={drill.network_figure_json} />
             </div>
