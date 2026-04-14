@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TopBar, type ViewId } from "@/components/TopBar";
 import { ImagingTab } from "@/features/imaging/ImagingTab";
 import { PrioritizationTab } from "@/features/prioritization/PrioritizationTab";
+import { MethodsTab } from "@/features/methods/MethodsTab";
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>("analysis");
@@ -17,6 +18,12 @@ export default function App() {
           <div className="h-full overflow-y-auto bg-gray-50">
             <div className="max-w-[1200px] mx-auto px-8 py-8">
               <PrioritizationTab />
+            </div>
+          </div>
+        ) : activeView === "methods" ? (
+          <div className="h-full overflow-y-auto bg-gray-50">
+            <div className="max-w-[1100px] mx-auto px-8 py-8">
+              <MethodsTab />
             </div>
           </div>
         ) : null}

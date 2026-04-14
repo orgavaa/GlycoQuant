@@ -1,6 +1,6 @@
 import { Download } from "lucide-react";
 
-export type ViewId = "analysis" | "ranking";
+export type ViewId = "analysis" | "ranking" | "methods";
 
 interface TopBarProps {
   activeView: ViewId;
@@ -15,6 +15,7 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
       <div className="flex gap-8 ml-12">
         <NavTab label="Analysis" active={activeView === "analysis"} onClick={() => onChangeView("analysis")} />
         <NavTab label="Ranking" active={activeView === "ranking"} onClick={() => onChangeView("ranking")} />
+        <NavTab label="Methods" active={activeView === "methods"} onClick={() => onChangeView("methods")} />
       </div>
       <div className="flex-1" />
       <button className="flex items-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors">

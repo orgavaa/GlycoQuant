@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ChevronDown, ChevronRight, Layers, Network, ArrowLeftRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Layers, Network, ArrowLeftRight, Play } from "lucide-react";
 import { Card } from "./Card";
 import { PlotlyFigure } from "./PlotlyFigure";
 import { useJobStore } from "@/lib/jobStore";
@@ -21,13 +21,15 @@ interface Props {
 function Module({
   icon,
   title,
-  subtitle,
+  question,
+  method,
   defaultOpen = false,
   children,
 }: {
   icon: ReactNode;
   title: string;
-  subtitle: string;
+  question: string;
+  method: string;
   defaultOpen?: boolean;
   children: ReactNode;
 }) {
@@ -37,19 +39,58 @@ function Module({
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+        className="w-full flex items-start gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
       >
-        <span className="text-gray-400 flex-shrink-0">
+        <span className="text-gray-400 flex-shrink-0 mt-0.5">
           {open ? <ChevronDown size={14} strokeWidth={1.5} /> : <ChevronRight size={14} strokeWidth={1.5} />}
         </span>
-        <span className="text-gray-500 flex-shrink-0">{icon}</span>
+        <span className="text-gray-500 flex-shrink-0 mt-0.5">{icon}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] font-semibold text-gray-900">{title}</div>
-          <div className="text-[11px] text-gray-500 leading-relaxed mt-0.5">{subtitle}</div>
+          <div className="text-[14px] font-semibold text-gray-900">{title}</div>
+          <div className="text-[12px] text-gray-700 leading-relaxed mt-1">{question}</div>
+          <div className="text-[11px] text-gray-500 leading-relaxed mt-1">
+            <span className="text-gray-400 uppercase tracking-wider mr-1.5">how</span>
+            {method}
+          </div>
         </div>
       </button>
-      {open && <div className="px-5 pb-5 pt-1">{children}</div>}
+      {open && <div className="px-5 pb-5 pt-2 border-t border-gray-100">{children}</div>}
     </Card>
+  );
+}
+
+// Standardised "run" button — readable, with a play affordance and explicit state copy.
+function RunButton({
+  loading,
+  disabled,
+  onClick,
+  idleLabel,
+  loadingLabel,
+}: {
+  loading: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  idleLabel: string;
+  loadingLabel: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading || disabled}
+      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-[12px] font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+    >
+      {loading ? (
+        <>
+          <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          {loadingLabel}
+        </>
+      ) : (
+        <>
+          <Play size={12} strokeWidth={1.5} />
+          {idleLabel}
+        </>
+      )}
+    </button>
   );
 }
 
@@ -58,30 +99,40 @@ export function MLFeaturesPanel({ result }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-[11px] text-gray-500 leading-relaxed">
-        Exploratory modules. Each runs on demand and reports descriptive statistics only —
-        no module is required for the primary per-cell analysis.
-      </p>
+      <Card className="!bg-gray-50/60 !border-gray-200">
+        <h3 className="text-[13px] font-semibold text-gray-900 mb-1">Exploratory models</h3>
+        <p className="text-[12px] text-gray-600 leading-relaxed">
+          The per-cell features above are the primary scientific output. The three modules
+          below are <strong>optional</strong> models that look for additional patterns in your
+          data — they run only when you click <em>Run</em>, never automatically. Each module
+          reports descriptive statistics on this image alone and does not draw biological
+          conclusions for you.
+        </p>
+      </Card>
+
       <Module
         icon={<Layers size={14} strokeWidth={1.5} />}
-        title="Embedding-defined cluster structure"
-        subtitle="UMAP + Leiden on Cell-DINO embeddings. Reports cluster counts and per-cluster mean feature values — does not assert biological phenotype labels."
+        title="Cell groups by visual similarity"
+        question={"Do my cells fall into a few distinct visual subpopulations, or do they look like a single continuum?"}
+        method={"Cell-DINO ViT-L/16 embeddings (5120 dims per cell) → UMAP projection to 2D → Leiden community detection. Reports the number of clusters and each cluster's mean feature values. Cluster IDs are arbitrary — any biological interpretation is for you to make."}
       >
         <PhenotypeSection result={result} jobId={jobId} />
       </Module>
 
       <Module
         icon={<Network size={14} strokeWidth={1.5} />}
-        title="Spatial neighbourhood regression"
-        subtitle="Delaunay graph + 2-layer GCN predicts mechano score from neighbourhood features. Reports held-out R² as a descriptor of local spatial structure."
+        title="Is mechanical state spatially organised?"
+        question={"Can a cell's mechano score be predicted from its neighbours' features alone? If yes, mechanical state forms spatial domains; if no, each cell behaves independently of its neighbourhood."}
+        method={"Cells become nodes in a Delaunay graph (each cell connected to its geometric neighbours). A 2-layer Graph Convolutional Network predicts each cell's mechano score from its neighbours, and the held-out R² is reported. R² is descriptive of this image only."}
       >
         <SpatialSection jobId={jobId} />
       </Module>
 
       <Module
         icon={<ArrowLeftRight size={14} strokeWidth={1.5} />}
-        title="Cross-modal feature regression"
-        subtitle="MLP regressing mechano features on glyco features (or reverse) with 5-fold CV. Reports per-target R² — does not imply mechanistic causation."
+        title="How tightly coupled are glycocalyx and mechano features?"
+        question={"How well can a small neural network predict each mechano feature from glycocalyx features alone (or vice-versa)? High R² means the two readouts share variance — it does not prove that one causes the other."}
+        method={"Multi-layer perceptron (3 hidden layers) trained per-target with 5-fold cross-validation on this image's feature matrix. Reports out-of-fold R² for every target feature and the input features that most influenced the prediction (gradient magnitude)."}
       >
         <CrossModalSection jobId={jobId} />
       </Module>
@@ -115,23 +166,23 @@ function PhenotypeSection({ result, jobId }: { result: JobResult; jobId: string 
 
   if (!canRun) {
     return (
-      <div className="text-[12px] text-gray-500 py-2">
-        Deep embeddings were not computed for this job. Re-run analysis with
-        "Cell-DINO deep embeddings" enabled to activate this module.
+      <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md text-[12px] text-amber-800">
+        <span className="font-medium">Needs deep embeddings.</span>
+        <span className="text-amber-700">Re-run the analysis with "Cell-DINO deep embeddings" enabled in the loader to activate this module.</span>
       </div>
     );
   }
 
   if (!phenotype) {
     return (
-      <div className="flex items-center gap-3">
-        <button
+      <div className="flex items-center gap-3 flex-wrap">
+        <RunButton
+          loading={loading}
           onClick={handleRun}
-          disabled={loading}
-          className="px-3 py-1.5 bg-gray-900 text-white text-[11px] font-medium rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
-        >
-          {loading ? "Running UMAP + Leiden…" : "Compute clusters"}
-        </button>
+          idleLabel="Run cluster discovery"
+          loadingLabel="Computing UMAP + Leiden…"
+        />
+        <span className="text-[11px] text-gray-500">~10–30 s on typical fields.</span>
         {error && <span className="text-[11px] text-red-600">{error}</span>}
       </div>
     );
@@ -210,14 +261,15 @@ function SpatialSection({ jobId }: { jobId: string | null }) {
 
   if (!spatial) {
     return (
-      <div className="flex items-center gap-3">
-        <button
+      <div className="flex items-center gap-3 flex-wrap">
+        <RunButton
+          loading={loading}
+          disabled={!jobId}
           onClick={handleRun}
-          disabled={loading || !jobId}
-          className="px-3 py-1.5 bg-gray-900 text-white text-[11px] font-medium rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
-        >
-          {loading ? "Training GCN…" : "Fit spatial model"}
-        </button>
+          idleLabel="Run spatial model"
+          loadingLabel="Training GCN…"
+        />
+        <span className="text-[11px] text-gray-500">Trains a 2-layer GCN on this image (~5–15 s).</span>
         {error && <span className="text-[11px] text-red-600">{error}</span>}
       </div>
     );
@@ -284,33 +336,41 @@ function CrossModalSection({ jobId }: { jobId: string | null }) {
 
   if (!crossModal) {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1 bg-gray-100 rounded p-0.5">
-          <button
-            onClick={() => setDirection("glyco_to_mechano")}
-            className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
-              direction === "glyco_to_mechano" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
-            }`}
-          >
-            glyco {"\u2192"} mechano
-          </button>
-          <button
-            onClick={() => setDirection("mechano_to_glyco")}
-            className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
-              direction === "mechano_to_glyco" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
-            }`}
-          >
-            mechano {"\u2192"} glyco
-          </button>
+      <div className="space-y-3">
+        <div>
+          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+            Prediction direction
+          </div>
+          <div className="inline-flex items-center gap-1 bg-gray-100 rounded p-0.5">
+            <button
+              onClick={() => setDirection("glyco_to_mechano")}
+              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
+                direction === "glyco_to_mechano" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              glyco {"\u2192"} mechano
+            </button>
+            <button
+              onClick={() => setDirection("mechano_to_glyco")}
+              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
+                direction === "mechano_to_glyco" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              mechano {"\u2192"} glyco
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleRun}
-          disabled={loading || !jobId}
-          className="px-3 py-1.5 bg-gray-900 text-white text-[11px] font-medium rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
-        >
-          {loading ? "Fitting MLP (5-fold CV)…" : "Fit regression"}
-        </button>
-        {error && <span className="text-[11px] text-red-600">{error}</span>}
+        <div className="flex items-center gap-3 flex-wrap">
+          <RunButton
+            loading={loading}
+            disabled={!jobId}
+            onClick={handleRun}
+            idleLabel="Run regression"
+            loadingLabel="Fitting MLP (5-fold CV)…"
+          />
+          <span className="text-[11px] text-gray-500">5-fold cross-validated MLP per target (~10–30 s).</span>
+          {error && <span className="text-[11px] text-red-600">{error}</span>}
+        </div>
       </div>
     );
   }
