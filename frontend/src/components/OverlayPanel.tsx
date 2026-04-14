@@ -17,7 +17,7 @@ interface Props {
 
 export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOverlay, onSetOverlay, channelVisibility, onToggleChannel }: Props) {
   return (
-    <div className="absolute top-3 left-3 w-[172px] z-10 bg-white/[0.92] backdrop-blur-xl border border-black/[0.06] rounded-lg shadow-md p-[14px]">
+    <div className="absolute top-3 left-3 w-[172px] z-10 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-[14px] text-white">
       <SectionLabel>Overlays</SectionLabel>
       <div className="space-y-1 mb-1">
         <Toggle label="Segmentation" active={showSegmentation} onClick={onToggleSegmentation} kind="checkbox" />
@@ -25,7 +25,7 @@ export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOve
         <Toggle label="Mechano score" active={activeOverlay === "mechano"} onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")} kind="radio" />
       </div>
 
-      <div className="mt-2.5 pt-2.5 border-t border-gray-100">
+      <div className="mt-2.5 pt-2.5 border-t border-white/15">
         <SectionLabel>Channels</SectionLabel>
         <div className="flex flex-col gap-1">
           {CHANNELS.map(ch => {
@@ -37,10 +37,10 @@ export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOve
                 className="flex items-center gap-2 py-0.5 cursor-pointer"
               >
                 <div
-                  className="w-3 h-3 rounded-sm flex-shrink-0 transition-opacity"
-                  style={{ background: ch.color, opacity: vis ? 1 : 0.2 }}
+                  className="w-3 h-3 rounded-sm flex-shrink-0 transition-opacity ring-1 ring-white/20"
+                  style={{ background: ch.color, opacity: vis ? 1 : 0.25 }}
                 />
-                <span className={`text-[11px] font-medium transition-colors ${vis ? "text-gray-700" : "text-gray-400"}`}>
+                <span className={`text-[11px] font-medium transition-colors ${vis ? "text-white" : "text-white/50"}`}>
                   {ch.label}
                 </span>
               </div>
@@ -53,7 +53,11 @@ export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOve
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div className="text-[10px] font-semibold text-gray-400 tracking-[1.5px] uppercase mb-2">{children}</div>;
+  return (
+    <div className="text-[10px] font-semibold text-white/60 tracking-[1.5px] uppercase mb-2 drop-shadow-sm">
+      {children}
+    </div>
+  );
 }
 
 function Toggle({
@@ -73,9 +77,9 @@ function Toggle({
         type={kind}
         checked={active}
         onChange={onClick}
-        className="w-3 h-3 text-blue-600 focus:ring-blue-500 cursor-pointer"
+        className="w-3 h-3 text-blue-500 focus:ring-blue-400 cursor-pointer accent-blue-500"
       />
-      <span className={`text-[11px] transition-colors ${active ? "text-gray-900 font-medium" : "text-gray-600"}`}>
+      <span className={`text-[11px] transition-colors ${active ? "text-white font-medium" : "text-white/70"}`}>
         {label}
       </span>
     </label>

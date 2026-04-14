@@ -120,28 +120,6 @@ export function PipelineProgress({ progress, submittedAt, includesDeep, isGpu }:
         <span>Elapsed: {formatTime(elapsed)}</span>
         <span>~{formatTime(remaining)} remaining</span>
       </div>
-
-      {/* Stage list */}
-      <div className="border-t border-gray-100 pt-3 mt-1">
-        <div className="space-y-1.5">
-          {stages
-            .filter(s => includesDeep || !s.label.includes("deep embedding"))
-            .map((stage, i) => {
-              const isDone = estimatedPct > stage.pct;
-              const isCurrent = !isDone && (i === 0 || estimatedPct >= stages[Math.max(0, i - 1)].pct);
-              return (
-                <div key={stage.label} className="flex items-center gap-2 text-[10px]">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                    isDone ? "bg-emerald-500" : isCurrent ? "bg-blue-500" : "bg-gray-200"
-                  }`} />
-                  <span className={isDone ? "text-gray-400 line-through" : isCurrent ? "text-gray-900 font-medium" : "text-gray-300"}>
-                    {stage.label}
-                  </span>
-                </div>
-              );
-            })}
-        </div>
-      </div>
     </div>
   );
 }

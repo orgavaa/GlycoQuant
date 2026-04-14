@@ -126,9 +126,9 @@ export function AnalysisView({ result }: Props) {
         onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
       />
 
-      {/* Cell visibility filter (below overlay panel) */}
-      <div className="absolute top-3 left-[188px] z-10 bg-white/[0.92] backdrop-blur-xl border border-black/[0.06] rounded-lg shadow-md p-3 max-w-[200px]">
-        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-[1.5px] mb-2">
+      {/* Cell visibility filter (below overlay panel) — transparent on the image */}
+      <div className="absolute top-3 left-[188px] z-10 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-3 max-w-[200px] text-white">
+        <div className="text-[10px] font-semibold text-white/60 uppercase tracking-[1.5px] mb-2 drop-shadow-sm">
           Cell visibility
         </div>
         <div className="space-y-1">
@@ -137,15 +137,17 @@ export function AnalysisView({ result }: Props) {
             { id: "all", label: "All raw masks" },
             { id: "qc_failed", label: "QC-failed" },
           ] as { id: CellFilter; label: string }[]).map(opt => (
-            <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
+            <label key={opt.id} className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="radio"
                 name="cellFilter"
                 checked={cellFilter === opt.id}
                 onChange={() => setCellFilter(opt.id)}
-                className="w-3 h-3 text-blue-600 focus:ring-blue-500"
+                className="w-3 h-3 text-blue-500 focus:ring-blue-400 accent-blue-500"
               />
-              <span className="text-[11px] text-gray-600">{opt.label}</span>
+              <span className={`text-[11px] transition-colors ${cellFilter === opt.id ? "text-white font-medium" : "text-white/70"}`}>
+                {opt.label}
+              </span>
             </label>
           ))}
         </div>
