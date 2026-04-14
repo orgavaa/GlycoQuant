@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RadarChart, RADAR_AXES } from "./RadarChart";
 import { FeatureGroup } from "./FeatureGroup";
 import { Card } from "./Card";
@@ -95,18 +96,19 @@ export function CellContent({ cell, cells }: Props) {
       <div className="flex items-center gap-2 text-[12px]">
         <a
           onClick={() => setSelectedCellId(null)}
-          className="font-medium text-blue-600 cursor-pointer hover:underline"
+          className="inline-flex items-center gap-1 font-medium text-blue-600 cursor-pointer hover:underline"
         >
-          &larr; Overview
+          <ChevronLeft size={14} strokeWidth={1.5} />
+          Overview
         </a>
         <div className="flex-1" />
         <button
           onClick={() => prevId != null && setSelectedCellId(prevId)}
           disabled={prevId == null}
-          className="px-2 py-0.5 text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-1.5 py-0.5 text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
           title="Previous cell"
         >
-          &larr;
+          <ChevronLeft size={14} strokeWidth={1.5} />
         </button>
         <span className="text-[10px] text-gray-400" style={{ fontFeatureSettings: "'tnum'" }}>
           {currentIdx + 1} / {sortedIds.length}
@@ -114,10 +116,10 @@ export function CellContent({ cell, cells }: Props) {
         <button
           onClick={() => nextId != null && setSelectedCellId(nextId)}
           disabled={nextId == null}
-          className="px-2 py-0.5 text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-1.5 py-0.5 text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
           title="Next cell"
         >
-          &rarr;
+          <ChevronRight size={14} strokeWidth={1.5} />
         </button>
       </div>
 

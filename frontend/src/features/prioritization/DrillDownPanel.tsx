@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { AlertCircle, ArrowRight, FlaskConical, Target } from "lucide-react";
+import { AlertCircle, ArrowRight, ArrowLeftRight, FlaskConical, Target } from "lucide-react";
 import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { fetchDrillDown } from "@/lib/api";
@@ -174,7 +174,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
                 {evidence.path_edges.map((e, i) => (
                   <div key={i} className="flex items-center gap-2 text-[10px] text-gray-500">
                     <span className="text-gray-700">{e.from}</span>
-                    <span className="text-gray-300">\u2194</span>
+                    <ArrowLeftRight size={10} strokeWidth={1.5} className="text-gray-300" />
                     <span className="text-gray-700">{e.to}</span>
                     <span className="ml-auto" style={{ fontFeatureSettings: "'tnum'" }}>conf {e.confidence.toFixed(3)}</span>
                   </div>

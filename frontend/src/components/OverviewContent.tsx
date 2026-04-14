@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { ArrowLeftRight } from "lucide-react";
 import Plotly from "plotly.js-dist-min";
 import { HeroMetrics } from "./HeroMetrics";
 import { PlotlyCard } from "./PlotlyCard";
@@ -102,7 +103,7 @@ function OverviewTab({ result, cells }: Props) {
 
       {result.glyco_mechano_correlation_figure_json && (
         <PlotlyCard
-          title={"Glycocalyx \u2194 Mechanotransduction"}
+          title={<><span>Glycocalyx</span><ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" /><span>Mechanotransduction</span></>}
           subtitle={summary?.top_correlation_pair
             ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]})`
             : undefined}

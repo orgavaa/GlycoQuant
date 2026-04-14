@@ -1,9 +1,9 @@
 import Plotly from "plotly.js-dist-min";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Card } from "./Card";
 
 interface PlotlyCardProps {
-  title?: string;
+  title?: ReactNode;
   subtitle?: string;
   figureJson: string;
   maxHeight?: number;
@@ -120,7 +120,7 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 300 }: Plo
 
   return (
     <Card>
-      {title && <h3 className="text-[14px] font-semibold text-gray-900 mb-0.5">{title}</h3>}
+      {title && <h3 className="text-[14px] font-semibold text-gray-900 mb-0.5 flex items-center gap-2">{title}</h3>}
       {subtitle && <p className="text-[11px] text-gray-400 mb-3 leading-snug">{subtitle}</p>}
       <div ref={containerRef} className="w-full overflow-hidden">
         <div ref={ref} className="w-full" />
