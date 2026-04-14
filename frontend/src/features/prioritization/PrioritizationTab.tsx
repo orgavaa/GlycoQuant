@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Info, Zap, ChevronLeft, FlaskConical, Network, Table2, BarChart3, Layers } from "lucide-react";
-import { CompassSection, CompassPill } from "@/components/CompassSection";
+import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
   fetchContextualPriors,
@@ -13,6 +13,22 @@ import { DrillDownPanel } from "./DrillDownPanel";
 import { GeneformerRunCard } from "./GeneformerRunCard";
 import { MetabolicInhibitorTable } from "./MetabolicInhibitorTable";
 import { RankingTable } from "./RankingTable";
+
+interface SectionHeaderProps {
+  icon: React.ReactNode;
+  title: string;
+  rightLabel?: string;
+}
+
+function SectionHeader({ icon, title, rightLabel }: SectionHeaderProps) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <span className="text-gray-500 flex-shrink-0">{icon}</span>
+      <h3 className="text-[14px] font-semibold text-gray-900">{title}</h3>
+      {rightLabel && <span className="ml-auto text-[11px] text-gray-400">{rightLabel}</span>}
+    </div>
+  );
+}
 
 export function PrioritizationTab() {
   const queryClient = useQueryClient();
@@ -76,12 +92,12 @@ export function PrioritizationTab() {
 
   if (isError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <Card className="!bg-red-50 !border-red-200">
         <span className="text-[13px] font-semibold text-gray-900">Failed to load priors</span>
         <p className="text-[13px] text-gray-600 mt-1">
           Make sure the backend is running and <code className="bg-red-100 px-1.5 py-0.5 rounded text-[11px]">data/priors/pathway_ranks.json</code> exists.
         </p>
-      </div>
+      </Card>
     );
   }
 
@@ -95,32 +111,41 @@ export function PrioritizationTab() {
     : [];
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Page title */}
-      <div className="mb-5">
-        <h1 className="text-[20px] font-semibold text-gray-900 tracking-tight">Perturbation Prioritization</h1>
-        <p className="text-[12px] text-gray-500 mt-1">
+      <div>
+        <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Perturbation Prioritization</h1>
+        <p className="text-[13px] text-gray-500 mt-1">
           Twenty-two glycocalyx genes ranked against a 15-gene mechanotransduction signature.
         </p>
       </div>
 
-      {/* Mode banner — compact COMPASS style */}
+      {/* Mode banner — compact */}
       {isDynamic ? (
-        <div className="bg-blue-50 border border-blue-200 rounded-md px-4 py-3 mb-3">
-          <div className="flex items-center gap-2 mb-1">
+        <Card className="!bg-blue-50 !border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
             <Zap size={14} strokeWidth={1.5} className="text-blue-600" />
             <span className="text-[13px] font-semibold text-gray-900">Image-aware ranking active</span>
-            {latestDatasetLabel && <CompassPill variant="blue">{latestDatasetLabel}</CompassPill>}
-            {latestJobResult && <CompassPill variant="blue">{latestJobResult.cell_count} cells</CompassPill>}
+            {latestDatasetLabel && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-blue-200 text-blue-700">
+                {latestDatasetLabel}
+              </span>
+            )}
+            {latestJobResult && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-blue-200 text-blue-700" style={{ fontFeatureSettings: "'tnum'" }}>
+                {latestJobResult.cell_count} cells
+              </span>
+            )}
           </div>
-          <p className="text-[11px] text-gray-600 leading-relaxed">
-            Pathway prior re-aggregated using z-scored deviations of your observed per-cell features.
+          <p className="text-[11px] text-gray-600 leading-relaxed max-w-3xl">
+            Pathway prior re-aggregated using z-scored deviations of your observed per-cell features
+            against a reference cohort.
           </p>
           {topWeights.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
               <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Most weighted:</span>
               {topWeights.map(([gene, weight]) => (
-                <span key={gene} className="text-[10px] font-medium px-1.5 py-0.5 bg-white border border-blue-200 rounded text-blue-700" style={{ fontFeatureSettings: "'tnum'" }}>
+                <span key={gene} className="text-[10px] font-medium px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-800" style={{ fontFeatureSettings: "'tnum'" }}>
                   {gene} {weight.toFixed(2)}
                 </span>
               ))}
@@ -129,20 +154,19 @@ export function PrioritizationTab() {
           <button
             type="button"
             onClick={() => setForceStatic(true)}
-            className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800"
+            className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800"
           >
             <ChevronLeft size={12} strokeWidth={1.5} />
             Show static ranking
           </button>
-        </div>
+        </Card>
       ) : (
-        <CompassSection
-          title="How this ranking is produced"
-          icon={<Info size={14} strokeWidth={1.5} />}
-          collapsible
-          defaultOpen={false}
-        >
-          <p className="text-[12px] text-gray-600 leading-relaxed">
+        <Card className="!bg-gray-50">
+          <div className="flex items-center gap-2 mb-2">
+            <Info size={14} strokeWidth={1.5} className="text-gray-400" />
+            <span className="text-[13px] font-semibold text-gray-900">How this ranking is produced</span>
+          </div>
+          <p className="text-[12px] text-gray-600 leading-relaxed max-w-3xl">
             Pre-computed pathway ranking of twenty-two glycocalyx-relevant genes against a fixed
             15-gene mechanotransduction signature. Combines STRING v12 pathway proximity with
             transcriptomic co-regulation from Geneformer (Theodoris 2023).
@@ -158,32 +182,31 @@ export function PrioritizationTab() {
             </button>
           )}
           {latestJobResult === null && (
-            <p className="mt-2 text-[10px] text-gray-400">Run an image analysis to enable contextualised ranking.</p>
+            <p className="mt-3 text-[10px] text-gray-400">Run an image analysis to enable contextualised ranking.</p>
           )}
-        </CompassSection>
+        </Card>
       )}
 
       {/* Geneformer bootstrap */}
       {!priors.geneformer_available && priors.can_generate_geneformer && (
-        <div className="mb-3">
-          <GeneformerRunCard onComplete={() => queryClient.invalidateQueries({ queryKey: ["priors"] })} />
-        </div>
+        <GeneformerRunCard onComplete={() => queryClient.invalidateQueries({ queryKey: ["priors"] })} />
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
-        <div className="bg-amber-50 border border-amber-200 rounded-md px-4 py-3 mb-3">
+        <Card className="!bg-amber-50 !border-amber-200">
           <span className="text-[12px] font-semibold text-gray-900">Pathway-only mode</span>
           <p className="text-[11px] text-gray-600 mt-0.5">
             Transcriptomic prior not yet committed and no Modal GPU provider available.
           </p>
-        </div>
+        </Card>
       )}
 
       {/* Top 3 candidates */}
-      <CompassSection
-        title="Top candidates"
-        icon={<Layers size={14} strokeWidth={1.5} />}
-        rightLabel={isDynamic ? "image-aware reweighted" : "STRING v12 baseline"}
-      >
+      <Card>
+        <SectionHeader
+          icon={<Layers size={14} strokeWidth={1.5} />}
+          title="Top candidates"
+          rightLabel={isDynamic ? "image-aware reweighted" : "STRING v12 baseline"}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((g, i) => {
             const badges: string[] = [];
@@ -208,7 +231,11 @@ export function PrioritizationTab() {
                   <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     Rank {g.pathway_rank}
                   </span>
-                  {isDynamic && <CompassPill variant="blue">reweighted</CompassPill>}
+                  {isDynamic && (
+                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+                      reweighted
+                    </span>
+                  )}
                 </div>
                 <div className="text-[20px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>
                   {g.gene}
@@ -220,51 +247,57 @@ export function PrioritizationTab() {
                 )}
                 <div className="mt-2 flex flex-wrap gap-1">
                   {badges.slice(0, 2).map(b => (
-                    <CompassPill key={b}>{b}</CompassPill>
+                    <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                      {b}
+                    </span>
                   ))}
                 </div>
               </button>
             );
           })}
         </div>
-      </CompassSection>
+      </Card>
 
       {/* Panel summary dot plot */}
       {priors.panel_summary_figure_json && (
-        <CompassSection
-          title="Panel overview"
-          icon={<BarChart3 size={14} strokeWidth={1.5} />}
-          rightLabel="22 genes"
-          description="Dot size proportional to reachable mechano targets. Color by gene family."
-          collapsible
-        >
+        <Card>
+          <SectionHeader
+            icon={<BarChart3 size={14} strokeWidth={1.5} />}
+            title="Panel overview"
+            rightLabel="22 genes"
+          />
+          <p className="text-[11px] text-gray-500 mb-3">
+            Dot size proportional to reachable mechano targets. Color by gene family.
+          </p>
           <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
-        </CompassSection>
+        </Card>
       )}
 
       {/* Ranking table */}
-      <CompassSection
-        title="Ranked perturbations"
-        icon={<Table2 size={14} strokeWidth={1.5} />}
-        rightLabel="click row to drill in"
-      >
-        <div className="-mx-4 -mb-4">
-          <RankingTable
-            genes={priors.genes}
-            geneformerAvailable={priors.geneformer_available}
-            selectedGene={activeGene}
-            onSelectGene={setSelectedGene}
-            staticRankByGene={staticRankByGene}
+      <Card noPadding>
+        <div className="px-5 py-4 border-b border-gray-100">
+          <SectionHeader
+            icon={<Table2 size={14} strokeWidth={1.5} />}
+            title="Ranked perturbations"
+            rightLabel="click row to drill in"
           />
         </div>
-      </CompassSection>
+        <RankingTable
+          genes={priors.genes}
+          geneformerAvailable={priors.geneformer_available}
+          selectedGene={activeGene}
+          onSelectGene={setSelectedGene}
+          staticRankByGene={staticRankByGene}
+        />
+      </Card>
 
       {/* Drill-down */}
-      <CompassSection
-        title="Per-gene drill-down"
-        icon={<Network size={14} strokeWidth={1.5} />}
-        rightLabel={activeGene ?? undefined}
-      >
+      <Card>
+        <SectionHeader
+          icon={<Network size={14} strokeWidth={1.5} />}
+          title="Per-gene drill-down"
+          rightLabel={activeGene ?? undefined}
+        />
         {activeGene ? (
           <DrillDownPanel
             gene={activeGene}
@@ -275,19 +308,19 @@ export function PrioritizationTab() {
         ) : (
           <p className="text-[12px] text-gray-400">No genes available.</p>
         )}
-      </CompassSection>
+      </Card>
 
       {/* Metabolic inhibitors */}
-      <CompassSection
-        title="Metabolic inhibitors"
-        icon={<FlaskConical size={14} strokeWidth={1.5} />}
-        rightLabel={`${priors.metabolic_inhibitors.length} compounds`}
-        collapsible
-      >
-        <div className="-mx-4 -mb-4">
-          <MetabolicInhibitorTable inhibitors={priors.metabolic_inhibitors} />
+      <Card noPadding>
+        <div className="px-5 py-4 border-b border-gray-100">
+          <SectionHeader
+            icon={<FlaskConical size={14} strokeWidth={1.5} />}
+            title="Metabolic inhibitors"
+            rightLabel={`${priors.metabolic_inhibitors.length} compounds`}
+          />
         </div>
-      </CompassSection>
+        <MetabolicInhibitorTable inhibitors={priors.metabolic_inhibitors} />
+      </Card>
     </div>
   );
 }

@@ -1,22 +1,16 @@
 import { useState } from "react";
-import { Sidebar, type ViewId } from "@/components/Sidebar";
+import { TopBar, type ViewId } from "@/components/TopBar";
 import { ImagingTab } from "@/features/imaging/ImagingTab";
 import { PrioritizationTab } from "@/features/prioritization/PrioritizationTab";
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>("analysis");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="h-screen flex bg-gray-50 overflow-hidden">
-      <Sidebar
-        activeView={activeView}
-        onChangeView={setActiveView}
-        collapsed={sidebarCollapsed}
-        onToggleCollapsed={() => setSidebarCollapsed(v => !v)}
-      />
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+      <TopBar activeView={activeView} onChangeView={setActiveView} />
 
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-hidden">
         {activeView === "analysis" ? (
           <ImagingTab />
         ) : activeView === "ranking" ? (

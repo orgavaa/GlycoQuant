@@ -99,23 +99,18 @@ export function LoaderView() {
       <div className="absolute top-0 right-0 h-full w-[380px] flex-shrink-0 bg-white/95 backdrop-blur-xl border-l border-gray-200 shadow-2xl overflow-y-auto z-10">
         <div className="p-6 space-y-5">
 
-          {/* 1. Scientific purpose — what this run measures */}
+          {/* Brand + scientific purpose */}
           <section>
-            <h2 className="text-[16px] font-semibold text-gray-900 mb-2">Single-cell analysis</h2>
-            <div className="space-y-1.5">
-              {[
-                "Glycocalyx spatial organisation",
-                "YAP nuclear localisation (size-corrected)",
-                "Focal adhesion maturation classification",
-                "Actin cytoskeletal coherence",
-                "Glyco \u2194 mechano coupling strength",
-              ].map(item => (
-                <div key={item} className="flex items-start gap-2 text-[11px] text-gray-500">
-                  <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
-                  {item}
-                </div>
-              ))}
-            </div>
+            <h2 className="text-[18px] font-bold text-gray-900 tracking-tight mb-1.5">GlycoQuant</h2>
+            <p className="text-[11px] text-gray-600 leading-relaxed mb-2">
+              Single-cell glycocalyx&ndash;mechanotransduction coupling from standard fluorescence microscopy.
+            </p>
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              Segments every cell with Cellpose-SAM, extracts 26 interpretable biophysical features
+              (glycocalyx organisation, YAP nuclear localisation, focal-adhesion maturation, actin
+              coherence, morphology), and quantifies the per-cell coupling between surface coat and
+              mechanical signalling.
+            </p>
           </section>
 
           <div className="border-t border-gray-100" />
