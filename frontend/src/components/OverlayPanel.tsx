@@ -19,9 +19,11 @@ export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOve
   return (
     <div className="absolute top-3 left-3 w-[172px] z-10 bg-white/[0.92] backdrop-blur-xl border border-black/[0.06] rounded-lg shadow-md p-[14px]">
       <SectionLabel>Overlays</SectionLabel>
-      <Toggle label="Segmentation" active={showSegmentation} onClick={onToggleSegmentation} />
-      <Toggle label="Glycocalyx" active={activeOverlay === "glyco"} onClick={() => onSetOverlay(activeOverlay === "glyco" ? null : "glyco")} />
-      <Toggle label="Mechano score" active={activeOverlay === "mechano"} onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")} />
+      <div className="space-y-1 mb-1">
+        <Toggle label="Segmentation" active={showSegmentation} onClick={onToggleSegmentation} kind="checkbox" />
+        <Toggle label="Glycocalyx" active={activeOverlay === "glyco"} onClick={() => onSetOverlay(activeOverlay === "glyco" ? null : "glyco")} kind="radio" />
+        <Toggle label="Mechano score" active={activeOverlay === "mechano"} onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")} kind="radio" />
+      </div>
 
       <div className="mt-2.5 pt-2.5 border-t border-gray-100">
         <SectionLabel>Channels</SectionLabel>
@@ -54,13 +56,28 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <div className="text-[10px] font-semibold text-gray-400 tracking-[1.5px] uppercase mb-2">{children}</div>;
 }
 
-function Toggle({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function Toggle({
+  label,
+  active,
+  onClick,
+  kind,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  kind: "radio" | "checkbox";
+}) {
   return (
-    <div onClick={onClick} className="flex items-center gap-2 py-1 cursor-pointer">
-      <div className={`w-2 h-2 rounded-full border-[1.5px] flex-shrink-0 transition-colors ${
-        active ? "bg-gray-900 border-gray-900" : "border-gray-300 bg-transparent"
-      }`} />
-      <span className="text-[11px] font-medium text-gray-500">{label}</span>
-    </div>
+    <label className="flex items-center gap-2 cursor-pointer select-none">
+      <input
+        type={kind}
+        checked={active}
+        onChange={onClick}
+        className="w-3 h-3 text-blue-600 focus:ring-blue-500 cursor-pointer"
+      />
+      <span className={`text-[11px] transition-colors ${active ? "text-gray-900 font-medium" : "text-gray-600"}`}>
+        {label}
+      </span>
+    </label>
   );
 }
