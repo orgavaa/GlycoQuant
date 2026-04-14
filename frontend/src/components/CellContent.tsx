@@ -80,15 +80,46 @@ export function CellContent({ cell, cells }: Props) {
     { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
   ];
 
+  // Cell navigation: next / previous in the cells array
+  const sortedIds = useMemo(
+    () => cells.map(c => Number(c.cell_id)).sort((a, b) => a - b),
+    [cells]
+  );
+  const currentIdx = sortedIds.indexOf(Number(cell.cell_id));
+  const prevId = currentIdx > 0 ? sortedIds[currentIdx - 1] : null;
+  const nextId = currentIdx >= 0 && currentIdx < sortedIds.length - 1 ? sortedIds[currentIdx + 1] : null;
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Back link */}
-      <a
-        onClick={() => setSelectedCellId(null)}
-        className="text-[13px] font-medium text-blue-600 cursor-pointer hover:underline"
-      >
-        &larr; Back to overview
-      </a>
+      {/* Navigation row */}
+      <div className="flex items-center gap-2 text-[12px]">
+        <a
+          onClick={() => setSelectedCellId(null)}
+          className="font-medium text-blue-600 cursor-pointer hover:underline"
+        >
+          &larr; Overview
+        </a>
+        <div className="flex-1" />
+        <button
+          onClick={() => prevId != null && setSelectedCellId(prevId)}
+          disabled={prevId == null}
+          className="px-2 py-0.5 text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
+          title="Previous cell"
+        >
+          &larr;
+        </button>
+        <span className="text-[10px] text-gray-400" style={{ fontFeatureSettings: "'tnum'" }}>
+          {currentIdx + 1} / {sortedIds.length}
+        </span>
+        <button
+          onClick={() => nextId != null && setSelectedCellId(nextId)}
+          disabled={nextId == null}
+          className="px-2 py-0.5 text-gray-500 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
+          title="Next cell"
+        >
+          &rarr;
+        </button>
+      </div>
 
       {/* Summary */}
       <div>

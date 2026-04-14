@@ -557,6 +557,10 @@ def _build_result_payload(
         ),
     }
 
+    # Build explicit overlay payload from cell_mask — decoupled from Plotly figure.
+    # This is the canonical source of truth for the frontend canvas.
+    cell_overlay = _build_cell_overlay(cell_mask, features_df)
+
     # Return ALL columns including deep_* — the worker strips them
     # for the polling response after caching the full version for ML endpoints.
     return JobResult(
@@ -564,6 +568,7 @@ def _build_result_payload(
         cell_count=len(features_df),
         features_df_json=features_df.reset_index().to_json(orient="records"),
         segmentation_figure_json=_slim_segmentation_figure(seg_fig),
+        cell_overlay=cell_overlay,
         channel_trace_indices=channel_trace_indices,
         overlay_trace_ranges=overlay_trace_ranges,
         channel_pngs=channel_pngs,
@@ -578,6 +583,83 @@ def _build_result_payload(
             embedder_backend if include_deep_features else None
         ),
     )
+
+
+def _build_cell_overlay(cell_mask, features_df) -> dict | None:
+    """Build the canonical overlay payload directly from the cell_mask.
+
+    Returns:
+        {
+          "image_w": int,    # mask width in pixels
+          "image_h": int,    # mask height in pixels
+          "polygons": [
+            {"cell_id": int, "vertices": [[x, y], ...]},
+            ...
+          ],
+          "n_cells": int,    # number of cells with valid polygons
+          "fallback_reason": str | None,  # set if polygons unavailable
+        }
+
+    This is the source of truth for the frontend canvas overlay,
+    independent of the Plotly figure JSON. If polygon extraction
+    fails for any reason, returns a degraded payload with a truthful
+    reason field rather than silently empty.
+    """
+    import numpy as np
+
+    try:
+        h, w = int(cell_mask.shape[0]), int(cell_mask.shape[1])
+        unique_ids = sorted(int(v) for v in np.unique(cell_mask).tolist() if v != 0)
+        n_total = len(unique_ids)
+
+        if n_total == 0:
+            return {
+                "image_w": w, "image_h": h,
+                "polygons": [], "n_cells": 0,
+                "fallback_reason": "No cells in segmentation mask",
+            }
+
+        # Try to extract polygons via the existing helper
+        from glycoquant.viz import cell_outline_polygons
+        contours = cell_outline_polygons(cell_mask)
+
+        polygons = []
+        for cell_id in unique_ids:
+            contour = contours.get(cell_id)
+            if contour is None or len(contour) < 3:
+                continue
+            # Convert (row, col) → (x, y) for the frontend
+            # Round to 1 decimal to keep JSON compact
+            verts = [[round(float(c), 1), round(float(r), 1)] for r, c in contour]
+            polygons.append({"cell_id": cell_id, "vertices": verts})
+
+        if not polygons:
+            return {
+                "image_w": w, "image_h": h,
+                "polygons": [], "n_cells": n_total,
+                "fallback_reason": (
+                    f"Cell mask contains {n_total} cells but no valid polygon "
+                    "contours could be extracted (cells may be too small or fragmented)."
+                ),
+            }
+
+        print(f"[worker] cell_overlay: {len(polygons)}/{n_total} polygons extracted")
+        return {
+            "image_w": w, "image_h": h,
+            "polygons": polygons, "n_cells": n_total,
+            "fallback_reason": None,
+        }
+    except Exception as exc:
+        print(f"[worker] cell_overlay extraction failed: {exc}")
+        try:
+            h, w = int(cell_mask.shape[0]), int(cell_mask.shape[1])
+        except Exception:
+            h, w = 0, 0
+        return {
+            "image_w": w, "image_h": h,
+            "polygons": [], "n_cells": 0,
+            "fallback_reason": f"Polygon extraction error: {type(exc).__name__}",
+        }
 
 
 def _slim_segmentation_figure(fig) -> str:

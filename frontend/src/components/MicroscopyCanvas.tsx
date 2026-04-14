@@ -23,23 +23,36 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [tooltip, setTooltip] = useState<{ x: number; y: number; cellId: number; lines: { l: string; v: string }[] } | null>(null);
 
+  // Prefer the explicit overlay payload; fall back to extracting from figure JSON
   const polygons = useMemo(() => {
+    // Path 1: explicit cell_overlay payload (canonical, from cell_mask directly)
+    if (result.cell_overlay?.polygons && result.cell_overlay.polygons.length > 0) {
+      const polys = result.cell_overlay.polygons.map(p => {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        let cx = 0, cy = 0;
+        for (const [x, y] of p.vertices) {
+          if (x < minX) minX = x; if (y < minY) minY = y;
+          if (x > maxX) maxX = x; if (y > maxY) maxY = y;
+          cx += x; cy += y;
+        }
+        const n = p.vertices.length;
+        return {
+          cellId: p.cell_id,
+          vertices: p.vertices,
+          bbox: { x: minX, y: minY, w: maxX - minX, h: maxY - minY },
+          centroid: [cx / n, cy / n] as [number, number],
+        };
+      });
+      console.log(`[MicroscopyCanvas] ${polys.length} polygons from cell_overlay payload`);
+      return polys;
+    }
+    // Path 2: legacy extraction from Plotly figure JSON
     const p = extractPolygons(result.segmentation_figure_json);
     if (p.length > 0) {
-      console.log(`[MicroscopyCanvas] ${p.length} cell polygons extracted. First cell: id=${p[0].cellId}, vertices=${p[0].vertices.length}, bbox=[${p[0].bbox.x.toFixed(0)},${p[0].bbox.y.toFixed(0)},${(p[0].bbox.x + p[0].bbox.w).toFixed(0)},${(p[0].bbox.y + p[0].bbox.h).toFixed(0)}]`);
-    } else {
-      console.warn("[MicroscopyCanvas] No polygons extracted from segmentation figure!");
-      // Debug: log trace types
-      try {
-        const fig = JSON.parse(result.segmentation_figure_json);
-        const types = (fig.data as Array<{type?: string; x?: unknown[]; customdata?: unknown[]}>).map(
-          (t, i) => `trace[${i}]: type=${t.type}, hasX=${!!t.x}, hasCD=${!!t.customdata}, xLen=${t.x?.length ?? 0}`
-        );
-        console.log("[MicroscopyCanvas] Traces:", types.join(" | "));
-      } catch { /* */ }
+      console.log(`[MicroscopyCanvas] ${p.length} polygons from segmentation figure (fallback)`);
     }
     return p;
-  }, [result.segmentation_figure_json]);
+  }, [result.cell_overlay, result.segmentation_figure_json]);
   const cellMap = useMemo(() => {
     const m = new Map<number, CellFeatures>();
     for (const c of cells) m.set(Number(c.cell_id), c);
@@ -65,21 +78,25 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     return { map, isSigned: activeOverlay === "mechano" };
   }, [activeOverlay, cells]);
 
-  // Get the native image dimensions from the segmentation figure (axis ranges)
+  // Image dimensions: prefer the cell_overlay payload (canonical)
   const imgDims = useMemo(() => {
+    if (result.cell_overlay?.image_w && result.cell_overlay?.image_h) {
+      return {
+        w: result.cell_overlay.image_w,
+        h: result.cell_overlay.image_h,
+        yFlip: false,
+      };
+    }
     try {
       const fig = JSON.parse(result.segmentation_figure_json);
       const xr = fig.layout?.xaxis?.range as [number, number] | undefined;
       const yr = fig.layout?.yaxis?.range as [number, number] | undefined;
       if (xr && yr) {
-        const dims = { w: xr[1] - xr[0], h: Math.abs(yr[1] - yr[0]), yFlip: yr[0] > yr[1] };
-        console.log(`[MicroscopyCanvas] imgDims: ${dims.w}x${dims.h}, yFlip=${dims.yFlip}, xRange=[${xr}], yRange=[${yr}]`);
-        return dims;
+        return { w: xr[1] - xr[0], h: Math.abs(yr[1] - yr[0]), yFlip: yr[0] > yr[1] };
       }
-      console.warn("[MicroscopyCanvas] No axis ranges in segmentation figure");
     } catch { /* empty */ }
     return null;
-  }, [result.segmentation_figure_json]);
+  }, [result.cell_overlay, result.segmentation_figure_json]);
 
   // Build the list of visible channel PNG src URLs — only show toggled-on channels
   const visibleChannels = useMemo(() => {
@@ -225,12 +242,16 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
           />
         ))}
 
-        {/* Cell count indicator */}
-        {polygons.length > 0 && (
+        {/* Cell count indicator (truthful state) */}
+        {polygons.length > 0 ? (
           <div className="absolute bottom-10 right-3 z-[5] bg-black/50 text-white/80 text-[10px] px-2 py-1 rounded">
             {polygons.length} cells &middot; hover to inspect
           </div>
-        )}
+        ) : result.cell_count > 0 && result.cell_overlay?.fallback_reason ? (
+          <div className="absolute bottom-10 right-3 z-[5] bg-amber-600/80 text-white text-[10px] px-2 py-1.5 rounded max-w-[280px]">
+            {result.cell_count} cells quantified &middot; vector outlines unavailable
+          </div>
+        ) : null}
 
         {/* Canvas overlay for cell outlines, hover, click */}
         <canvas

@@ -196,6 +196,16 @@ class JobResult(BaseModel):
             "from feature extraction. The UI shows '—' for those features."
         ),
     )
+    cell_overlay: dict | None = Field(
+        default=None,
+        description=(
+            "Explicit overlay payload for the frontend canvas: "
+            "{image_w, image_h, polygons: [{cell_id, vertices: [[x,y],...]}]}. "
+            "Generated directly from the cell_mask, decoupled from the "
+            "Plotly figure JSON. None if polygon extraction failed; "
+            "the frontend then shows a degraded-but-truthful state."
+        ),
+    )
 
 
 class JobStatusResponse(BaseModel):

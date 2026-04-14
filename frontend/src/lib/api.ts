@@ -73,6 +73,13 @@ export interface JobResult {
   pixel_size_um?: number;
   channel_assignments?: Record<string, string> | null;
   substitute_channels?: string[];
+  cell_overlay?: {
+    image_w: number;
+    image_h: number;
+    polygons: { cell_id: number; vertices: [number, number][] }[];
+    n_cells: number;
+    fallback_reason: string | null;
+  } | null;
 }
 
 export interface JobStatusResponse {
