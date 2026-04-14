@@ -43,9 +43,9 @@ const GROUPS: GroupSpec[] = [
   {
     id: "glycocalyx",
     title: "Glycocalyx organisation",
-    channel: "WGA-lectin (or equivalent surface-sugar stain)",
+    channel: "WGA-lectin (or equivalent surface-glycan stain)",
     intent:
-      "The glycocalyx is the sugar coat that every cell wears on its outside. These features describe how thick it is, how evenly it covers the cell, and how patchy or smooth it looks — all from the pericellular ring just outside the cell mask.",
+      "The cellular glycocalyx is a negatively-charged macromolecular meshwork of membrane-anchored proteoglycans, glycoproteins, and glycolipids decorating the apical face of virtually every mammalian cell. The following descriptors quantify its density, continuity, and spatial texture in the pericellular annulus exterior to the cell mask, and serve as image-level surrogates for brush extension, proteoglycan loading, and lateral phase-separation of the coat.",
     icon: <Sparkles size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -54,15 +54,15 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-emerald-50",
     badgeText: "text-emerald-700",
     rows: [
-      { name: "pericellular_ratio", plain: "How much denser the coat is just outside the cell compared with the inside. High = thick brush; low = thin coat.", technical: "Mean intensity in a thin ring outside the mask divided by the mean intensity inside." },
-      { name: "radial_decay_rate", plain: "How quickly the coat thins out as you move away from the cell. Steep drop-off = compact, tightly bound coat; slow drop-off = fluffy, extended brush.", technical: "Slope of the radial intensity profile from edge outward." },
-      { name: "radial_profile_00..19", plain: "Twenty concentric ‘shells’ of coat intensity moving outward (~0 – 10 µm). Together they form a fingerprint of brush extension the models use directly.", technical: "Per-bin mean intensity of the outward radial profile." },
-      { name: "coverage", plain: "Fraction of the cell circumference that has a visible coat. Low values flag cells with bald patches.", technical: "Fraction of the pericellular ring above a local Otsu threshold." },
-      { name: "heterogeneity", plain: "How uneven the coat is. Low = smooth and uniform; high = patchy, uneven.", technical: "Coefficient of variation of pericellular intensity." },
-      { name: "haralick_contrast / homogeneity / energy / correlation", plain: "Four complementary readouts of coat texture — roughly, patch size, smoothness, regularity, and directionality.", technical: "Classical GLCM (grey-level co-occurrence matrix) descriptors of the pericellular ring." },
-      { name: "moran_i", plain: "Are bright and dim patches clumped together, or scattered at random? Positive = clumped; zero = random; negative = checkerboard.", technical: "Global Moran's I of pericellular intensity." },
-      { name: "shannon_entropy", plain: "How ‘busy’ the coat looks. Low = uniform; high = many different brightness levels mixed together.", technical: "Entropy of the binned pericellular intensity histogram." },
-      { name: "mean_intensity / integrated_intensity", plain: "Raw brightness of the coat — useful but affected by camera gain and exposure. Prefer the ratios above when comparing across images.", technical: "Simple sum/mean of pericellular pixel values." },
+      { name: "pericellular_ratio", plain: "Intensity contrast between the pericellular annulus and the intracellular compartment. Elevated values are consistent with a densely loaded, externally projecting brush; depressed values with a shallow or partially shed coat.", technical: "Mean pixel intensity in a 1–3 µm pericellular ring divided by the mean intensity inside the cell mask." },
+      { name: "radial_decay_rate", plain: "Characteristic decay of lectin signal as a function of radial distance from the cell edge. Steep decay is consistent with a compact, tightly membrane-anchored coat; shallow decay with a diffuse, long-range brush.", technical: "Slope of a linear fit to the outward radial intensity profile." },
+      { name: "radial_profile_00..19", plain: "Twenty concentric annular shells spanning approximately 0–10 µm outward from the cell boundary. Collectively these bins encode the brush-extension profile that downstream regression models consume directly.", technical: "Per-bin mean intensity of the outward radial intensity profile." },
+      { name: "coverage", plain: "Circumferential continuity of the coat around the cell. Depressed values flag focally depleted or shed regions and a fragmented glycocalyx architecture.", technical: "Fraction of the pericellular ring exceeding a locally-adaptive Otsu threshold." },
+      { name: "heterogeneity", plain: "Lateral variability of pericellular intensity. Elevated values are consistent with phase-separated or patchy coat organisation.", technical: "Coefficient of variation of pericellular intensity." },
+      { name: "haralick_contrast / homogeneity / energy / correlation", plain: "Haralick descriptors of pericellular texture — independent readouts of local contrast, patch coherence, distributional uniformity, and directional autocorrelation.", technical: "Grey-level co-occurrence matrix (GLCM) features computed on the pericellular ring." },
+      { name: "moran_i", plain: "Global spatial autocorrelation of pericellular intensity. Positive values indicate clustered bright/dim domains, zero indicates spatial randomness, negative values an anti-correlated (alternating) pattern.", technical: "Moran's I with queen-adjacency weights over the pericellular ring." },
+      { name: "shannon_entropy", plain: "Spectral diversity of pericellular intensity. Elevated entropy reflects a multi-modal or noisy signal distribution; depressed entropy a narrow, unimodal coat.", technical: "Shannon entropy of the binned pericellular intensity histogram." },
+      { name: "mean_intensity / integrated_intensity", plain: "Bulk lectin signal. Reported for completeness but confounded by acquisition gain and exposure; ratiometric descriptors above are preferred for cross-image comparison.", technical: "Sum and mean of pericellular pixel intensities." },
     ],
   },
   {
@@ -70,7 +70,7 @@ const GROUPS: GroupSpec[] = [
     title: "YAP nuclear localisation",
     channel: "YAP / TAZ antibody",
     intent:
-      "YAP is the classical mechanosensitive transcription factor. When a cell feels a stiff or stretched environment, YAP moves from the cytoplasm into the nucleus and switches on mechanoresponsive genes. These features capture that shuttling.",
+      "YAP and its paralogue TAZ are Hippo-pathway transcriptional co-activators whose subcellular partitioning is regulated by substrate stiffness, cytoskeletal tension, and cell geometry (Dupont et al., Nature 2011; Elosegui-Artola et al., Cell 2017). Nuclear-to-cytoplasmic partitioning remains the canonical single-cell proxy for mechanotransduction pathway activity.",
     icon: <Target size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -79,11 +79,11 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-violet-50",
     badgeText: "text-violet-700",
     rows: [
-      { name: "nc_ratio", plain: "The canonical YAP readout: how much brighter YAP is in the nucleus than in the cytoplasm. Higher values mean YAP is ‘on’.", technical: "Mean nuclear YAP intensity ÷ mean cytoplasmic YAP intensity (Dupont 2011)." },
-      { name: "nc_ratio_size_corrected", plain: "The same ratio, but corrected for the fact that larger cells naturally have more nuclear YAP. Use this one when comparing across cells of very different sizes.", technical: "Residual of nc_ratio after regressing on cell area within the image." },
-      { name: "nuclear_intensity / cytoplasmic_intensity", plain: "The two brightness values the ratio is built from — shown for quality control and diagnostics.", technical: "Mean intensity inside the nuclear and cytoplasmic masks respectively." },
-      { name: "nuclear_fraction", plain: "Out of all the YAP in the cell, what fraction is in the nucleus right now.", technical: "Integrated nuclear YAP ÷ integrated total YAP." },
-      { name: "size_correction_slope / r2", plain: "Quality flags for the size correction above. If r² is very low, the correction is unreliable for this image.", technical: "Parameters of the YAP-vs-cell-area regression used for size correction." },
+      { name: "nc_ratio", plain: "Nuclear-to-cytoplasmic intensity ratio — the canonical single-cell readout of YAP transcriptional activity.", technical: "Mean nuclear YAP intensity divided by mean cytoplasmic YAP intensity within the corresponding mask compartments." },
+      { name: "nc_ratio_size_corrected", plain: "Residualised NC ratio orthogonalised against cell area, removing the well-documented geometric confound between footprint and nuclear YAP loading. Recommended whenever the field contains a broad distribution of cell sizes.", technical: "Residual of nc_ratio after linear regression on log(cell_area) computed within the image." },
+      { name: "nuclear_intensity / cytoplasmic_intensity", plain: "Component means underlying the NC ratio. Reported as quality-control diagnostics and for direct inspection of partitioning asymmetry.", technical: "Mean intensity inside the nuclear and cytoplasmic mask compartments, respectively." },
+      { name: "nuclear_fraction", plain: "Fraction of integrated cellular YAP signal localised to the nucleus. Complementary to the intensity ratio and less sensitive to compartment volume differences.", technical: "Integrated nuclear YAP divided by integrated total cellular YAP." },
+      { name: "size_correction_slope / r2", plain: "Diagnostic parameters of the size-correction regression. Depressed r² flags an unreliable correction in the current field and should be surfaced when interpreting nc_ratio_size_corrected.", technical: "Slope and coefficient of determination of the within-image nc_ratio vs log(cell_area) regression." },
     ],
   },
   {
@@ -91,7 +91,7 @@ const GROUPS: GroupSpec[] = [
     title: "Focal adhesions",
     channel: "Paxillin (or vinculin)",
     intent:
-      "Focal adhesions are the grip points where the cell anchors to its substrate. Their size, shape, number, and location tell you how hard the cell is pulling and how well it is sensing the stiffness beneath it.",
+      "Focal adhesions are integrin-anchored, actin-coupled mechanical junctions at the cell–substrate interface whose morphology, maturity, and spatial distribution report on contractile force transmission and substrate mechanosensing. The following descriptors summarise the per-cell adhesion inventory, size distribution, anisotropy, and peripheral enrichment.",
     icon: <Anchor size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -100,15 +100,15 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-amber-50",
     badgeText: "text-amber-700",
     rows: [
-      { name: "count", plain: "How many adhesion spots were found on this cell.", technical: "Number of segmented paxillin patches per cell." },
-      { name: "density_per_um2", plain: "Adhesion count per unit footprint. Lets you compare small and large cells fairly.", technical: "count ÷ cell_area (in µm²)." },
-      { name: "mean_area / mean_area_um2 / total_area", plain: "How big the adhesions are on average. Mature, force-bearing adhesions are larger.", technical: "Per-patch and per-cell area summaries of the adhesion mask." },
-      { name: "mean_elongation", plain: "How stretched-out the adhesions are. Mature adhesions elongate along the stress fibre they anchor.", technical: "Mean major/minor-axis ratio across patches." },
-      { name: "mean_orientation_alignment", plain: "Do the adhesions all point the same way (aligned, polarised cell) or every which way (isotropic, resting cell)? 0 = random, 1 = perfectly aligned.", technical: "Resultant length of patch long-axis orientations." },
-      { name: "nascent_count / focal_complex_count / mature_count / fibrillar_count", plain: "Adhesions sorted into the four canonical maturity stages by size — from just-formed dots to mature cables.", technical: "Per-cell counts in size-based bins (Geiger 2009)." },
-      { name: "mature_fraction", plain: "Fraction of adhesions that are mature or fibrillar — a single summary of how ‘grown-up’ the adhesions are.", technical: "(mature_count + fibrillar_count) ÷ count." },
-      { name: "peripheral_fraction", plain: "Fraction of adhesions sitting at the outer edge of the cell, where actively spreading cells put them.", technical: "Patches whose centroid sits in the outer one-third of the cell mask." },
-      { name: "mean_distance_to_edge / _um", plain: "On average, how close the adhesions are to the cell boundary.", technical: "Euclidean distance from each patch centroid to the cell mask edge." },
+      { name: "count", plain: "Per-cell inventory of segmented paxillin-positive adhesion patches.", technical: "Connected-component count of the binarised paxillin channel within the cell mask." },
+      { name: "density_per_um2", plain: "Adhesion number density per unit cell footprint. Controls for cell-size variation when comparing adhesion recruitment across a population.", technical: "count ÷ cell_area (expressed in µm⁻²)." },
+      { name: "mean_area / mean_area_um2 / total_area", plain: "Per-adhesion and aggregate area summaries. Adhesion area is a canonical indicator of maturation state.", technical: "Mean and summed area of the adhesion patches; µm² variant uses the acquisition pixel size." },
+      { name: "mean_elongation", plain: "Population-mean anisotropy of adhesion shape. Elongated adhesions are associated with sustained traction along underlying stress fibres.", technical: "Mean of (major axis / minor axis) across patches." },
+      { name: "mean_orientation_alignment", plain: "Resultant vector length of adhesion long-axis orientations (0 = isotropic, 1 = perfectly co-oriented). An image-level surrogate for mechanical polarisation.", technical: "R = |Σᵢ e^{i2θᵢ}| / N with θᵢ the orientation of patch i." },
+      { name: "nascent_count / focal_complex_count / mature_count / fibrillar_count", plain: "Adhesions binned by area into the four canonical maturity classes (Geiger et al. 2009), capturing the progression from nascent dot-like adhesions to fibrillar adhesions.", technical: "Per-cell counts in size intervals calibrated to the Geiger taxonomy." },
+      { name: "mature_fraction", plain: "Scalar maturation index — the fraction of adhesions in the mature or fibrillar bins.", technical: "(mature_count + fibrillar_count) ÷ count." },
+      { name: "peripheral_fraction", plain: "Fraction of adhesions localised to the outer third of the cell footprint. Peripheral localisation is a signature of actively spreading or migratory cells.", technical: "Fraction of patch centroids whose distance to the cell boundary is ≤ cell_radius / 3." },
+      { name: "mean_distance_to_edge / _um", plain: "Mean radial distance of adhesion centroids from the cell boundary.", technical: "Euclidean distance from each patch centroid to the nearest cell-mask edge pixel." },
     ],
   },
   {
@@ -116,7 +116,7 @@ const GROUPS: GroupSpec[] = [
     title: "Actin cytoskeleton",
     channel: "Phalloidin (F-actin)",
     intent:
-      "Actin stress fibres are the ropes that translate adhesion pulling into force on the nucleus. How aligned and coherent they are tells you whether the cell is actively contractile or relaxed.",
+      "F-actin stress fibres transmit contractile force from focal adhesions to the nuclear lamina via LINC-complex coupling. Fibre alignment and structural coherence are direct image-level proxies for cytoskeletal tension and cellular contractility.",
     icon: <Waves size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -125,10 +125,10 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-rose-50",
     badgeText: "text-rose-700",
     rows: [
-      { name: "coherence", plain: "Do the stress fibres all run in the same direction (coherent, contractile cell) or every which way (disorganised, resting cell)?", technical: "Structure-tensor coherence of the F-actin field." },
-      { name: "anisotropy", plain: "A second ‘pointing-the-same-way’ measure that complements coherence.", technical: "Normalised eigenvalue ratio of the structure tensor." },
-      { name: "mean_intensity", plain: "Overall F-actin brightness inside the cell.", technical: "Mean phalloidin intensity inside the cell mask." },
-      { name: "edge_intensity_ratio", plain: "How much actin is concentrated at the cell edge versus the interior. High values flag cortical actin enrichment.", technical: "Mean intensity in a thin cortical band ÷ mean intensity in the central region." },
+      { name: "coherence", plain: "Structure-tensor coherence of the F-actin field. Elevated values indicate well-aligned stress fibres characteristic of tension-bearing, contractile cells; depressed values indicate an isotropic or dispersed actin architecture.", technical: "Coherence = (λ₁−λ₂)²/(λ₁+λ₂)² computed from the local 2×2 structure tensor of the phalloidin channel and averaged over the cell mask." },
+      { name: "anisotropy", plain: "Normalised eigenvalue ratio of the structure tensor; a complementary descriptor of orientational asymmetry in the F-actin field.", technical: "(λ₁ − λ₂) / (λ₁ + λ₂), where λ₁ ≥ λ₂ are the structure-tensor eigenvalues." },
+      { name: "mean_intensity", plain: "Bulk phalloidin signal within the cell mask. Reported for completeness; confounded by acquisition gain.", technical: "Mean phalloidin intensity inside the cell mask." },
+      { name: "edge_intensity_ratio", plain: "Cortical-to-central intensity ratio. Elevated values flag cortical actin enrichment associated with rounded, mitotic, or de-adhered states.", technical: "Mean intensity in a thin cortical band at the cell boundary divided by mean intensity in the central cytoplasmic region." },
     ],
   },
   {
@@ -136,7 +136,7 @@ const GROUPS: GroupSpec[] = [
     title: "Morphology",
     channel: "DAPI (nucleus) + cell mask",
     intent:
-      "Shape and size descriptors. They are features in their own right, but also the most common confounders — cell area in particular drives many intensity-based metrics, so we always report it alongside.",
+      "Geometric descriptors of the cell and nuclear masks. Both features of interest in their own right and canonical confounders — cell area in particular non-trivially co-varies with many intensity-based features and is always reported alongside ratiometric descriptors to enable downstream residualisation.",
     icon: <Hexagon size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -145,11 +145,11 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-slate-100",
     badgeText: "text-slate-700",
     rows: [
-      { name: "cell_area / cell_perimeter / cell_spread_area", plain: "How big the cell is and how long its outline is. Spread area captures how flattened the cell is on the substrate.", technical: "Standard region properties of the cell mask." },
-      { name: "cell_circularity / cell_aspect_ratio / cell_solidity", plain: "How round, how elongated, and how ‘filled-in’ the cell is. Useful for flagging spindle-like, blebby, or dividing cells.", technical: "Shape descriptors of the cell mask." },
-      { name: "nuclear_area / nuclear_perimeter", plain: "How big the nucleus is. Relevant because nuclei stretch and flatten under mechanical load.", technical: "Standard region properties of the nuclear mask." },
-      { name: "nuclear_circularity / nuclear_aspect_ratio / nuclear_eccentricity / nuclear_solidity", plain: "How round or stretched the nucleus is. Relevant to mechanotransduction via LINC-complex coupling between the cytoskeleton and the nuclear lamina.", technical: "Shape descriptors of the nuclear mask." },
-      { name: "nuclear_to_cell_area_ratio", plain: "Nucleus size relative to cell size — the classical N:C ratio used in cytology.", technical: "nuclear_area ÷ cell_area." },
+      { name: "cell_area / cell_perimeter / cell_spread_area", plain: "Cellular footprint area, outline length, and spread area. Spread area resolves the flattening state of the cell on the substrate and is a sensitive indicator of adhesion maturation.", technical: "Standard region properties computed on the cell mask; area reported in pixel and µm² units." },
+      { name: "cell_circularity / cell_aspect_ratio / cell_solidity", plain: "Shape regularity, elongation, and convex-hull filling of the cell. Useful for flagging spindle-morphology, blebbing, or mitotic cells.", technical: "Standard skimage regionprops shape descriptors." },
+      { name: "nuclear_area / nuclear_perimeter", plain: "Size descriptors of the nuclear mask. Nuclear footprint changes under mechanical load reflect lamina remodelling and force transmission from the cytoskeleton.", technical: "Standard region properties computed on the DAPI-derived nuclear mask." },
+      { name: "nuclear_circularity / nuclear_aspect_ratio / nuclear_eccentricity / nuclear_solidity", plain: "Nuclear shape descriptors. Nuclear geometry is a LINC-complex-mediated downstream readout of cytoskeletal tension and nucleo-cytoskeletal coupling.", technical: "Standard shape descriptors of the nuclear mask." },
+      { name: "nuclear_to_cell_area_ratio", plain: "Image-level nuclear-to-cytoplasmic footprint ratio — the geometric analogue of the cytological N:C ratio.", technical: "nuclear_area ÷ cell_area." },
     ],
   },
   {
@@ -157,7 +157,7 @@ const GROUPS: GroupSpec[] = [
     title: "Composite scores & deep embeddings",
     channel: "Derived",
     intent:
-      "Single-cell scores built from the features above. They are convenient for ranking and plotting, but every composite hides choices — the per-feature table is always the primary source.",
+      "Derived scalars assembled from the per-feature panel for ranking, plotting, and downstream regression. Every composite encodes definitional choices and should be treated as a summary; the per-feature table remains the authoritative single-cell record.",
     icon: <Cpu size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -166,9 +166,9 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-blue-50",
     badgeText: "text-blue-700",
     rows: [
-      { name: "mechano_score", plain: "A single number summarising how ‘mechanotransducing’ each cell is, built from YAP nuclear localisation, focal-adhesion maturity, and actin coherence. Positive = above the image mean; negative = below.", technical: "Sign-corrected, z-scored composite; population-centred by construction." },
-      { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "The canonical glycocalyx scalar used in the glyco ↔ mechano correlation plots on the Overview page.", technical: "Re-used pericellular_ratio; not a separate feature." },
-      { name: "deep_*", plain: "An optional 5 120-number ‘visual fingerprint’ of each cell from the Cell-DINO foundation model. Not shown in tables — used internally by the embedding-based cluster module.", technical: "Cell-DINO ViT-L/16 per-cell embedding; enabled per-job by opt-in." },
+      { name: "mechano_score", plain: "Within-image, sign-corrected composite of YAP nuclear localisation, focal-adhesion maturity, and actin coherence. Zero-centred by construction; magnitudes encode per-cell rank relative to the current field and should not be compared across acquisitions.", technical: "First principal component of the three z-scored sub-scores after sign alignment against the YAP nc_ratio axis; rescaled to unit variance." },
+      { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "Canonical glycocalyx scalar re-exposed as one axis of the glyco ↔ mechano correlation plots on the Overview tab. Not an additional feature.", technical: "Alias of the pericellular_ratio feature surfaced for downstream plotting." },
+      { name: "deep_*", plain: "Optional 5 120-dimensional Cell-DINO ViT-L/16 embedding per cell, serving as a channel-adaptive visual fingerprint. Not surfaced in the tabular views; consumed by the embedding-based cluster-discovery module.", technical: "Cell-DINO ViT-L/16 (Bourriez et al. 2025) per-cell embedding computed on per-cell crops, enabled per-job by opt-in at submit time." },
     ],
   },
 ];
@@ -195,10 +195,10 @@ function GroupCard({ group, defaultOpen }: { group: GroupSpec; defaultOpen?: boo
               {group.badge}
             </span>
           </div>
-          <div className="text-[11px] text-gray-500 mt-0.5">
-            <span className="text-gray-400 uppercase tracking-wider mr-1.5">channel</span>
-            {group.channel}
-            <span className="mx-2 text-gray-300">·</span>
+          <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
+            <span className="text-gray-400 uppercase tracking-wider">Channel</span>
+            <span className="text-gray-700">{group.channel}</span>
+            <span className="text-gray-300">·</span>
             <span className="text-gray-400">{group.rows.length} features</span>
           </div>
         </div>
@@ -245,13 +245,13 @@ function GroupCard({ group, defaultOpen }: { group: GroupSpec; defaultOpen?: boo
 
 export function MethodsTab() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <header>
         <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Methods & feature reference</h1>
         <p className="text-[13px] text-gray-500 mt-1 max-w-3xl leading-relaxed">
-          A biologist's guide to every per-cell feature GlycoQuant reports: what each measurement
-          is telling you about the cell, which channel produced it, and how to read it. Feature
-          names below match the columns in the per-cell feature table and the CSV export.
+          Formal definitions, biological rationale, and quantitative specification of every
+          per-cell feature GlycoQuant reports. Feature identifiers below are byte-identical to
+          the column names in the per-cell feature table and the CSV export.
         </p>
       </header>
 
@@ -297,7 +297,7 @@ export function MethodsTab() {
         </ol>
       </Card>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {GROUPS.map((g, i) => (
           <GroupCard key={g.id} group={g} defaultOpen={i === 0} />
         ))}
@@ -309,16 +309,16 @@ export function MethodsTab() {
             <Info size={16} strokeWidth={1.8} />
           </span>
           <div>
-            <h3 className="text-[14px] font-semibold text-gray-900 mb-1">How to read the σ badges</h3>
+            <h3 className="text-[14px] font-semibold text-gray-900 mb-1">Interpretation of the σ badges</h3>
             <p className="text-[12px] text-gray-700 leading-relaxed max-w-3xl">
-              Every feature panel shows the raw value together with a small badge like
+              Every per-cell feature panel reports the raw value accompanied by a deviation
+              badge of the form
               <code className="mx-1 px-1.5 py-0.5 bg-white rounded border border-gray-200 text-[10px] font-mono">+1.9σ</code>.
-              That's the cell's z-score inside <em>this image's</em> distribution for the
-              feature — it tells you where the cell sits relative to its neighbours on the
-              same coverslip, not an absolute biological effect size. Great for spotting
-              outliers and comparing features within a single field. Don't use it to compare
-              the same cell across experiments with different stain concentrations or
-              exposure settings.
+              The badge encodes the cell's z-score within the current image's distribution for
+              that feature — i.e. a within-field rank descriptor, not a calibrated biological
+              effect size. Use σ badges to identify outliers and to compare features within a
+              single acquisition; do not use them to compare the same cell across acquisitions
+              with different stain concentrations, exposure settings, or detector gain.
             </p>
           </div>
         </div>

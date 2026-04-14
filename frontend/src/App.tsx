@@ -16,13 +16,13 @@ export default function App() {
           <ImagingTab />
         ) : activeView === "ranking" ? (
           <div className="h-full overflow-y-auto bg-gray-50">
-            <div className="max-w-[1200px] mx-auto px-8 py-8">
+            <div className="max-w-[1600px] mx-auto px-8 py-10">
               <PrioritizationTab />
             </div>
           </div>
         ) : activeView === "methods" ? (
           <div className="h-full overflow-y-auto bg-gray-50">
-            <div className="max-w-[1100px] mx-auto px-8 py-8">
+            <div className="max-w-[1600px] mx-auto px-8 py-10">
               <MethodsTab />
             </div>
           </div>

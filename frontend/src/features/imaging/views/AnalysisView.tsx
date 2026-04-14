@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanelRightOpen, PanelRightClose } from "lucide-react";
+import { PanelRightOpen, PanelRightClose, Image as ImageIcon, SlidersHorizontal } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -22,6 +22,10 @@ interface Props {
 type CellFilter = "all" | "analysis_ready" | "qc_failed";
 
 export function AnalysisView({ result }: Props) {
+  // "Raw" view temporarily strips every analysis artefact (outlines, score overlays,
+  // QC filter) while preserving the user's chosen settings so flipping back restores
+  // the previous state 1:1. "Analysis" view re-applies them.
+  const [viewMode, setViewMode] = useState<"analysis" | "raw">("analysis");
   const [showSeg, setShowSeg] = useState(true);
   const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
   const [railOpen, setRailOpen] = useState(false);
@@ -102,54 +106,99 @@ export function AnalysisView({ result }: Props) {
     return { visibleCellIds: visible, nRaw: totalDetected, nReady: readyIds.size, statusText: status };
   }, [result, cells, cellFilter]);
 
+  // Effective overlay state — forced off in Raw view.
+  const isRaw = viewMode === "raw";
+  const effectiveShowSeg = isRaw ? false : showSeg;
+  const effectiveOverlay = isRaw ? null : activeOverlay;
+  const effectiveVisibleIds = isRaw ? null : visibleCellIds;
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
       {/* Full-bleed microscopy image */}
       <div className="absolute inset-0">
         <MicroscopyCanvas
           result={result}
-          showSegmentation={showSeg}
-          activeOverlay={activeOverlay}
+          showSegmentation={effectiveShowSeg}
+          activeOverlay={effectiveOverlay}
           cells={cells}
           channelVisibility={channelVis}
-          visibleCellIds={visibleCellIds}
+          visibleCellIds={effectiveVisibleIds}
         />
       </div>
 
-      {/* Overlay controls (top-left) */}
-      <OverlayPanel
-        showSegmentation={showSeg}
-        onToggleSegmentation={() => setShowSeg(v => !v)}
-        activeOverlay={activeOverlay}
-        onSetOverlay={setActiveOverlay}
-        channelVisibility={channelVis}
-        onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
-      />
-
-      {/* Cell visibility filter (below overlay panel) — transparent on the image */}
-      <div className="absolute top-3 left-[188px] z-10 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-3 max-w-[200px] text-white">
-        <div className="text-[10px] font-semibold text-white/60 uppercase tracking-[1.5px] mb-2 drop-shadow-sm">
-          Cell visibility
+      {/* Top-centre view-mode toggle — Raw vs Analysis. Raw hides every analysis artefact. */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+        <div className="inline-flex items-center gap-0.5 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode("analysis")}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors ${
+              viewMode === "analysis"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-white/80 hover:text-white"
+            }`}
+            title="Show segmentation, overlays, and QC filter"
+          >
+            <SlidersHorizontal size={12} strokeWidth={1.8} />
+            Analysis
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("raw")}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors ${
+              viewMode === "raw"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-white/80 hover:text-white"
+            }`}
+            title="Hide all overlays and show the original channels only"
+          >
+            <ImageIcon size={12} strokeWidth={1.8} />
+            Raw image
+          </button>
         </div>
-        <div className="space-y-1">
-          {([
-            { id: "analysis_ready", label: "Analysis-ready" },
-            { id: "all", label: "All raw masks" },
-            { id: "qc_failed", label: "QC-failed" },
-          ] as { id: CellFilter; label: string }[]).map(opt => (
-            <label key={opt.id} className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="radio"
-                name="cellFilter"
-                checked={cellFilter === opt.id}
-                onChange={() => setCellFilter(opt.id)}
-                className="w-3 h-3 text-blue-500 focus:ring-blue-400 accent-blue-500"
-              />
-              <span className={`text-[11px] transition-colors ${cellFilter === opt.id ? "text-white font-medium" : "text-white/70"}`}>
-                {opt.label}
-              </span>
-            </label>
-          ))}
+      </div>
+
+      {/* Overlay controls (top-left) — dimmed & disabled in Raw mode. */}
+      <div
+        className={`transition-opacity duration-200 ${
+          isRaw ? "opacity-40 pointer-events-none" : "opacity-100"
+        }`}
+        aria-hidden={isRaw}
+      >
+        <OverlayPanel
+          showSegmentation={showSeg}
+          onToggleSegmentation={() => setShowSeg(v => !v)}
+          activeOverlay={activeOverlay}
+          onSetOverlay={setActiveOverlay}
+          channelVisibility={channelVis}
+          onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
+        />
+
+        {/* Cell visibility filter (below overlay panel) */}
+        <div className="absolute top-4 left-[204px] z-10 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-4 max-w-[210px] text-white">
+          <div className="text-[10px] font-semibold text-white/60 uppercase tracking-[1.5px] mb-2.5 drop-shadow-sm">
+            Cell visibility
+          </div>
+          <div className="space-y-1.5">
+            {([
+              { id: "analysis_ready", label: "Analysis-ready" },
+              { id: "all", label: "All raw masks" },
+              { id: "qc_failed", label: "QC-failed" },
+            ] as { id: CellFilter; label: string }[]).map(opt => (
+              <label key={opt.id} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="cellFilter"
+                  checked={cellFilter === opt.id}
+                  onChange={() => setCellFilter(opt.id)}
+                  className="w-3 h-3 text-blue-500 focus:ring-blue-400 accent-blue-500"
+                />
+                <span className={`text-[11px] transition-colors ${cellFilter === opt.id ? "text-white font-medium" : "text-white/70"}`}>
+                  {opt.label}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 

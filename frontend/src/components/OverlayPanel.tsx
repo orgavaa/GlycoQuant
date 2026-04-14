@@ -17,7 +17,7 @@ interface Props {
 
 export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOverlay, onSetOverlay, channelVisibility, onToggleChannel }: Props) {
   return (
-    <div className="absolute top-3 left-3 w-[172px] z-10 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-[14px] text-white">
+    <div className="absolute top-4 left-4 w-[188px] z-10 bg-white/30 backdrop-blur-md border border-white/20 rounded-lg shadow-sm p-4 text-white">
       <SectionLabel>Overlays</SectionLabel>
       <div className="space-y-1 mb-1">
         <Toggle label="Segmentation" active={showSegmentation} onClick={onToggleSegmentation} kind="checkbox" />

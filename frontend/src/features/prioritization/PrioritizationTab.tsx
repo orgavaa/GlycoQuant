@@ -111,7 +111,7 @@ export function PrioritizationTab() {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page title */}
       <div>
         <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Perturbation Prioritization</h1>
