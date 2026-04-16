@@ -7,6 +7,7 @@ import {
   fetchContextualPriors,
   fetchPriors,
   type PriorsResponse,
+  type PriorStatusBlock,
 } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
 import { DrillDownPanel } from "./DrillDownPanel";
@@ -239,6 +240,20 @@ export function PrioritizationTab() {
         </Card>
       )}
 
+      {/* H2 — reproducibility hardening: badge any prior whose status
+          is not 'ready'. MISSING → amber (expected when Geneformer
+          hasn't been generated). INVALID / STALE → red (something to
+          fix before citing the ranking). 'ready' renders nothing so
+          the happy path stays clean. */}
+      {priors.pathway_status && priors.pathway_status.status !== "ready" && (
+        <PriorStatusBanner label="Pathway prior" status={priors.pathway_status} />
+      )}
+      {priors.geneformer_status &&
+        priors.geneformer_status.status !== "ready" &&
+        priors.geneformer_status.status !== "missing" && (
+          <PriorStatusBanner label="Geneformer prior" status={priors.geneformer_status} />
+        )}
+
       {/* Top 3 candidates */}
       <Card>
         <SectionHeader
@@ -388,5 +403,55 @@ export function PrioritizationTab() {
         <MetabolicInhibitorTable inhibitors={priors.metabolic_inhibitors} />
       </Card>
     </div>
+  );
+}
+
+function PriorStatusBanner({
+  label,
+  status,
+}: {
+  label: string;
+  status: PriorStatusBlock;
+}) {
+  // Severity tint:
+  //  - missing → amber (expected when GF hasn't been generated)
+  //  - stale   → amber-orange (consume but flag age)
+  //  - invalid → red (something is wrong with the file)
+  //  - ready   → never reaches here (caller filters)
+  const tint =
+    status.status === "invalid"
+      ? "bg-red-50 border-red-200 text-red-900"
+      : status.status === "stale"
+        ? "bg-orange-50 border-orange-200 text-orange-900"
+        : "bg-amber-50 border-amber-200 text-amber-900";
+  const dotTint =
+    status.status === "invalid"
+      ? "bg-red-500"
+      : status.status === "stale"
+        ? "bg-orange-500"
+        : "bg-amber-500";
+  return (
+    <Card className={`!border ${tint}`}>
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${dotTint}`} />
+        <span className="text-[12px] font-semibold">
+          {label} status: {status.status}
+        </span>
+        {status.n_genes > 0 && (
+          <span className="text-[10px] font-medium opacity-70">
+            ({status.n_genes} genes)
+          </span>
+        )}
+        {typeof status.age_days === "number" && (
+          <span
+            className="text-[10px] font-medium opacity-70"
+            style={{ fontFeatureSettings: "'tnum'" }}
+          >
+            generated {status.age_days.toFixed(0)} d ago
+          </span>
+        )}
+      </div>
+      <p className="text-[11px] opacity-80 mt-1 leading-relaxed">{status.detail}</p>
+    </Card>
   );
 }
