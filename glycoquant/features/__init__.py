@@ -24,6 +24,7 @@ from glycoquant.features.glycocalyx import (
     GlycocalyxParams,
     extract_glycocalyx_features,
 )
+from glycoquant.features.heparan_sulfate import extract_hs_features
 from glycoquant.features.morphology import extract_morphology_features
 from glycoquant.features.nuclear_morphology import (
     extract_nuclear_morphology_features,
@@ -44,6 +45,7 @@ __all__ = [
     "extract_actin_features",
     "extract_fa_features",
     "extract_glycocalyx_features",
+    "extract_hs_features",
     "extract_morphology_features",
     "extract_nuclear_morphology_features",
     "extract_yap_features",

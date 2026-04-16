@@ -172,6 +172,17 @@ export interface PriorsResponse {
   mechano_signed_z?: Record<string, number> | null;
   used_fallback_reference?: boolean;
   can_generate_geneformer?: boolean;
+  pathway_status?: PriorStatusBlock | null;
+  geneformer_status?: PriorStatusBlock | null;
+}
+
+export interface PriorStatusBlock {
+  /** "missing" | "invalid" | "stale" | "ready" */
+  status: "missing" | "invalid" | "stale" | "ready" | string;
+  detail: string;
+  n_genes: number;
+  generated_utc?: string | null;
+  age_days?: number | null;
 }
 
 export interface GeneformerGenerationResponse {

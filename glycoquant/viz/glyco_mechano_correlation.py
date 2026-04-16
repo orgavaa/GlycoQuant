@@ -369,7 +369,15 @@ def plot_glyco_mechano_correlation(
     # Cramming numbers into tiny heatmap cells is unreadable at
     # the 320px rail width. Clean heatmap + hover is the pro pattern.
 
-    title_parts = ["Glycocalyx ↔ mechanotransduction correlation"]
+    # "WGA pericellular" rather than "Glycocalyx" is the scientifically
+    # honest label — wheat-germ agglutinin binds sialic acid and
+    # N-acetylglucosamine on the confocal-accessible outer coat but
+    # does NOT bind heparan sulfate (the syndecan / glypican / EXT
+    # axis that Paszek 2014 targets). At ~0.3 µm/px confocal resolves
+    # the pericellular shell but not the 50–500 nm glycopolymer
+    # ultrastructure (Möckl 2019). Internally these stay called
+    # "glycocalyx_*" columns for backward-compat with committed CSVs.
+    title_parts = ["WGA pericellular ↔ mechanotransduction correlation"]
     total_tested = int(np.sum(np.isfinite(result.r_matrix)))
     if result.top_pair is not None:
         g, m = result.top_pair
@@ -395,7 +403,12 @@ def plot_glyco_mechano_correlation(
     def _short(name: str) -> str:
         return (
             name
-            .replace("glycocalyx_", "glyco·")
+            # "wga·" flags that every "glycocalyx_*" column is
+            # measured via a WGA lectin binding sialic acid + GlcNAc
+            # — not the heparan-sulfate glycosaminoglycan side of
+            # the Labouesse syndecan/glypican biology. Human-facing
+            # labels stay honest; internal column names stay stable.
+            .replace("glycocalyx_", "wga·")
             .replace("haralick_", "")
             .replace("pericellular_", "peri·")
             .replace("radial_decay_", "decay·")

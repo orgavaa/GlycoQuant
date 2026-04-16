@@ -332,6 +332,23 @@ class PathwayEvidence(BaseModel):
     path_edges: list[PathwayEdge]
 
 
+class PriorStatusBlock(BaseModel):
+    """Reproducibility status of one prior — surfaced for UI badges.
+
+    Mirrors :class:`glycoquant.predictor.PriorStatusReport`. The
+    ``status`` enum is one of ``missing``, ``invalid``, ``stale``,
+    ``ready``. The detail string is a human-readable explanation of
+    the decision (e.g. "Prior generated 240 days ago, exceeds 180-day
+    freshness window").
+    """
+
+    status: str
+    detail: str
+    n_genes: int
+    generated_utc: str | None = None
+    age_days: float | None = None
+
+
 class PriorsResponse(BaseModel):
     pathway_available: bool
     geneformer_available: bool
@@ -357,6 +374,23 @@ class PriorsResponse(BaseModel):
     used_fallback_reference: bool = False
     # Axis B — on-demand Geneformer generation
     can_generate_geneformer: bool = False
+    # H2 — reproducibility hardening
+    pathway_status: PriorStatusBlock | None = Field(
+        default=None,
+        description=(
+            "Reproducibility status of the pathway prior on disk. UI "
+            "should display a badge if status != 'ready'."
+        ),
+    )
+    geneformer_status: PriorStatusBlock | None = Field(
+        default=None,
+        description=(
+            "Reproducibility status of the Geneformer prior — surfaces "
+            "MISSING / INVALID / STALE / READY so the UI honestly "
+            "reports prior provenance instead of treating absence and "
+            "presence as a binary flag."
+        ),
+    )
 
 
 class ContextualPriorsRequest(BaseModel):

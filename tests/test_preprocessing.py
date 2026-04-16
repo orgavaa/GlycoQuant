@@ -69,7 +69,19 @@ def test_subtract_background_does_not_mutate_input() -> None:
 
 
 def test_default_radius_and_channels_exposed() -> None:
-    """Module-level constants are public so tests and callers can reference them."""
+    """Module-level constants are public so tests and callers can reference them.
+
+    INTENSITY_CHANNELS was extended in Fix H5 to include
+    ``heparan_sulfate`` (the optional 6th canonical slot for an
+    anti-HS antibody channel). DAPI is still excluded — top-hat at
+    the canonical radius would destroy nucleolar brights.
+    """
     assert DEFAULT_BACKGROUND_RADIUS_PX > 0
     assert "dapi" not in INTENSITY_CHANNELS
-    assert set(INTENSITY_CHANNELS) == {"glycocalyx", "yap", "paxillin", "actin"}
+    assert set(INTENSITY_CHANNELS) == {
+        "glycocalyx",
+        "yap",
+        "paxillin",
+        "actin",
+        "heparan_sulfate",
+    }

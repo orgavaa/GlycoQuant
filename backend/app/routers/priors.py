@@ -22,6 +22,7 @@ from backend.app.schemas import (
     PathwayEvidence,
     PriorGeneEntry,
     PriorsResponse,
+    PriorStatusBlock,
 )
 from glycoquant.predictor import (
     PriorTable,
@@ -32,6 +33,7 @@ from glycoquant.predictor import (
     get_metabolic_inhibitors,
     load_prior,
     load_reference_cohort,
+    prior_status,
     recompute_pathway_ranking,
 )
 from glycoquant.predictor.prior_loader import GeneRanking
@@ -161,6 +163,22 @@ def _build_response(
     ]
     summary_fig = plot_panel_summary(gene_dicts, mechano_sig)
 
+    # H2 — reproducibility hardening. Validate both priors against
+    # the schema + freshness rules and surface the status so the UI
+    # can badge missing/invalid/stale priors instead of treating
+    # absence as a silent binary.
+    pathway_status_report = prior_status(pathway)
+    geneformer_status_report = prior_status(geneformer)
+
+    def _to_block(report) -> PriorStatusBlock:
+        return PriorStatusBlock(
+            status=report.status.value,
+            detail=report.detail,
+            n_genes=report.n_genes,
+            generated_utc=report.generated_utc,
+            age_days=report.age_days,
+        )
+
     return PriorsResponse(
         pathway_available=pathway.available,
         geneformer_available=geneformer.available,
@@ -175,6 +193,8 @@ def _build_response(
         mechano_signed_z=mechano_signed_z,
         used_fallback_reference=used_fallback_reference,
         can_generate_geneformer=_can_generate_geneformer(),
+        pathway_status=_to_block(pathway_status_report),
+        geneformer_status=_to_block(geneformer_status_report),
     )
 
 

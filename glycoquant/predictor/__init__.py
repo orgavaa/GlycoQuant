@@ -29,10 +29,13 @@ from glycoquant.predictor.mechano_signature import (
 from glycoquant.predictor.pathway_score import median_inverse_shortest_path
 from glycoquant.predictor.prior_loader import (
     GeneRanking,
+    PriorStatus,
+    PriorStatusReport,
     PriorTable,
     build_ranking_dataframe,
     compute_divergence,
     load_prior,
+    prior_status,
 )
 
 __all__ = [
@@ -43,6 +46,8 @@ __all__ = [
     "FEATURE_TO_MECHANO",
     "DynamicRanking",
     "GeneRanking",
+    "PriorStatus",
+    "PriorStatusReport",
     "PriorTable",
     "ReferenceCohort",
     "build_ranking_dataframe",
@@ -55,6 +60,7 @@ __all__ = [
     "load_prior",
     "load_reference_cohort",
     "median_inverse_shortest_path",
+    "prior_status",
     "recompute_pathway_ranking",
     "validate_gene_panels",
     "weighted_median",

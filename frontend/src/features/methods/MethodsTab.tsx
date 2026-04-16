@@ -42,10 +42,10 @@ interface GroupSpec {
 const GROUPS: GroupSpec[] = [
   {
     id: "glycocalyx",
-    title: "Glycocalyx organisation",
-    channel: "WGA-lectin (or equivalent surface-glycan stain)",
+    title: "WGA pericellular organisation",
+    channel: "WGA-lectin (sialic acid + GlcNAc)",
     intent:
-      "The cellular glycocalyx is a negatively-charged macromolecular meshwork of membrane-anchored proteoglycans, glycoproteins, and glycolipids decorating the apical face of virtually every mammalian cell. The following descriptors quantify its density, continuity, and spatial texture in the pericellular annulus exterior to the cell mask, and serve as image-level surrogates for brush extension, proteoglycan loading, and lateral phase-separation of the coat.",
+      "Wheat-germ agglutinin (WGA) binds sialic-acid and N-acetylglucosamine residues on cell-surface glycoproteins and gangliosides. Under confocal imaging at ~0.3 µm/px, the WGA channel resolves the pericellular fluorescence shell — a measurable proxy for the cellular glycocalyx — but does NOT resolve heparan-sulfate glycosaminoglycan chains (the syndecan/glypican axis), and does NOT resolve the 50–500 nm glycopolymer ultrastructure that requires PAINT or MINFLUX (Möckl 2019). The descriptors below quantify the WGA pericellular signal's density, continuity, radial profile, and spatial texture; treat them as image-level surrogates for brush behaviour, not as direct ultrastructural measurements. For the heparan-sulfate axis, the platform exposes a separate hs_* feature group when an anti-HS antibody channel (10E4 / F58-10E4) is supplied.",
     icon: <Sparkles size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
