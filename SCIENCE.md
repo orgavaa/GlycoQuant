@@ -38,6 +38,20 @@ Every intensity channel (WGA / YAP / paxillin / phalloidin) is background-correc
 
 **Module:** `glycoquant/features/glycocalyx.py`
 
+### 3.0 ⚠️ What these features measure, and what they do NOT measure
+
+This is the single most important caveat in this document and a reviewer will catch it on page 1 if it is not surfaced. Every feature in this module is computed from a **WGA-lectin fluorescence channel**, which:
+
+- **Binds sialic acid and N-acetylglucosamine** on cell-surface glycoproteins (mucins, sialylated transmembrane glycoproteins) and gangliosides — Wright & Manzi, *J Biol Chem* 1989 📎.
+- **Does NOT bind heparan-sulfate glycosaminoglycan chains.** This is the polymer hanging off the syndecans (SDC1–4), glypicans (GPC1/3/4/6), and the EXT1/2 / NDST1/2 / HPSE biosynthetic axis that the Labouesse/Tibbitt project specifically targets. For the SDC/GPC/EXT/HPSE perturbations the WGA readout is at best a co-regulated proxy and at worst measurement-blind to the targeted polymer.
+- **Does NOT resolve the 50–500 nm glycopolymer ultrastructure.** Möckl *et al.* 2019 📎 needed super-resolution PAINT to resolve the brush architecture; confocal at ~0.3 µm/px sees only the diffraction-limited pericellular intensity envelope.
+
+User-facing labels in the UI therefore say **"WGA pericellular"** rather than "Glycocalyx" wherever the distinction matters (correlation heatmap title, top-cell narrative, Methods tab feature group). The internal Python identifiers and CSV column names stay `glycocalyx_*` for backward compatibility with committed data — but treat every row as a *WGA pericellular distribution metric*, not as a glycocalyx ultrastructural measurement.
+
+For the heparan-sulfate axis the platform now exposes a sibling `heparan_sulfate` channel + `hs_*` feature group (`glycoquant/features/heparan_sulfate.py`, mirroring the `glycocalyx_*` extractor). The wet-lab requirement is an anti-HS antibody channel — typically 10E4 (Galustian *et al.*, *Glycoconj J* 1995 📎) or F58-10E4 — added as the 6th canonical channel slot. The pipeline plumbing accepts the channel today; the actual data depends on a Labouesse-protocol HS stain.
+
+### Features extracted per cell
+
 ### Features extracted per cell
 
 | Feature | Definition | Citation |

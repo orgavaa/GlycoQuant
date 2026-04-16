@@ -100,10 +100,10 @@ function OverviewTab({ result, cells }: Props) {
         {glycoMechR != null && summary?.top_correlation_pair && (
           <div className="mt-3 pt-3 border-t border-gray-100 text-[11px] text-gray-500 leading-relaxed">
             {Math.abs(glycoMechR) > 0.5
-              ? `Moderate-to-strong coupling detected: ${summary.top_correlation_pair[0].replace("glycocalyx_", "glyco. ")} is ${glycoMechR > 0 ? "positively" : "negatively"} associated with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
+              ? `Moderate-to-strong coupling detected: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} is ${glycoMechR > 0 ? "positively" : "negatively"} associated with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
               : Math.abs(glycoMechR) > 0.3
-              ? `Weak-to-moderate association: ${summary.top_correlation_pair[0].replace("glycocalyx_", "glyco. ")} shows ${glycoMechR > 0 ? "positive" : "negative"} correlation with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
-              : `Weak coupling in this field: strongest association is |r| = ${fmt(glycoMechR)} between ${summary.top_correlation_pair[0].replace("glycocalyx_", "glyco. ")} and ${summary.top_correlation_pair[1].replace("_", " ")}.`
+              ? `Weak-to-moderate association: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} shows ${glycoMechR > 0 ? "positive" : "negative"} correlation with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
+              : `Weak coupling in this field: strongest association is |r| = ${fmt(glycoMechR)} between ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} and ${summary.top_correlation_pair[1].replace("_", " ")}.`
             }
             {" "}Mechano score {(m.mean_mechano_score ?? 0) < 0 ? "below" : "above"} population mean.
           </div>
@@ -313,7 +313,9 @@ function CorrelationCard({ result }: { result: JobResult }) {
       <PlotlyCard
         title={
           <>
-            <span>Glycocalyx</span>
+            <span title="WGA lectin binds sialic acid + GlcNAc on the confocal-accessible outer coat. Heparan sulfate (the syndecan/glypican axis) requires a separate anti-HS antibody channel — see Methods.">
+              WGA pericellular
+            </span>
             <ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" />
             <span>Mechanotransduction</span>
           </>
