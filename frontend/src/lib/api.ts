@@ -131,6 +131,11 @@ export interface PriorGeneEntry {
   pathway_rank: number | null;
   pathway_score: number | null;
   abs_rank_divergence: number | null;
+  /** Directionally-aware sidecar on the dynamic pathway score.
+   * Positive = close to over-activated mechano axes (candidate KO to attenuate).
+   * Negative = close to under-activated axes (candidate KO to restore).
+   * Present only on /priors/contextual responses. */
+  pathway_signed_score?: number | null;
 }
 
 export interface MetabolicInhibitor {
@@ -153,6 +158,10 @@ export interface PriorsResponse {
   panel_summary_figure_json?: string | null;
   dynamic?: boolean;
   mechano_weights?: Record<string, number> | null;
+  /** Direction-of-deviation sidecar per mechano gene. Positive = axis
+   * over-activated vs the reference cohort; negative = under-activated.
+   * Populated only when dynamic=true. */
+  mechano_signed_z?: Record<string, number> | null;
   used_fallback_reference?: boolean;
   can_generate_geneformer?: boolean;
 }
