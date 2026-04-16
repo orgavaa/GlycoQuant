@@ -352,6 +352,12 @@ export async function recomputeCorrelation(
   return data;
 }
 
+/** URL to the per-job export zip. Directing the browser to this URL
+ * triggers the backend's StreamingResponse download. */
+export function exportUrl(jobId: string): string {
+  return `${BASE_URL}/analysis/jobs/${jobId}/export`;
+}
+
 export async function fetchPriors(): Promise<PriorsResponse> {
   const { data } = await api.get<PriorsResponse>("/priors");
   return data;

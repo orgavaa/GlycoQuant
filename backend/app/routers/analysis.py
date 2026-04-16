@@ -573,3 +573,127 @@ async def recompute_correlation(
     # round-trip before it reaches the frontend.
     _ = json.dumps({"ping": 1})
     return job.result
+
+
+@router.get("/jobs/{job_id}/export")
+async def export_job_bundle(job_id: str):
+    """Download a zip bundle with per-cell features + provenance.
+
+    Three members, all machine-readable so the user can re-render
+    figures themselves or cite the exact pipeline state in a methods
+    section:
+
+    - ``features_per_cell.csv`` — full per-cell table, deep_*
+      embedding columns dropped (they bloat the file and add nothing
+      a reviewer needs).
+    - ``results_summary.json`` — hero metrics, MechanoScoreSummary
+      (including YAP size-correction diagnostic and
+      n_significant_pairs_fdr), channel assignment, deep embedding
+      backend, substitute channels, and any warnings.
+    - ``provenance.json`` — acquisition pixel size, backend commit
+      hash (from ``GLYCOQUANT_GIT_SHA`` env var if set), seed = 42
+      (matches the deterministic paths across the codebase),
+      generated_utc, schema version ``v1``, and the pathway-prior
+      STRING threshold + curated-edge policy pulled from
+      ``data/priors/pathway_ranks.json`` when available.
+
+    Users can still right-click any Plotly figure in the UI to
+    download its SVG/PNG — this endpoint is the data-and-provenance
+    sidecar to those figures, not a replacement.
+    """
+    import io as _io
+    import json as _json
+    import os
+    import zipfile
+    from datetime import datetime, timezone
+    from io import StringIO
+
+    import pandas as pd
+
+    store = get_job_store()
+    job = store.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    if job.status != "complete" or job.result is None:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Job {job_id} is {job.status} — export requires a complete job",
+        )
+
+    # Per-cell DataFrame: prefer the cached full version but drop deep_*
+    features_source = (
+        job.meta.get("_features_df_full_json") or job.result.features_df_json
+    )
+    try:
+        features_df = pd.read_json(StringIO(features_source), orient="records")
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Could not parse cached features: {exc}"
+        ) from exc
+    export_cols = [c for c in features_df.columns if not c.startswith("deep_")]
+    features_csv = features_df[export_cols].to_csv(index=False)
+
+    # Results summary — pass through every image-level finding
+    summary_dump = None
+    if job.result.mechano_score_summary is not None:
+        dump_method = getattr(job.result.mechano_score_summary, "model_dump", None)
+        summary_dump = dump_method() if dump_method else None
+    results_summary = {
+        "image_hash": job.result.image_hash,
+        "cell_count": job.result.cell_count,
+        "hero_metrics": dict(job.result.hero_metrics),
+        "mechano_score_summary": summary_dump,
+        "has_deep_features": job.result.has_deep_features,
+        "deep_embedding_backend": job.result.deep_embedding_backend,
+        "warnings": list(job.result.warnings),
+        "substitute_channels": list(job.result.substitute_channels),
+        "channel_assignments": job.result.channel_assignments,
+    }
+
+    # Provenance — pixel size from the job meta; git sha from env;
+    # STRING policy from the pathway-prior metadata file if present.
+    pixel_size_um = job.meta.get("pixel_size_um")
+    pathway_md: dict[str, object] = {}
+    pathway_path = (
+        Path(__file__).resolve().parents[3] / "data" / "priors" / "pathway_ranks.json"
+    )
+    if pathway_path.is_file():
+        try:
+            pathway_md = _json.loads(pathway_path.read_text(encoding="utf-8")).get(
+                "metadata", {}
+            )
+        except (OSError, ValueError):
+            pathway_md = {}
+    provenance = {
+        "generated_utc": datetime.now(tz=timezone.utc).isoformat(),
+        "job_id": job.id,
+        "schema_version": "v1",
+        "seed": 42,
+        "pixel_size_um": pixel_size_um,
+        "git_sha": os.environ.get("GLYCOQUANT_GIT_SHA"),
+        "backend_version": os.environ.get("GLYCOQUANT_BUILD_VERSION"),
+        "string_confidence_threshold": pathway_md.get("string_confidence_threshold")
+        or pathway_md.get("confidence_threshold"),
+        "curated_edge_count": pathway_md.get("curated_edge_count"),
+        "curated_edge_policy": pathway_md.get("curated_edge_policy"),
+        "pathway_generated_utc": pathway_md.get("generated_utc"),
+    }
+
+    # Build the zip in memory
+    buf = _io.BytesIO()
+    with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("features_per_cell.csv", features_csv)
+        zf.writestr(
+            "results_summary.json",
+            _json.dumps(results_summary, indent=2, default=str),
+        )
+        zf.writestr("provenance.json", _json.dumps(provenance, indent=2, default=str))
+    buf.seek(0)
+
+    ts = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    filename = f"glycoquant-{job.id[:8]}-{ts}.zip"
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
