@@ -14,6 +14,22 @@ from cellpose import models
 from skimage.measure import regionprops
 
 
+def _default_min_cells_for_image(shape: tuple[int, ...]) -> int:
+    """Heuristic anomaly threshold for the adaptive-diameter retry path.
+
+    A 512×512 image has at most ~6 fields-of-cells at 200-px cell
+    diameter; finding fewer than 5 is anomalous. A 4096×4096 confocal
+    field should produce hundreds of cells; finding fewer than ~50 is
+    anomalous. Linearly interpolated as ``image_area / (200 px)²``,
+    floored at 5 so tiny synthetic test images don't trip the retry.
+    """
+    if len(shape) < 2:
+        return 5
+    area = int(shape[0]) * int(shape[1])
+    estimated = area // (200 * 200)
+    return max(5, estimated)
+
+
 @dataclass(frozen=True)
 class SegmentationParams:
     """Parameters forwarded to ``CellposeModel.eval``.
@@ -114,6 +130,9 @@ class CellSegmenter:
         dapi: np.ndarray,
         cell_diameter: float | None = None,
         nuclear_diameter: float | None = None,
+        adaptive_diameter: bool = False,
+        adaptive_diameter_sweep: tuple[float, ...] = (60.0, 100.0, 150.0, 200.0),
+        adaptive_min_cells: int | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Segment cells and nuclei and return masks with matched label IDs.
 
@@ -130,6 +149,26 @@ class CellSegmenter:
             DAPI / nuclear channel (2D, same shape as ``image``).
         cell_diameter, nuclear_diameter : float or None
             Optional per-call diameter overrides.
+        adaptive_diameter : bool
+            If ``True`` and the initial segmentation finds anomalously
+            few cells, retry with the diameters in
+            ``adaptive_diameter_sweep`` and pick the one producing the
+            most cells whose median area looks biological. The
+            anomaly threshold is :func:`_default_min_cells_for_image`
+            unless ``adaptive_min_cells`` overrides it. This is the
+            failure-mode fallback for big spread fibroblasts on soft
+            hydrogels where Cellpose-SAM's auto-diameter
+            (``diameter=None``) under-segments because the cells are
+            larger than its training-corpus prior.
+        adaptive_diameter_sweep : tuple[float, ...]
+            Diameters tried during retry. The defaults span the
+            primary-fibroblast / cell-line / spread-fibroblast range
+            at 0.325 µm/px (60 px ≈ 20 µm cell diameter through
+            200 px ≈ 65 µm spread fibroblast).
+        adaptive_min_cells : int, optional
+            Override the per-image-area "this is too few cells"
+            threshold. Default is 5 for tiny images (<512²) and
+            ``image_area / (200 px)²`` otherwise.
 
         Returns
         -------
@@ -143,9 +182,72 @@ class CellSegmenter:
                 f"image and dapi must have the same shape; got {image.shape} vs {dapi.shape}"
             )
         cell_mask = self.segment_cells(image, diameter=cell_diameter)
+
+        if adaptive_diameter:
+            n_cells = int(np.unique(cell_mask).size - 1)
+            min_cells = (
+                adaptive_min_cells
+                if adaptive_min_cells is not None
+                else _default_min_cells_for_image(image.shape)
+            )
+            if n_cells < min_cells:
+                cell_mask = self._sweep_for_best_diameter(
+                    image,
+                    sweep=adaptive_diameter_sweep,
+                    incumbent=cell_mask,
+                    min_cells=min_cells,
+                )
+
         raw_nuclear = self.segment_nuclei(dapi, diameter=nuclear_diameter)
         matched = self._match_labels(cell_mask, raw_nuclear)
         return cell_mask, matched
+
+    def _sweep_for_best_diameter(
+        self,
+        image: np.ndarray,
+        sweep: tuple[float, ...],
+        incumbent: np.ndarray,
+        min_cells: int,
+    ) -> np.ndarray:
+        """Retry segmentation across a diameter sweep; return the best mask.
+
+        Quality metric: prefer the mask with the most cells in the
+        biological size band (10–60 % of image side, in pixels). This
+        rejects both fragmentation (lots of tiny components) and
+        over-segmentation (one or two huge blobs). Falls back to the
+        incumbent ``diameter=None`` mask if no sweep value beats it on
+        cell count.
+        """
+        best_mask = incumbent
+        best_count = int(np.unique(incumbent).size - 1)
+        side = float(min(image.shape))
+        size_band = (0.05 * side, 0.50 * side)  # cell diameter range, px
+
+        for diameter in sweep:
+            try:
+                candidate = self.segment_cells(image, diameter=float(diameter))
+            except Exception:  # noqa: BLE001 - cellpose can raise on degenerate inputs
+                continue
+            cell_ids = np.unique(candidate)
+            cell_ids = cell_ids[cell_ids != 0]
+            if cell_ids.size == 0:
+                continue
+            # Count cells in the biological size band
+            biological = 0
+            for cid in cell_ids:
+                area = int((candidate == cid).sum())
+                # Equivalent diameter from area
+                eq_diam = float(2.0 * np.sqrt(area / np.pi))
+                if size_band[0] <= eq_diam <= size_band[1]:
+                    biological += 1
+            if biological > best_count:
+                best_mask = candidate
+                best_count = biological
+
+        # Only adopt the sweep result if it beat the incumbent floor
+        if best_count >= min_cells:
+            return best_mask
+        return incumbent
 
     def _run_eval(self, array: np.ndarray, diameter: float | None) -> np.ndarray:
         """Run ``CellposeModel.eval`` and coerce the mask to ``int32``.

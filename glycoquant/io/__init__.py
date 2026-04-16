@@ -9,6 +9,7 @@ from glycoquant.io.image_io import (
     downsample_for_display,
     hash_image_bytes,
     load_multichannel_image,
+    load_multichannel_image_with_provenance,
     split_into_channels,
 )
 
@@ -16,5 +17,6 @@ __all__ = [
     "downsample_for_display",
     "hash_image_bytes",
     "load_multichannel_image",
+    "load_multichannel_image_with_provenance",
     "split_into_channels",
 ]
