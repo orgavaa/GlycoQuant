@@ -89,6 +89,18 @@ class MechanoScoreSummary(BaseModel):
         default=None,
         description="(glycocalyx_feature, mechano_feature) for the top correlation.",
     )
+    n_significant_pairs_fdr: int | None = Field(
+        default=None,
+        description=(
+            "Number of glyco×mechano correlation tiles surviving "
+            "Benjamini–Hochberg FDR adjustment at α=0.05 (out of the "
+            "rectangular matrix of finite p-values). Reported so the "
+            "user can judge at a glance whether the coupling is sparse "
+            "(few tiles lit) or broad (many tiles lit) — contextualising "
+            "the top |ρ| hero metric against the multiple-testing "
+            "burden."
+        ),
+    )
 
 
 class JobResult(BaseModel):
@@ -253,6 +265,19 @@ class PriorGeneEntry(BaseModel):
     pathway_rank: int | None = None
     pathway_score: float | None = None
     abs_rank_divergence: int | None = None
+    pathway_signed_score: float | None = Field(
+        default=None,
+        description=(
+            "Directionally-aware sidecar on the dynamic pathway score. "
+            "Weighted median of sign(signed_z[m]) × inverse_distance(g, m) "
+            "across the 15-gene mechano signature, using the same image-"
+            "derived magnitude weights. Positive = topologically close to "
+            "over-activated axes (candidate KO to attenuate phenotype); "
+            "negative = close to under-activated axes (candidate KO to "
+            "restore phenotype). Populated only on /priors/contextual "
+            "responses; None on the static /priors response."
+        ),
+    )
 
 
 class MetabolicInhibitor(BaseModel):
@@ -290,6 +315,16 @@ class PriorsResponse(BaseModel):
     # Axis A — dynamic image-aware re-weighting
     dynamic: bool = False
     mechano_weights: dict[str, float] | None = None
+    mechano_signed_z: dict[str, float] | None = Field(
+        default=None,
+        description=(
+            "Direction-of-deviation sidecar: {mechano_gene: signed_z}. "
+            "Each value is the mean of signed z-scores from contributing "
+            "features. Positive = axis over-activated in the observed "
+            "image relative to the reference cohort; negative = under-"
+            "activated. Populated only when dynamic=True."
+        ),
+    )
     used_fallback_reference: bool = False
     # Axis B — on-demand Geneformer generation
     can_generate_geneformer: bool = False
@@ -391,7 +426,14 @@ class PhenotypeResponse(BaseModel):
 
 
 class SpatialGNNResponse(BaseModel):
-    """Spatial context GNN — Delaunay + GCN mechano prediction."""
+    """Spatial context GNN — Delaunay + GCN mechano prediction.
+
+    ``r2_score`` is the mean R² across spatial CV folds (single value
+    when ``cv_strategy == "random"``). ``r2_std`` and
+    ``fold_r2_scores`` expose fold-to-fold variability so the UI can
+    surface an honest error bar instead of a single optimistic number.
+    """
+
     job_id: str
     r2_score: float
     node_importance: dict[str, float]
@@ -400,6 +442,10 @@ class SpatialGNNResponse(BaseModel):
     cells_json: str  # [{cell_id, predicted, actual}, ...]
     graph_figure_json: str
     importance_figure_json: str
+    r2_std: float = 0.0
+    cv_strategy: str = "random"
+    cv_k: int = 1
+    fold_r2_scores: list[float] = Field(default_factory=list)
 
 
 class CrossModalResponse(BaseModel):

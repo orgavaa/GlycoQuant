@@ -19,6 +19,7 @@ import pytest
 from glycoquant.predictor import (
     FEATURE_TO_MECHANO,
     ReferenceCohort,
+    compute_mechano_signed_z,
     compute_mechano_weights,
     get_mechano_signature,
     load_prior,
@@ -264,3 +265,91 @@ def test_dynamic_metadata_includes_weights(
     dynamic = recompute_pathway_ranking(pathway_prior, w)
     assert dynamic.source_metadata["dynamic"] is True
     assert set(dynamic.source_metadata["mechano_weights"].keys()) == set(mechano)
+
+
+# ---------------------------------------------------------------------------
+# Signed-z direction layer
+# ---------------------------------------------------------------------------
+
+
+def test_signed_z_reflects_direction(mechano: list[str], ref: ReferenceCohort) -> None:
+    """Elevated feature → signed_z > 0; suppressed feature → signed_z < 0."""
+    # Elevated YAP
+    elevated = pd.DataFrame({"yap_nc_ratio": [2.5, 2.8, 3.0, 2.7]})
+    sz_up = compute_mechano_signed_z(elevated, ref, mechano)
+    assert sz_up["YAP1"] > 0.0
+    assert sz_up["WWTR1"] > 0.0
+    # Axes with no input feature contribution are neutral
+    assert sz_up["RHOA"] == pytest.approx(0.0, abs=1e-12)
+
+    # Suppressed YAP (well below reference null ~1.0)
+    suppressed = pd.DataFrame({"yap_nc_ratio": [0.2, 0.1, 0.3, 0.15]})
+    sz_down = compute_mechano_signed_z(suppressed, ref, mechano)
+    assert sz_down["YAP1"] < 0.0
+    assert sz_down["WWTR1"] < 0.0
+
+
+def test_signed_z_is_axis_symmetric_about_reference(
+    mechano: list[str], ref: ReferenceCohort
+) -> None:
+    """Equal-and-opposite deviations produce equal-and-opposite signed_z."""
+    # Reference fallback null for yap_nc_ratio is (1.0, 0.3).
+    above = pd.DataFrame({"yap_nc_ratio": [1.6] * 5})
+    below = pd.DataFrame({"yap_nc_ratio": [0.4] * 5})
+    sz_above = compute_mechano_signed_z(above, ref, mechano)
+    sz_below = compute_mechano_signed_z(below, ref, mechano)
+    assert sz_above["YAP1"] == pytest.approx(-sz_below["YAP1"], abs=1e-9)
+
+
+def test_signed_score_matches_magnitude_score_when_all_z_positive(
+    pathway_prior, mechano: list[str], ref: ReferenceCohort
+) -> None:
+    """With every signed_z > 0, signed_scores collapse onto dynamic.scores.
+
+    sign(positive) = +1 everywhere, so the weighted median of signs ×
+    inverse distances reduces to the plain weighted median of inverse
+    distances. This is a direct algebraic check on the sign-multiplier
+    path.
+    """
+    # Elevate every feature in FEATURE_TO_MECHANO so no axis is neutral
+    elevated = pd.DataFrame(
+        {
+            "yap_nc_ratio": [3.0] * 5,
+            "fa_count": [200.0] * 5,
+            "fa_mean_elongation": [3.0] * 5,
+            "fa_peripheral_fraction": [0.8] * 5,
+            "fa_mean_area": [60.0] * 5,
+            "actin_stress_fiber_coherence": [0.8] * 5,
+            "actin_cortical_ratio": [2.0] * 5,
+            "nuclear_to_cell_area_ratio": [0.3] * 5,
+            "nuclear_solidity": [1.2] * 5,
+        }
+    )
+    weights = compute_mechano_weights(elevated, ref, mechano)
+    signed_z = compute_mechano_signed_z(elevated, ref, mechano)
+    # Every mechano gene the weights care about must have positive signed_z
+    for gene, w in weights.items():
+        if w > 1.0 / (len(mechano) * 10.0) + 1e-9:  # above the floor
+            assert signed_z[gene] > 0.0, f"{gene} signed_z = {signed_z[gene]}"
+
+    dyn = recompute_pathway_ranking(pathway_prior, weights, signed_z=signed_z)
+    # Genes whose magnitude score is finite must have a signed score
+    # equal to it (sign factor collapses to +1 for every contributing
+    # target).
+    for gene, score in dyn.scores.items():
+        if math.isfinite(score):
+            assert dyn.signed_scores[gene] == pytest.approx(score, abs=1e-12), gene
+
+
+def test_signed_scores_empty_when_signed_z_not_provided(
+    pathway_prior, mechano: list[str]
+) -> None:
+    """Backward-compat: omitting signed_z leaves signed_scores empty.
+
+    This is the invariant that keeps the byte-exact regression guardrail
+    at ``test_uniform_weights_reproduce_static_ranking`` green.
+    """
+    uniform = {g: 1.0 / len(mechano) for g in mechano}
+    dyn = recompute_pathway_ranking(pathway_prior, uniform)  # no signed_z
+    assert dyn.signed_scores == {}
+    assert "mechano_signed_z" not in dyn.source_metadata

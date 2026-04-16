@@ -2,7 +2,7 @@
 
 Run locally (requires network access to ``string-db.org``):
 
-    python scripts/generate_pathway_priors.py
+    python scripts/generate_pathway_priors.py [--confidence-threshold 400]
 
 Writes two committed JSON artifacts:
 
@@ -11,14 +11,36 @@ Writes two committed JSON artifacts:
   signature, with per-target distances + paths.
 - ``data/priors/pathway_evidence.json`` — drill-down data for the
   Tab 2 UI: for every (glycocalyx gene, mechano gene) pair, the
-  shortest path and each edge's STRING confidence score.
+  shortest path, each edge's STRING confidence score, the edge's
+  source (``"string"`` or ``"curated"``), and — for curated edges —
+  the primary-literature PubMed DOI.
+
+Confidence policy
+-----------------
+The default STRING confidence threshold is **0.40** (``400`` in
+STRING's 0–1000 scale). This is the "medium" tier rather than the
+"high" tier (0.70). The glycocalyx ↔ mechanotransduction biology
+this platform targets — especially the hexosamine → O-GlcNAc → YAP
+axis and N-glycan branching of integrins — is under-represented in
+STRING's high-confidence subnetwork because the relevant primary
+literature (Peng *et al.* 2017 PNAS; Taparra *et al.* 2018 JCI; Lau
+*et al.* 2007 Cell; Isaji *et al.* 2009 JBC) is recent and STRING's
+text-mined evidence has not fully caught up. A 0.70 cutoff would
+exclude exactly the biology we need to rank against.
+
+On top of the 0.40 STRING subnetwork we add a small number of
+**curated literature edges** representing well-documented
+biochemical connections that STRING may under-score. Each carries a
+``source="curated"`` tag and a ``pubmed_doi`` so every ranking is
+still traceable to primary literature in the drill-down UI.
 
 The script is idempotent — re-running it overwrites the JSON files
 and updates the ``metadata.generated_utc`` timestamp. It never
-touches Geneformer; that prior is generated separately on Colab.
+touches Geneformer; that prior is generated separately on Modal.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import sys
@@ -43,10 +65,78 @@ from glycoquant.predictor.pathway_score import median_inverse_shortest_path  # n
 
 STRING_API = "https://string-db.org/api/json"
 SPECIES = 9606  # Homo sapiens
-CONFIDENCE_THRESHOLD = 400  # 0.4 * 1000 — medium confidence, captures hexosamine pathway edges
+DEFAULT_CONFIDENCE_THRESHOLD = 400  # 0.4 * 1000 — see module docstring for policy
 CALLER_IDENTITY = "glycoquant-pathway-prior"
 OUTPUT_DIR = _REPO_ROOT / "data" / "priors"
 REQUEST_TIMEOUT = 60.0
+
+CURATED_EDGE_POLICY = (
+    "Literature-traceable edges added below the STRING cutoff where the "
+    "primary literature is strong but STRING confidence has not caught up. "
+    "Each curated edge carries source='curated' and pubmed_doi in "
+    "pathway_evidence.json for full provenance. The glycocalyx <-> "
+    "mechanotransduction axis (hexosamine -> O-GlcNAc -> YAP; N-glycan "
+    "branching of integrins) is the specific biology being bridged."
+)
+
+# Curated literature edges. Each dict has:
+#   a, b          : gene symbols
+#   confidence    : float in [0, 1] — matches STRING's scoring scheme
+#   pubmed_doi    : primary literature DOI (single most direct reference)
+#   reason        : one-line biochemical rationale surfaced in the drill-down
+CURATED_EDGES: list[dict[str, Any]] = [
+    {
+        "a": "GFPT1",
+        "b": "OGT",
+        "confidence": 0.50,
+        "pubmed_doi": "10.1172/JCI94844",
+        "reason": (
+            "GFPT1 is the rate-limiting enzyme of the hexosamine biosynthetic "
+            "pathway; its product UDP-GlcNAc is the substrate for OGT "
+            "(Taparra et al. 2018, JCI)."
+        ),
+    },
+    {
+        "a": "OGT",
+        "b": "YAP1",
+        "confidence": 0.50,
+        "pubmed_doi": "10.1073/pnas.1619889114",
+        "reason": (
+            "O-GlcNAcylation of YAP at Ser109 by OGT regulates YAP "
+            "transcriptional activity (Peng et al. 2017, PNAS)."
+        ),
+    },
+    {
+        "a": "MGAT5",
+        "b": "ITGB1",
+        "confidence": 0.50,
+        "pubmed_doi": "10.1016/j.cell.2007.01.049",
+        "reason": (
+            "MGAT5-mediated N-glycan branching on integrins regulates "
+            "integrin clustering and mechanosensing (Lau et al. 2007, Cell)."
+        ),
+    },
+    {
+        "a": "B4GALT1",
+        "b": "ITGB1",
+        "confidence": 0.45,
+        "pubmed_doi": "10.1074/jbc.M807059200",
+        "reason": (
+            "Beta-1,4-galactosyltransferase modifies integrin N-glycans, "
+            "altering integrin function (Isaji et al. 2009, JBC)."
+        ),
+    },
+    {
+        "a": "GFPT1",
+        "b": "MGAT5",
+        "confidence": 0.45,
+        "pubmed_doi": "10.1016/j.cell.2007.01.049",
+        "reason": (
+            "GFPT1-produced UDP-GlcNAc feeds into Golgi N-glycan branching "
+            "via MGAT5 (Lau et al. 2007, Cell)."
+        ),
+    },
+]
 
 
 # ---------------------------------------------------------------------------
@@ -54,13 +144,22 @@ REQUEST_TIMEOUT = 60.0
 # ---------------------------------------------------------------------------
 
 
-def fetch_network(genes: list[str]) -> list[dict[str, Any]]:
-    """Fetch the STRING network for a batch of gene symbols."""
+def fetch_network(genes: list[str], confidence_threshold: int) -> list[dict[str, Any]]:
+    """Fetch the STRING network for a batch of gene symbols.
+
+    Parameters
+    ----------
+    genes : list[str]
+        Gene symbols to query.
+    confidence_threshold : int
+        STRING ``required_score`` in the 0–1000 scale (STRING multiplies
+        the 0–1 confidence by 1000 internally).
+    """
     url = f"{STRING_API}/network"
     params = {
         "identifiers": "%0d".join(genes),
         "species": SPECIES,
-        "required_score": CONFIDENCE_THRESHOLD,
+        "required_score": confidence_threshold,
         "caller_identity": CALLER_IDENTITY,
     }
     resp = requests.get(url, params=params, timeout=REQUEST_TIMEOUT)
@@ -83,7 +182,10 @@ def build_graph(edges: list[dict[str, Any]]) -> nx.Graph:
 
     Edge weight = ``-log(confidence)`` (confidence in ``[0, 1]``),
     so Dijkstra shortest paths correspond to highest-confidence
-    biological routes.
+    biological routes. Every STRING edge is tagged
+    ``source="string"`` so downstream consumers (evidence JSON,
+    drill-down UI) can distinguish STRING edges from curated
+    literature edges inserted by :func:`add_curated_edges`.
     """
     graph = nx.Graph()
     for edge in edges:
@@ -97,9 +199,43 @@ def build_graph(edges: list[dict[str, Any]]) -> nx.Graph:
             if weight < graph[a][b]["weight"]:
                 graph[a][b]["weight"] = weight
                 graph[a][b]["confidence"] = score
+                graph[a][b]["source"] = "string"
+                graph[a][b].pop("pubmed_doi", None)
+                graph[a][b].pop("reason", None)
         else:
-            graph.add_edge(a, b, weight=weight, confidence=score)
+            graph.add_edge(a, b, weight=weight, confidence=score, source="string")
     return graph
+
+
+def add_curated_edges(graph: nx.Graph) -> int:
+    """Overlay curated literature edges onto the STRING graph.
+
+    A curated edge replaces the corresponding STRING edge only when
+    its confidence is strictly higher (lower `-log(confidence)`
+    weight) — we never weaken STRING evidence with curated text.
+    Returns the number of edges actually added or upgraded.
+    """
+    n_added = 0
+    for entry in CURATED_EDGES:
+        a, b = entry["a"], entry["b"]
+        conf = float(entry["confidence"])
+        if conf <= 0.0:
+            continue
+        weight = -math.log(conf)
+        if graph.has_edge(a, b) and graph[a][b]["weight"] <= weight:
+            # Existing STRING edge is equally or more confident — leave it
+            continue
+        graph.add_edge(
+            a,
+            b,
+            weight=weight,
+            confidence=conf,
+            source="curated",
+            pubmed_doi=entry["pubmed_doi"],
+            reason=entry["reason"],
+        )
+        n_added += 1
+    return n_added
 
 
 # ---------------------------------------------------------------------------
@@ -107,53 +243,66 @@ def build_graph(edges: list[dict[str, Any]]) -> nx.Graph:
 # ---------------------------------------------------------------------------
 
 
-def main() -> int:
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """CLI for the pathway-prior generator.
+
+    The only tunable is ``--confidence-threshold`` because every other
+    knob (species, aggregation method, curated-edge list) is policy
+    that lives in this file, not something a user should twist at the
+    command line without also updating SCIENCE.md.
+    """
+    parser = argparse.ArgumentParser(
+        description="Regenerate data/priors/pathway_ranks.json and pathway_evidence.json from STRING v12.",
+    )
+    parser.add_argument(
+        "--confidence-threshold",
+        type=int,
+        default=DEFAULT_CONFIDENCE_THRESHOLD,
+        metavar="N",
+        help=(
+            "STRING required_score in the 0-1000 scale. Default 400 (=0.40, medium tier) "
+            "per the policy documented in this file. Raising to 700 reproduces the "
+            "STRING high-confidence subnetwork but will likely exclude curated edges."
+        ),
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv)
+    confidence_threshold = int(args.confidence_threshold)
+    if not 0 <= confidence_threshold <= 1000:
+        print(
+            f"[pathway] --confidence-threshold must be in [0, 1000], got {confidence_threshold}",
+            file=sys.stderr,
+        )
+        return 1
+
     glycocalyx_genes = get_glycocalyx_genes()
     mechano_genes = get_mechano_signature()
     all_genes = sorted(set(glycocalyx_genes) | set(mechano_genes))
 
     print(
-        f"[pathway] fetching STRING v12 network for {len(all_genes)} genes "
-        f"(confidence >= {CONFIDENCE_THRESHOLD / 1000:.2f}) ..."
+        f"[pathway] STRING threshold = {confidence_threshold / 1000:.2f} "
+        f"({confidence_threshold}/1000)"
+    )
+    print(
+        f"[pathway] fetching STRING v12 network for {len(all_genes)} genes ..."
     )
     try:
-        edges = fetch_network(all_genes)
+        edges = fetch_network(all_genes, confidence_threshold=confidence_threshold)
     except requests.RequestException as exc:
         print(f"[pathway] STRING request failed: {exc}", file=sys.stderr)
         return 1
 
-    print(f"[pathway] received {len(edges)} edges")
+    print(f"[pathway] received {len(edges)} STRING edges")
     graph = build_graph(edges)
-
-    # Add curated literature-backed edges that STRING may miss.
-    # These are well-established biochemical connections from published
-    # glycocalyx–mechanotransduction literature.
-    CURATED_EDGES = [
-        # GFPT1 → OGT: GFPT1 is the rate-limiting enzyme of the hexosamine
-        # biosynthetic pathway; its product (UDP-GlcNAc) is the substrate
-        # for OGT. Taparra et al. (2018) J Clin Invest.
-        ("GFPT1", "OGT", 0.5),
-        # OGT → YAP1: O-GlcNAcylation of YAP at Ser109 by OGT regulates
-        # YAP transcriptional activity. Peng et al. (2017) PNAS.
-        ("OGT", "YAP1", 0.5),
-        # MGAT5 → ITGB1: MGAT5-mediated N-glycan branching on integrins
-        # regulates integrin clustering and mechanosensing.
-        # Lau et al. (2007) Cell 129:123-134.
-        ("MGAT5", "ITGB1", 0.5),
-        # B4GALT1 → ITGB1: beta-1,4-galactosyltransferase modifies integrin
-        # N-glycans. Isaji et al. (2009) JBC 284:12207.
-        ("B4GALT1", "ITGB1", 0.45),
-        # GFPT1 → MGAT5: GFPT1-produced UDP-GlcNAc feeds into N-glycan
-        # branching via the Golgi. Lau et al. (2007) Cell.
-        ("GFPT1", "MGAT5", 0.45),
-    ]
-    n_curated = 0
-    for a, b, conf in CURATED_EDGES:
-        weight = -math.log(conf)
-        if not graph.has_edge(a, b) or graph[a][b]["weight"] > weight:
-            graph.add_edge(a, b, weight=weight, confidence=conf)
-            n_curated += 1
-    print(f"[pathway] added {n_curated} curated literature edges")
+    n_curated = add_curated_edges(graph)
+    print(
+        f"[pathway] overlaid {n_curated}/{len(CURATED_EDGES)} curated "
+        f"literature edges (the rest were already covered by STRING at "
+        f"equal or higher confidence)"
+    )
 
     print(
         f"[pathway] graph: {graph.number_of_nodes()} nodes, "
@@ -168,8 +317,9 @@ def main() -> int:
         scores[gene] = score
         details_all[gene] = details
 
-    # Rank glycocalyx genes by score, descending
-    ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    # Rank glycocalyx genes by score, descending; break ties alphabetically
+    # so the ranking is deterministic across reruns.
+    ranked = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))
     ranks = {gene: i + 1 for i, (gene, _) in enumerate(ranked)}
 
     # Assemble pathway_ranks.json payload
@@ -191,7 +341,11 @@ def main() -> int:
     ranks_output = {
         "metadata": {
             "source": "STRING v12",
-            "confidence_threshold": CONFIDENCE_THRESHOLD / 1000.0,
+            "string_confidence_threshold": confidence_threshold / 1000.0,
+            # Kept for backward-compat with earlier consumers that look
+            # for the generic key; new consumers should prefer
+            # ``string_confidence_threshold``.
+            "confidence_threshold": confidence_threshold / 1000.0,
             "species": SPECIES,
             "aggregation": "median_inverse_shortest_path",
             "generated_utc": datetime.now(tz=timezone.utc).isoformat(),
@@ -199,6 +353,9 @@ def main() -> int:
             "n_mechano_genes": len(mechano_genes),
             "n_graph_nodes": graph.number_of_nodes(),
             "n_graph_edges": graph.number_of_edges(),
+            "curated_edge_count": len(CURATED_EDGES),
+            "curated_edges_overlaid": n_curated,
+            "curated_edge_policy": CURATED_EDGE_POLICY,
         },
         "genes": genes_payload,
     }
@@ -210,7 +367,10 @@ def main() -> int:
     )
     print(f"[pathway] wrote {ranks_path.relative_to(_REPO_ROOT)}")
 
-    # Assemble pathway_evidence.json: per (g, m) pair, edges along the path
+    # Assemble pathway_evidence.json: per (g, m) pair, edges along the
+    # path. Every edge carries its source (``string`` or ``curated``);
+    # curated edges additionally carry ``pubmed_doi`` and ``reason`` so
+    # the drill-down UI can surface the primary literature directly.
     evidence: dict[str, Any] = {}
     for gene in glycocalyx_genes:
         evidence[gene] = {}
@@ -221,13 +381,17 @@ def main() -> int:
             for i in range(len(path) - 1):
                 a, b = path[i], path[i + 1]
                 if graph.has_edge(a, b):
-                    path_edges.append(
-                        {
-                            "from": a,
-                            "to": b,
-                            "confidence": float(graph[a][b]["confidence"]),
-                        }
-                    )
+                    attrs = graph[a][b]
+                    edge_entry: dict[str, Any] = {
+                        "from": a,
+                        "to": b,
+                        "confidence": float(attrs["confidence"]),
+                        "source": str(attrs.get("source", "string")),
+                    }
+                    if attrs.get("source") == "curated":
+                        edge_entry["pubmed_doi"] = str(attrs.get("pubmed_doi", ""))
+                        edge_entry["reason"] = str(attrs.get("reason", ""))
+                    path_edges.append(edge_entry)
             evidence[gene][target] = {
                 "distance": detail["distance"],
                 "path": path,

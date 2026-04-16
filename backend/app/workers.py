@@ -176,8 +176,9 @@ def run_analysis_job(
                 # Cache full features (with deep_*) for ML endpoints,
                 # then strip deep_* from the response to keep polling fast
                 job_for_meta.meta["_features_df_full_json"] = remote_result.features_df_json
-            import pandas as _pd
             from io import StringIO as _SIO
+
+            import pandas as _pd
             try:
                 _df = _pd.read_json(_SIO(remote_result.features_df_json), orient="records")
                 _display = [c for c in _df.columns if not c.startswith("deep_")]
@@ -311,8 +312,9 @@ def run_analysis_job(
             job.meta["_features_df_full_json"] = features_df.reset_index().to_json(orient="records")
 
         # Strip deep_* columns from the response to keep polling fast
-        import pandas as _pd
         from io import StringIO as _SIO
+
+        import pandas as _pd
         try:
             _df = _pd.read_json(_SIO(result.features_df_json), orient="records")
             _deep = [c for c in _df.columns if c.startswith("deep_")]
@@ -405,7 +407,7 @@ def _get_embedder():  # noqa: ANN202
         HF_URL = "https://huggingface.co/orgava/glycoquant-models/resolve/main/channel_adaptive_dino_vitl16.pth"
         if not Path(ckpt).is_file():
             print(f"[worker] Cell-DINO checkpoint not found at {ckpt}")
-            print(f"[worker] downloading from HuggingFace (~1.2 GB)...")
+            print("[worker] downloading from HuggingFace (~1.2 GB)...")
             Path(ckpt).parent.mkdir(parents=True, exist_ok=True)
             try:
                 import urllib.request
@@ -468,7 +470,6 @@ def _build_result_payload(
     import numpy as np
 
     from glycoquant.io import hash_image_bytes
-    from glycoquant.profiles import AssemblerConfig, ProfileAssembler
     from glycoquant.viz import (
         plot_correlation_map,
         plot_glyco_mechano_correlation,
@@ -539,6 +540,7 @@ def _build_result_payload(
                 else None
             ),
             top_correlation_pair=glyco_mechano_result.top_pair,
+            n_significant_pairs_fdr=int(glyco_mechano_result.n_significant_pairs),
         )
 
     hero_metrics = {
@@ -1026,8 +1028,9 @@ def _build_segmentation_figure(
     # ------------------------------------------------------------------
     overlay_trace_ranges["yap_compartment"] = []
 
-    from glycoquant.viz import nuclear_outline_polygons
     from skimage.measure import regionprops
+
+    from glycoquant.viz import nuclear_outline_polygons
 
     for cell_id, nuc_contour in nuclear_outline_polygons(nuclear_mask).items():
         # Nuclear outline in magenta

@@ -26,6 +26,7 @@ from backend.app.schemas import (
 from glycoquant.predictor import (
     PriorTable,
     build_ranking_dataframe,
+    compute_mechano_signed_z,
     compute_mechano_weights,
     get_mechano_signature,
     get_metabolic_inhibitors,
@@ -55,29 +56,40 @@ def _build_response(
     *,
     dynamic: bool = False,
     mechano_weights: dict[str, float] | None = None,
+    mechano_signed_z: dict[str, float] | None = None,
+    pathway_signed_scores: dict[str, float] | None = None,
     used_fallback_reference: bool = False,
 ) -> PriorsResponse:
     """Assemble a PriorsResponse from two PriorTables.
 
     Shared by ``GET /priors`` and ``POST /priors/contextual`` so both
     endpoints return identical JSON shapes; only the underlying scores
-    and the three Axis-A flags differ.
+    and the Axis-A flags differ. When ``pathway_signed_scores`` is
+    provided (dynamic mode only), each :class:`PriorGeneEntry` also
+    carries its directional sidecar score.
     """
     df = build_ranking_dataframe(geneformer, pathway)
     df = df.sort_values(
         by=["pathway_rank", "gene"], ascending=[True, True], na_position="last"
     )
 
+    signed_scores = pathway_signed_scores or {}
     genes: list[PriorGeneEntry] = []
     for _, row in df.iterrows():
+        gene_symbol = row["gene"]
+        signed_val = signed_scores.get(gene_symbol)
+        # NaN → None so Pydantic serialises it cleanly
+        if isinstance(signed_val, float) and math.isnan(signed_val):
+            signed_val = None
         genes.append(
             PriorGeneEntry(
-                gene=row["gene"],
+                gene=gene_symbol,
                 geneformer_rank=_nan_to_none(row.get("geneformer_rank")),
                 geneformer_score=_nan_to_none(row.get("geneformer_score")),
                 pathway_rank=_nan_to_none(row.get("pathway_rank")),
                 pathway_score=_nan_to_none(row.get("pathway_score")),
                 abs_rank_divergence=_nan_to_none(row.get("abs_rank_divergence")),
+                pathway_signed_score=signed_val,
             )
         )
 
@@ -160,6 +172,7 @@ def _build_response(
         panel_summary_figure_json=summary_fig.to_json(),
         dynamic=dynamic,
         mechano_weights=mechano_weights,
+        mechano_signed_z=mechano_signed_z,
         used_fallback_reference=used_fallback_reference,
         can_generate_geneformer=_can_generate_geneformer(),
     )
@@ -314,13 +327,18 @@ async def get_contextual_priors(req: ContextualPriorsRequest) -> PriorsResponse:
 
     reference = load_reference_cohort()
     weights = compute_mechano_weights(features_df, reference)
+    signed_z = compute_mechano_signed_z(features_df, reference)
 
-    dynamic = recompute_pathway_ranking(pathway, weights)
+    dynamic = recompute_pathway_ranking(pathway, weights, signed_z=signed_z)
     pathway_dyn = _prior_table_from_dynamic(pathway, dynamic.scores, dynamic.ranks)
 
     # If a Geneformer prior is present, apply the *same* weights to its
     # per_mechano cosine-shift vectors. This is what makes the
-    # divergence column meaningful on a dynamic basis.
+    # divergence column meaningful on a dynamic basis. The signed
+    # sidecar is intentionally *not* propagated to Geneformer because
+    # Geneformer's cosine-shift vectors are not signed distances — the
+    # "sign of perturbation" concept does not transfer cleanly and
+    # conflating the two scores would mislead the UI.
     geneformer_dyn = geneformer
     if geneformer.available and geneformer.rankings:
         gf_dyn = recompute_pathway_ranking(geneformer, weights)
@@ -333,6 +351,8 @@ async def get_contextual_priors(req: ContextualPriorsRequest) -> PriorsResponse:
         geneformer_dyn,
         dynamic=True,
         mechano_weights=weights,
+        mechano_signed_z=signed_z,
+        pathway_signed_scores=dynamic.signed_scores,
         used_fallback_reference=reference.used_fallback,
     )
 
