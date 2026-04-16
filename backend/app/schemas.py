@@ -101,6 +101,35 @@ class MechanoScoreSummary(BaseModel):
             "burden."
         ),
     )
+    yap_size_correction_applied: bool | None = Field(
+        default=None,
+        description=(
+            "Whether the Jones-2024 YAP size correction was actually "
+            "subtracted from yap_nc_ratio on this image. False when "
+            "cell_area did not predict yap_nc_ratio (R² below the "
+            "gate) — the raw column is then copied through unchanged. "
+            "None when the image had too few cells for any correction."
+        ),
+    )
+    yap_size_correction_r2: float | None = Field(
+        default=None,
+        description=(
+            "Coefficient of determination of the cell_area → yap_nc_ratio "
+            "regression. Values below ~0.05 trigger the skip path."
+        ),
+    )
+    yap_size_correction_slope_ci_lo: float | None = Field(
+        default=None,
+        description=(
+            "Lower bound of the 200-resample percentile bootstrap 95% CI "
+            "on the regression slope. CI crossing zero indicates the "
+            "slope is not distinguishable from noise."
+        ),
+    )
+    yap_size_correction_slope_ci_hi: float | None = Field(
+        default=None,
+        description="Upper bound of the bootstrap 95% CI on the regression slope.",
+    )
 
 
 class JobResult(BaseModel):

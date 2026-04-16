@@ -49,6 +49,14 @@ export interface MechanoScoreSummary {
   std: number | null;
   top_correlation_r: number | null;
   top_correlation_pair: [string, string] | null;
+  /** Number of glyco×mechano tiles with BH-FDR q < 0.05. */
+  n_significant_pairs_fdr?: number | null;
+  /** True when the Jones-2024 YAP size correction was subtracted from
+   * yap_nc_ratio on this image. False when the R² gate skipped it. */
+  yap_size_correction_applied?: boolean | null;
+  yap_size_correction_r2?: number | null;
+  yap_size_correction_slope_ci_lo?: number | null;
+  yap_size_correction_slope_ci_hi?: number | null;
 }
 
 export type DeepEmbeddingBackend = "dinov2_base" | "cell_dino_channel_adaptive";

@@ -233,3 +233,50 @@ def test_pca_fallback_triggers_below_adaptive_floor() -> None:
     df_big = _build_mechano_dataframe(n=100, seed=12)
     _out_big, summary_big = compute_mechano_score(df_big, mode="pca")
     assert summary_big.mode == "pca"
+
+
+def test_mechano_score_summary_exposes_yap_diagnostic_when_applied() -> None:
+    """apply_population_post_processing threads yap_size_correction_* into summary.
+
+    The four yap_size_correction_* fields live on the per-cell DataFrame
+    by construction (apply_yap_size_correction broadcasts them across
+    rows). The UI needs them at image level; apply_population_post_-
+    processing must pull them onto MechanoScoreSummary so the frontend
+    can badge the diagnostic without scraping every row.
+    """
+    rng = np.random.default_rng(2)
+    n = 100
+    area = rng.uniform(500.0, 5000.0, size=n)
+    strong = 2.0 + 0.001 * area + rng.normal(0.0, 0.05, size=n)
+    df = _build_mechano_dataframe(n=n, seed=2)
+    df["yap_nc_ratio"] = strong
+    df["cell_area"] = area
+    # Drop the existing yap_nc_ratio_size_corrected column so the
+    # population post-processing re-runs the correction from scratch.
+    df = df.drop(columns=["yap_nc_ratio_size_corrected"])
+
+    _out, summary = apply_population_post_processing(df, mode="pca")
+    assert summary is not None
+    assert summary.yap_size_correction_applied is True
+    assert summary.yap_size_correction_r2 is not None
+    assert summary.yap_size_correction_r2 > 0.5
+    assert summary.yap_size_correction_slope_ci_lo is not None
+    assert summary.yap_size_correction_slope_ci_hi is not None
+    # Engineered slope 0.001 must sit inside the CI
+    assert summary.yap_size_correction_slope_ci_lo < 0.001 < summary.yap_size_correction_slope_ci_hi
+
+
+def test_mechano_score_summary_exposes_yap_diagnostic_when_skipped() -> None:
+    """R² gate below 0.05 → applied=False surfaces on the summary."""
+    rng = np.random.default_rng(3)
+    n = 100
+    df = _build_mechano_dataframe(n=n, seed=3)
+    df["yap_nc_ratio"] = rng.normal(2.0, 0.3, size=n)  # independent of area
+    df["cell_area"] = rng.uniform(500.0, 5000.0, size=n)
+    df = df.drop(columns=["yap_nc_ratio_size_corrected"])
+
+    _out, summary = apply_population_post_processing(df, mode="pca")
+    assert summary is not None
+    assert summary.yap_size_correction_applied is False
+    # R² is defined even on the skipped path
+    assert summary.yap_size_correction_r2 is not None

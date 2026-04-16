@@ -541,6 +541,10 @@ def _build_result_payload(
             ),
             top_correlation_pair=glyco_mechano_result.top_pair,
             n_significant_pairs_fdr=int(glyco_mechano_result.n_significant_pairs),
+            yap_size_correction_applied=mechano_summary.yap_size_correction_applied,
+            yap_size_correction_r2=mechano_summary.yap_size_correction_r2,
+            yap_size_correction_slope_ci_lo=mechano_summary.yap_size_correction_slope_ci_lo,
+            yap_size_correction_slope_ci_hi=mechano_summary.yap_size_correction_slope_ci_hi,
         )
 
     hero_metrics = {

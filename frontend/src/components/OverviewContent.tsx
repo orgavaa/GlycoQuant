@@ -99,6 +99,9 @@ function OverviewTab({ result, cells }: Props) {
             {" "}Mechano score {(m.mean_mechano_score ?? 0) < 0 ? "below" : "above"} population mean.
           </div>
         )}
+        {summary?.yap_size_correction_applied !== null && summary?.yap_size_correction_applied !== undefined && (
+          <YapCorrectionBadge summary={summary} />
+        )}
       </Card>
 
       {result.glyco_mechano_correlation_figure_json && (
@@ -233,4 +236,44 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
     return () => { if (el) Plotly.purge(el); };
   }, [figureJson, maxHeight]);
   return <div ref={ref} className="w-full" />;
+}
+
+function YapCorrectionBadge({ summary }: { summary: NonNullable<JobResult["mechano_score_summary"]> }) {
+  const applied = summary.yap_size_correction_applied;
+  const r2 = summary.yap_size_correction_r2;
+  const lo = summary.yap_size_correction_slope_ci_lo;
+  const hi = summary.yap_size_correction_slope_ci_hi;
+  const hasCi = typeof lo === "number" && typeof hi === "number" && Number.isFinite(lo) && Number.isFinite(hi);
+  const r2Str = typeof r2 === "number" && Number.isFinite(r2) ? r2.toFixed(2) : "—";
+  const fmtSlope = (v: number) => (v >= 0 ? `+${v.toExponential(1)}` : v.toExponential(1));
+  const tint = applied
+    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+    : "bg-amber-50 border-amber-200 text-amber-900";
+  const dotTint = applied ? "bg-emerald-500" : "bg-amber-500";
+  const headline = applied
+    ? "Jones-2024 YAP size correction applied"
+    : "Jones-2024 YAP size correction skipped";
+  const explanation = applied
+    ? `Cell area predicted YAP N/C strongly enough (r² = ${r2Str}) for the slope to be subtracted from yap_nc_ratio. Residuals feed yap_nc_ratio_size_corrected.`
+    : `Cell area did not predict YAP N/C on this image (r² = ${r2Str}, below the 0.05 gate). Raw yap_nc_ratio was passed through unchanged — the mechano panel reads the uncorrected column.`;
+  return (
+    <div className={`mt-3 pt-3 border-t border-gray-100`}>
+      <div className={`rounded-md border px-3 py-2 ${tint}`}>
+        <div className="flex items-center gap-2 text-[12px] font-semibold">
+          <span className={`h-1.5 w-1.5 rounded-full ${dotTint}`} />
+          {headline}
+        </div>
+        <div className="mt-1 text-[11px] leading-relaxed opacity-80">{explanation}</div>
+        {hasCi && (
+          <div
+            className="mt-1 text-[10px] opacity-70"
+            style={{ fontFeatureSettings: "'tnum'" }}
+            title="Percentile bootstrap 95% CI on the regression slope (200 resamples). CI crossing zero indicates a slope not distinguishable from noise."
+          >
+            slope 95% CI [{fmtSlope(lo as number)}, {fmtSlope(hi as number)}]
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
