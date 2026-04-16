@@ -193,6 +193,14 @@ export interface PathwayEdge {
   from: string;
   to: string;
   confidence: number;
+  /** Provenance tag — "string" for STRING v12 edges (default),
+   * "curated" for literature-traceable edges added below the STRING
+   * cutoff where primary literature is strong. */
+  source?: "string" | "curated";
+  /** PubMed DOI of the primary reference — present only on curated edges. */
+  pubmed_doi?: string;
+  /** One-line biochemical rationale for the curated edge. */
+  reason?: string;
 }
 
 export interface PathwayEvidence {
