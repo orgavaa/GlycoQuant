@@ -136,17 +136,52 @@ class GlycoMechanoCorrelation:
     n_significant_pairs: int  # count of finite q < ALPHA
     top_r: float
     top_pair: tuple[str, str] | None
+    # Provenance of the p-values in ``p_matrix``. ``"parametric"`` uses
+    # scipy.stats.spearmanr's analytical null (Fisher-z on the tanh of
+    # the sample correlation, valid under the normality-of-ranks
+    # approximation); ``"permutation"`` replaces it with an empirical
+    # null from :func:`compute_glyco_mechano_correlation`'s
+    # ``n_permutations`` shuffles of the mechano column — makes no
+    # distributional assumption and is preferred for heavy-tailed
+    # fluorescence data.
+    null_method: str = "parametric"
+    n_permutations: int = 0
 
 
 def compute_glyco_mechano_correlation(
     df: pd.DataFrame,
     method: str = "spearman",
+    n_permutations: int = 0,
+    random_state: int = 42,
 ) -> GlycoMechanoCorrelation:
     """Compute the rectangular cross-block correlation matrix.
 
     Pairs with fewer than 5 finite cells in either column are set
     to NaN — too few to estimate correlation reliably even at the
     Spearman rank level.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Per-cell features.
+    method : str
+        ``"spearman"`` (default, robust to heavy tails) or ``"pearson"``.
+    n_permutations : int
+        When ``> 0`` the parametric p-value from
+        :func:`scipy.stats.spearmanr` is replaced with an empirical
+        p-value from ``n_permutations`` shuffles of the mechano column.
+        The permutation null is preferred for fluorescence intensity
+        data whose marginal distributions violate the normality-of-
+        ranks assumption behind the analytical Spearman null. The
+        adjusted empirical p is ``(k + 1) / (N + 1)`` where ``k`` is
+        the count of permuted |ρ| that equal or exceed the observed
+        |ρ| — the standard small-sample correction (Phipson & Smyth
+        2010) that prevents zero p-values on strong signals.
+        Default ``0`` keeps the parametric behaviour for backward
+        compatibility.
+    random_state : int
+        Seed for the permutation RNG. Ignored when
+        ``n_permutations == 0``.
     """
     glyco_cols = [c for c in GLYCO_COLUMNS if c in df.columns]
     mechano_cols = [c for c in MECHANO_COLUMNS if c in df.columns]
@@ -155,6 +190,9 @@ def compute_glyco_mechano_correlation(
     n_mechano = len(mechano_cols)
     r_matrix = np.full((n_glyco, n_mechano), np.nan, dtype=np.float64)
     p_matrix = np.full((n_glyco, n_mechano), np.nan, dtype=np.float64)
+
+    use_permutation = n_permutations > 0 and method == "spearman"
+    rng = np.random.default_rng(random_state) if use_permutation else None
 
     for i, g in enumerate(glyco_cols):
         for j, m in enumerate(mechano_cols):
@@ -173,7 +211,12 @@ def compute_glyco_mechano_correlation(
                 if method == "spearman":
                     res = spearmanr(x, y)
                     r = float(res.correlation)
-                    p = float(res.pvalue)
+                    if use_permutation:
+                        p = _permutation_spearman_pvalue(
+                            x, y, n_permutations=n_permutations, rng=rng
+                        )
+                    else:
+                        p = float(res.pvalue)
                 else:
                     # Pearson fallback. We don't expose Kendall — too
                     # slow at typical cell counts.
@@ -214,7 +257,59 @@ def compute_glyco_mechano_correlation(
         n_significant_pairs=n_significant_pairs,
         top_r=top_r,
         top_pair=top_pair,
+        null_method="permutation" if use_permutation else "parametric",
+        n_permutations=int(n_permutations) if use_permutation else 0,
     )
+
+
+def _permutation_spearman_pvalue(
+    x: np.ndarray,
+    y: np.ndarray,
+    n_permutations: int,
+    rng: np.random.Generator,
+) -> float:
+    """Two-sided empirical p-value for Spearman ρ via permutation.
+
+    Rank both ``x`` and ``y`` once (Spearman = Pearson on ranks), then
+    generate ``n_permutations`` shuffles of the rank-y vector in a
+    single vectorised numpy call and count the fraction whose |ρ|
+    meets or exceeds the observed |ρ|. Applies the Phipson–Smyth
+    (2010) ``(k + 1) / (N + 1)`` adjustment so strong signals do not
+    produce zero p-values — the minimum empirical p is
+    ``1 / (N + 1)`` regardless of how extreme the observation is.
+
+    Returns NaN on inputs too small for a meaningful test (<5 pairs),
+    on degenerate ranks (zero variance), or on non-finite observed ρ.
+    """
+    from scipy.stats import rankdata
+
+    if x.size < 5 or y.size != x.size:
+        return math.nan
+    rx = rankdata(x)
+    ry = rankdata(y)
+    rx_c = rx - rx.mean()
+    ry_c = ry - ry.mean()
+    denom_x = np.sqrt((rx_c ** 2).sum())
+    denom_y = np.sqrt((ry_c ** 2).sum())
+    if denom_x <= 0.0 or denom_y <= 0.0:
+        return math.nan
+    denom = denom_x * denom_y
+    rho_obs = (rx_c * ry_c).sum() / denom
+    if not math.isfinite(rho_obs):
+        return math.nan
+    abs_obs = abs(rho_obs)
+
+    # Vectorised permutations — argsort of uniform randoms is equivalent
+    # to a uniform permutation but emits a (N_perm, n) index matrix in
+    # a single numpy call. Fancy-indexing ry_c with this matrix produces
+    # the permuted rank vectors; the per-permutation ρ is then a single
+    # matrix-vector dot product.
+    n = ry_c.size
+    perm_idx = np.argsort(rng.random((int(n_permutations), n)), axis=1)
+    permuted_y = ry_c[perm_idx]  # (n_perm, n)
+    rho_perm = (permuted_y @ rx_c) / denom  # (n_perm,)
+    n_extreme = int((np.abs(rho_perm) >= abs_obs).sum())
+    return (n_extreme + 1) / (int(n_permutations) + 1)
 
 
 def _bh_adjust_matrix(p_matrix: np.ndarray) -> np.ndarray:
@@ -245,8 +340,15 @@ def _bh_adjust_matrix(p_matrix: np.ndarray) -> np.ndarray:
 def plot_glyco_mechano_correlation(
     df: pd.DataFrame,
     method: str = "spearman",
+    n_permutations: int = 0,
+    random_state: int = 42,
 ) -> tuple[go.Figure, GlycoMechanoCorrelation]:
     """Build the headline cross-block correlation heatmap.
+
+    Parameters mirror :func:`compute_glyco_mechano_correlation`.
+    Passing ``n_permutations > 0`` switches to an empirical p-value
+    via shuffling, which the BH-FDR adjustment then uses instead of
+    the parametric Spearman null.
 
     Returns
     -------
@@ -256,7 +358,12 @@ def plot_glyco_mechano_correlation(
         ``mechano_score_summary.top_correlation_*`` fields without
         re-walking the matrix).
     """
-    result = compute_glyco_mechano_correlation(df, method=method)
+    result = compute_glyco_mechano_correlation(
+        df,
+        method=method,
+        n_permutations=n_permutations,
+        random_state=random_state,
+    )
 
     # No cell annotations — hover shows the exact value instead.
     # Cramming numbers into tiny heatmap cells is unreadable at
