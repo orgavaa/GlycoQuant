@@ -18,7 +18,6 @@ from glycoquant.profiles.mechano_score import (
     compute_mechano_score,
 )
 
-
 # ---------------------------------------------------------------------------
 # YAP size correction
 # ---------------------------------------------------------------------------

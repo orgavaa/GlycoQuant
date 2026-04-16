@@ -21,7 +21,6 @@ References
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -193,7 +192,6 @@ def train_spatial_gnn(
     SpatialGNNResult
     """
     import torch
-    import torch.nn.functional as F
 
     if params is None:
         params = SpatialGNNParams()
