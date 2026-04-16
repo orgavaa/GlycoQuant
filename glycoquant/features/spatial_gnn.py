@@ -254,14 +254,27 @@ def train_spatial_gnn(
     X_t = torch.tensor(X, dtype=torch.float32)
     y_t = torch.tensor(y, dtype=torch.float32)
 
-    # Decide CV strategy. Spatial block CV needs at least 2 · cv_k cells
-    # to produce non-empty train/test partitions after k-means; otherwise
-    # the old random split is the honest fallback.
+    # Decide CV strategy. Spatial block CV needs enough cells per fold
+    # for a meaningful R² estimate on the held-out cluster. We require:
+    # (a) at least 10 cells total — fewer than that, no CV is
+    # defensible and we fall back to random.
+    # (b) at least 10 cells per fold — so effective_cv_k is adapted
+    # downward from the requested ``cv_k`` when the image is mid-sized.
+    # A 40-cell image with cv_k=5 requested therefore runs with
+    # effective_cv_k=4 (10 cells per fold). A 100-cell image runs with
+    # the full 5.
     cv_strategy_requested = params.cv_strategy
-    if cv_strategy_requested == "spatial" and n_nodes >= 2 * params.cv_k:
+    _MIN_CELLS_FOR_SPATIAL_CV = 10
+    effective_cv_k = max(2, min(params.cv_k, n_nodes // _MIN_CELLS_FOR_SPATIAL_CV))
+    if (
+        cv_strategy_requested == "spatial"
+        and n_nodes >= _MIN_CELLS_FOR_SPATIAL_CV
+        and n_nodes >= 2 * effective_cv_k
+    ):
         cv_strategy_used = "spatial"
     else:
         cv_strategy_used = "random"
+        effective_cv_k = params.cv_k  # restored just for result reporting
 
     # Per-cell out-of-fold predictions accumulator. Each cell is in
     # exactly one test fold, so this vector is populated exactly once
@@ -271,9 +284,9 @@ def train_spatial_gnn(
 
     if cv_strategy_used == "spatial":
         fold_labels = _assign_spatial_folds(
-            centroids, params.cv_k, random_state=params.random_state
+            centroids, effective_cv_k, random_state=params.random_state
         )
-        for fold_id in range(params.cv_k):
+        for fold_id in range(effective_cv_k):
             test_idx = np.where(fold_labels == fold_id)[0]
             train_idx = np.where(fold_labels != fold_id)[0]
             # Guard against empty-test folds (k-means can produce them

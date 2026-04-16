@@ -160,3 +160,76 @@ def test_population_post_processing_returns_none_summary_on_empty_df() -> None:
     out, summary = apply_population_post_processing(pd.DataFrame())
     assert out.empty
     assert summary is None
+
+
+# ---------------------------------------------------------------------------
+# Fix 7 — adaptive floors and R² gate
+# ---------------------------------------------------------------------------
+
+
+def test_size_correction_skipped_when_r2_below_gate() -> None:
+    """If cell_area barely predicts yap_nc_ratio the correction is noise-adding.
+
+    The R² gate (``_MIN_R2_FOR_SIZE_CORRECTION = 0.05``) must trigger:
+    the corrected column is a byte-exact copy of the raw column, and
+    the ``yap_size_correction_applied`` flag is False so the UI can
+    surface the fallback reason.
+    """
+    rng = np.random.default_rng(1)
+    n = 100
+    area = rng.uniform(500.0, 5000.0, size=n)
+    noise = rng.normal(2.0, 0.3, size=n)  # independent of area
+    df = pd.DataFrame({"yap_nc_ratio": noise, "cell_area": area})
+
+    out = apply_yap_size_correction(df)
+    assert bool(out["yap_size_correction_applied"].iloc[0]) is False
+    np.testing.assert_array_equal(
+        out["yap_nc_ratio"].to_numpy(),
+        out["yap_nc_ratio_size_corrected"].to_numpy(),
+    )
+
+
+def test_size_correction_applied_when_r2_above_gate() -> None:
+    """Strong area→ratio dependence triggers correction and records the CI."""
+    rng = np.random.default_rng(2)
+    n = 100
+    area = rng.uniform(500.0, 5000.0, size=n)
+    strong = 2.0 + 0.001 * area + rng.normal(0.0, 0.05, size=n)
+    df = pd.DataFrame({"yap_nc_ratio": strong, "cell_area": area})
+
+    out = apply_yap_size_correction(df)
+    assert bool(out["yap_size_correction_applied"].iloc[0]) is True
+    ci_lo = float(out["yap_size_correction_slope_ci_lo"].iloc[0])
+    ci_hi = float(out["yap_size_correction_slope_ci_hi"].iloc[0])
+    # CI must contain the engineered slope 0.001 and not cross zero
+    assert ci_lo < 0.001 < ci_hi
+    assert ci_lo > 0.0
+
+
+def test_adaptive_pca_floor_scales_with_feature_count() -> None:
+    """The Gorsuch 5×features rule kicks in for large panels."""
+    from glycoquant.profiles.mechano_score import _adaptive_pca_floor
+
+    # Below 5× rule: absolute floor dominates
+    assert _adaptive_pca_floor(3) == 30
+    assert _adaptive_pca_floor(5) == 30
+    # At 7+ features, the 5×features rule dominates
+    assert _adaptive_pca_floor(7) == 35
+    assert _adaptive_pca_floor(11) == 55
+
+
+def test_pca_fallback_triggers_below_adaptive_floor() -> None:
+    """50 cells with the full 11-feature panel falls back to weighted_sum.
+
+    The adaptive floor at 11 features is 55; with 50 complete-row
+    cells PCA is not statistically defensible. The score column is
+    still populated — the fallback is transparent, not a failure.
+    """
+    df = _build_mechano_dataframe(n=50, seed=11)
+    out, summary = compute_mechano_score(df, mode="pca")
+    assert summary.mode == "weighted_sum"
+    assert "mechano_score" in out.columns
+    # 100 cells — above 55 — the PCA branch runs
+    df_big = _build_mechano_dataframe(n=100, seed=12)
+    _out_big, summary_big = compute_mechano_score(df_big, mode="pca")
+    assert summary_big.mode == "pca"

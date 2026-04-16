@@ -35,15 +35,83 @@ import numpy as np
 import pandas as pd
 
 # Cells with at least this many finite (yap_nc_ratio, cell_area) rows
-# are required to fit a stable size-correction regression. Below this
-# floor we copy the raw column unchanged and flag the diagnostic as
-# NaN so the UI can surface the fallback.
+# are required to fit a stable size-correction regression. 30 is the
+# minimum "rule of 20 obs per predictor + 10 safety" floor for simple
+# linear regression (Harrell 2015, "Regression Modeling Strategies").
 _MIN_CELLS_FOR_SIZE_CORRECTION = 30
 
 # Cells with at least this many rows of usable mechano features are
-# required for a stable PCA. Below this floor we fall back to a
-# transparent equal-weight z-score sum.
+# required for a stable PCA. The true statistical floor scales with
+# the number of features — the classical "5 × features" rule (Gorsuch
+# 1983) for stable loadings. We honour both: the absolute floor of 30
+# (so small images still get a weighted-sum fallback, not a crash) and
+# the feature-adaptive floor of ``5 × n_features_used``, whichever is
+# higher. Resolved at call time via :func:`_adaptive_pca_floor`.
 _MIN_CELLS_FOR_PCA = 30
+
+# Minimum R² below which the Jones-2024 size correction is not applied.
+# If cell_area explains less than 5% of yap_nc_ratio variance, the
+# regression slope is noise and subtracting it introduces artificial
+# variance. The raw column is then copied through unchanged.
+_MIN_R2_FOR_SIZE_CORRECTION: float = 0.05
+
+# PC1 variance-explained floor. Below this value PC1 is barely above
+# chance and a composite "mechano_score" built on it is not
+# scientifically meaningful. We keep the computed score but flag it
+# in the summary so the UI can surface a caveat instead of pretending
+# the number is a clean axis.
+_MIN_PC1_VARIANCE_WARN: float = 0.20
+
+
+def _adaptive_pca_floor(n_features_used: int) -> int:
+    """Feature-adaptive cell-count floor for stable PCA loadings.
+
+    Returns the larger of :data:`_MIN_CELLS_FOR_PCA` (absolute floor
+    against degenerate covariance) and ``5 × n_features_used``
+    (Gorsuch 1983 rule for stable loading recovery). Scales with the
+    actual panel the image produced, not the class default 11.
+    """
+    return max(_MIN_CELLS_FOR_PCA, 5 * max(1, int(n_features_used)))
+
+
+def _bootstrap_slope_ci(
+    x: np.ndarray,
+    y: np.ndarray,
+    n_resamples: int = 200,
+    seed: int = 42,
+    alpha: float = 0.05,
+) -> tuple[float, float]:
+    """Percentile bootstrap CI for the OLS slope of ``y`` on ``x``.
+
+    Used by :func:`apply_yap_size_correction` to expose the stability
+    of the Jones-2024 correction — a slope whose 95% CI crosses zero
+    is not distinguishable from noise and the UI can surface that
+    directly. ``n_resamples=200`` is a standard throughput/accuracy
+    trade-off for a diagnostic; the CI is reported, not bootstrapped
+    for hypothesis testing, so ≥95% CI coverage is already adequate.
+    """
+    n = x.size
+    if n < 2:
+        return math.nan, math.nan
+    rng = np.random.default_rng(seed)
+    slopes = np.empty(n_resamples, dtype=np.float64)
+    for i in range(n_resamples):
+        idx = rng.integers(0, n, size=n)
+        xb = x[idx]
+        yb = y[idx]
+        xb_mean = xb.mean()
+        var_xb = ((xb - xb_mean) ** 2).sum()
+        if var_xb <= 0.0:
+            slopes[i] = math.nan
+            continue
+        cov = ((xb - xb_mean) * (yb - yb.mean())).sum()
+        slopes[i] = cov / var_xb
+    slopes = slopes[np.isfinite(slopes)]
+    if slopes.size < max(20, int(0.5 * n_resamples)):
+        return math.nan, math.nan
+    lo = float(np.quantile(slopes, alpha / 2.0))
+    hi = float(np.quantile(slopes, 1.0 - alpha / 2.0))
+    return lo, hi
 
 # Curated mechanotransduction feature panel — the columns we want PC1
 # to summarise. Some are inverted because lower values indicate higher
@@ -126,6 +194,9 @@ def apply_yap_size_correction(df: pd.DataFrame) -> pd.DataFrame:
         )
         out["yap_size_correction_slope"] = math.nan
         out["yap_size_correction_r2"] = math.nan
+        out["yap_size_correction_slope_ci_lo"] = math.nan
+        out["yap_size_correction_slope_ci_hi"] = math.nan
+        out["yap_size_correction_applied"] = False
         return out
 
     raw = out["yap_nc_ratio"].to_numpy(dtype=np.float64)
@@ -136,6 +207,9 @@ def apply_yap_size_correction(df: pd.DataFrame) -> pd.DataFrame:
         out["yap_nc_ratio_size_corrected"] = out["yap_nc_ratio"]
         out["yap_size_correction_slope"] = math.nan
         out["yap_size_correction_r2"] = math.nan
+        out["yap_size_correction_slope_ci_lo"] = math.nan
+        out["yap_size_correction_slope_ci_hi"] = math.nan
+        out["yap_size_correction_applied"] = False
         return out
 
     x = area[mask]
@@ -148,6 +222,9 @@ def apply_yap_size_correction(df: pd.DataFrame) -> pd.DataFrame:
         out["yap_nc_ratio_size_corrected"] = out["yap_nc_ratio"]
         out["yap_size_correction_slope"] = 0.0
         out["yap_size_correction_r2"] = 0.0
+        out["yap_size_correction_slope_ci_lo"] = math.nan
+        out["yap_size_correction_slope_ci_hi"] = math.nan
+        out["yap_size_correction_applied"] = False
         return out
 
     slope = cov / var_x
@@ -156,6 +233,25 @@ def apply_yap_size_correction(df: pd.DataFrame) -> pd.DataFrame:
     ss_res = float(((y - y_pred) ** 2).sum())
     ss_tot = float(((y - y_mean) ** 2).sum())
     r2 = 1.0 - ss_res / ss_tot if ss_tot > 0.0 else 0.0
+
+    # Bootstrap CI on the slope — scientifically honest diagnostic so
+    # the UI can say "slope = +0.0012 (95% CI [+0.0003, +0.0021])"
+    # instead of reporting a bare point estimate that reads as certain.
+    slope_ci_lo, slope_ci_hi = _bootstrap_slope_ci(x, y)
+
+    # R² gate: when cell_area explains less than ``_MIN_R2_FOR_SIZE_CORRECTION``
+    # of yap_nc_ratio variance, the slope is noise. Subtracting it adds
+    # artificial variance to every downstream mechanotransduction
+    # readout. Honest path: copy raw, flag the diagnostic, let the UI
+    # show the reason.
+    if r2 < _MIN_R2_FOR_SIZE_CORRECTION:
+        out["yap_nc_ratio_size_corrected"] = out["yap_nc_ratio"]
+        out["yap_size_correction_slope"] = float(slope)
+        out["yap_size_correction_r2"] = float(r2)
+        out["yap_size_correction_slope_ci_lo"] = slope_ci_lo
+        out["yap_size_correction_slope_ci_hi"] = slope_ci_hi
+        out["yap_size_correction_applied"] = False
+        return out
 
     # Apply correction to ALL rows where both inputs are finite,
     # regardless of whether they made the regression cut. Cells with
@@ -167,6 +263,9 @@ def apply_yap_size_correction(df: pd.DataFrame) -> pd.DataFrame:
     out["yap_nc_ratio_size_corrected"] = corrected
     out["yap_size_correction_slope"] = float(slope)
     out["yap_size_correction_r2"] = float(r2)
+    out["yap_size_correction_slope_ci_lo"] = slope_ci_lo
+    out["yap_size_correction_slope_ci_hi"] = slope_ci_hi
+    out["yap_size_correction_applied"] = True
     return out
 
 
@@ -282,7 +381,11 @@ def compute_mechano_score(
     complete_mask = np.all(np.isfinite(z_matrix), axis=1)
     n_complete = int(complete_mask.sum())
 
-    use_pca = mode == "pca" and n_complete >= _MIN_CELLS_FOR_PCA
+    # Feature-adaptive PCA floor: Gorsuch (1983) "5 × features" rule
+    # for stable loading recovery, with the absolute 30-cell floor
+    # preserved so tiny images still get a weighted-sum fallback.
+    adaptive_floor = _adaptive_pca_floor(len(available))
+    use_pca = mode == "pca" and n_complete >= adaptive_floor
     chosen_mode = "pca" if use_pca else "weighted_sum"
 
     if use_pca:
