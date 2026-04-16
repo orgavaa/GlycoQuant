@@ -16,6 +16,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import pytest
 
 from glycoquant.viz.glyco_mechano_correlation import (
     ALPHA,
@@ -201,3 +202,72 @@ def test_figure_contains_significance_annotations() -> None:
     # Subtitle must mention the FDR count
     title_text = fig.layout.title.text if fig.layout.title else ""
     assert "sig. at FDR" in title_text
+
+
+# ---------------------------------------------------------------------------
+# Fix 8 — permutation-based empirical null
+# ---------------------------------------------------------------------------
+
+
+def test_parametric_null_is_the_default() -> None:
+    """Backward-compat: callers that don't pass n_permutations get scipy's
+    parametric p-values and the result's null_method reports it."""
+    df = _build_dataframe_with_engineered_pair()
+    result = compute_glyco_mechano_correlation(df)
+    assert result.null_method == "parametric"
+    assert result.n_permutations == 0
+
+
+def test_permutation_null_runs_and_reports_provenance() -> None:
+    """n_permutations > 0 switches to the empirical null."""
+    df = _build_dataframe_with_engineered_pair()
+    result = compute_glyco_mechano_correlation(df, n_permutations=300)
+    assert result.null_method == "permutation"
+    assert result.n_permutations == 300
+    # Empirical p is bounded below by 1/(N+1) by construction
+    finite_p = result.p_matrix[np.isfinite(result.p_matrix)]
+    assert (finite_p >= 1.0 / 301.0 - 1e-12).all()
+    assert (finite_p <= 1.0 + 1e-12).all()
+
+
+def test_permutation_recovers_strong_signal() -> None:
+    """An engineered strong pair must be extreme under the permutation null.
+
+    On 200 cells with |ρ| > 0.85 the permutation p-value lands at the
+    minimum floor ``1 / (N + 1)`` because no shuffled |ρ| matches the
+    observed. Note the permutation-null minimum p-value bounds the
+    minimum achievable q-value at ``min_p × n_tests / rank_1`` under
+    BH-FDR, so a ~500-permutation test has a q floor of ~144/501≈0.29
+    on a 144-cell matrix — not a code bug, a fundamental statistical
+    limit. We only check the p-value floor; the FDR-significance test
+    for the strong-signal case is covered by the parametric path.
+    """
+    df = _build_dataframe_with_engineered_pair(n=200)
+    result = compute_glyco_mechano_correlation(df, n_permutations=500)
+    i = result.glyco_features.index("glycocalyx_haralick_contrast")
+    j = result.mechano_features.index("fa_mature_fraction")
+    # Must land at the floor
+    assert result.p_matrix[i, j] == pytest.approx(1.0 / 501.0, abs=1e-9)
+    # And the observed |ρ| for the engineered pair must exceed every
+    # other pair's |ρ| by construction
+    flat_r = np.abs(result.r_matrix)
+    flat_r[i, j] = -np.inf  # exclude the engineered pair itself
+    assert abs(result.r_matrix[i, j]) > float(np.nanmax(flat_r))
+
+
+def test_permutation_null_is_deterministic_under_fixed_seed() -> None:
+    """Same random_state → byte-identical p_matrix across runs."""
+    df = _build_dataframe_with_engineered_pair()
+    a = compute_glyco_mechano_correlation(
+        df, n_permutations=100, random_state=11
+    )
+    b = compute_glyco_mechano_correlation(
+        df, n_permutations=100, random_state=11
+    )
+    # r_matrix is deterministic anyway; p_matrix under the same seed
+    # must also match exactly.
+    np.testing.assert_array_equal(a.r_matrix, b.r_matrix)
+    np.testing.assert_array_equal(
+        np.nan_to_num(a.p_matrix, nan=-1.0),
+        np.nan_to_num(b.p_matrix, nan=-1.0),
+    )

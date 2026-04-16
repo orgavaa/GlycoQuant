@@ -27,19 +27,35 @@ class FocalAdhesionParams:
 
     Defaults mirror ``configs/default.yaml → features.focal_adhesions``.
 
-    The ``pixel_size_um`` field controls the µm conversion used for
-    the maturation bins (Buskermolen 2018, Zaidel-Bar/Geiger). It
-    defaults to 0.325 (~20× confocal) but the assembler propagates
-    the experiment-wide value from :class:`AssemblerConfig` so
-    images acquired with different optics are classified correctly
-    rather than silently mis-binned.
+    All spatially-sized knobs (area bounds, peripheral distance,
+    maturation bins) are **µm-native** — the pixel footprints are
+    computed on the fly from ``pixel_size_um`` via the
+    ``..._px`` / ``..._um2`` derived properties. This is what makes
+    an image acquired at 0.325 µm/px (standard confocal) comparable
+    to one at 0.656 µm/px (BBBC022) without the feature classifier
+    silently mis-binning adhesions. Legacy ``min_area_px`` /
+    ``max_area_px`` / ``peripheral_distance_px`` fields are preserved
+    so external callers that override them continue to work; when set
+    to a non-``None`` value they take precedence over the µm-native
+    defaults.
+
+    The Zaidel-Bar 2007 / Geiger 2001 nascent-adhesion threshold is
+    ~0.25 µm² (5-7 px² at 0.325 µm/px). The platform default here is
+    ``min_area_um2 = 0.5`` to stay above the diffraction-limited
+    puncta floor; override to ``0.25`` for strict Zaidel-Bar staging.
     """
 
     threshold_method: str = "otsu"  # "otsu" | "fixed"
     threshold_fixed: float = 0.5
-    min_area_px: int = 5
-    max_area_px: int = 500
-    peripheral_distance_px: int = 20
+    # Pixel-unit fields — kept for backward compat. When ``None``, the
+    # µm-native fields are used as the source of truth.
+    min_area_px: int | None = None
+    max_area_px: int | None = None
+    peripheral_distance_px: int | None = None
+    # µm-native fields (source of truth)
+    min_area_um2: float = 0.5  # above the diffraction-limited FA floor
+    max_area_um2: float = 50.0  # fibrillar-adhesion upper bound
+    peripheral_distance_um: float = 6.5  # ~1 cell edge thickness
     pixel_size_um: float = 0.325
     # Maturation bin edges in microns. Defaults match the
     # Buskermolen 2018 / Zaidel-Bar nascent → focal-complex → mature
@@ -47,6 +63,32 @@ class FocalAdhesionParams:
     nascent_max_um: float = 0.5
     focal_complex_max_um: float = 1.0
     mature_max_um: float = 5.0
+
+    @property
+    def resolved_min_area_px(self) -> int:
+        """Integer px² floor for FA connected components."""
+        if self.min_area_px is not None:
+            return int(self.min_area_px)
+        px_area = self.pixel_size_um ** 2
+        return max(1, int(round(self.min_area_um2 / px_area)))
+
+    @property
+    def resolved_max_area_px(self) -> int:
+        """Integer px² ceiling for FA connected components."""
+        if self.max_area_px is not None:
+            return int(self.max_area_px)
+        px_area = self.pixel_size_um ** 2
+        return max(
+            self.resolved_min_area_px + 1,
+            int(round(self.max_area_um2 / px_area)),
+        )
+
+    @property
+    def resolved_peripheral_distance_px(self) -> float:
+        """Distance from the cell edge that counts as 'peripheral', in pixels."""
+        if self.peripheral_distance_px is not None:
+            return float(self.peripheral_distance_px)
+        return max(1.0, self.peripheral_distance_um / self.pixel_size_um)
 
 
 def detect_focal_adhesions(
@@ -113,9 +155,9 @@ def detect_focal_adhesions(
         return []
 
     labeled = label(bright, connectivity=2)
-    regions = [
-        r for r in regionprops(labeled) if p.min_area_px <= r.area <= p.max_area_px
-    ]
+    lo = p.resolved_min_area_px
+    hi = p.resolved_max_area_px
+    regions = [r for r in regionprops(labeled) if lo <= r.area <= hi]
     return regions
 
 
@@ -143,7 +185,11 @@ def extract_fa_features(
         - fa_mean_elongation             : mean axis_major / axis_minor
         - fa_mean_distance_to_edge       : mean centroid → edge distance (px)
         - fa_mean_distance_to_edge_um    : same in µm
-        - fa_peripheral_fraction         : fraction within ``peripheral_distance_px`` of edge
+        - fa_peripheral_fraction         : fraction of FAs within ``peripheral_distance_um``
+                                           of the cell edge (default 6.5 µm); the µm value
+                                           is resolved to pixels at call time from
+                                           ``pixel_size_um`` so the physical footprint is
+                                           invariant to acquisition optics.
         - fa_mean_orientation_alignment  : 1 − circular variance over 2θ of FA major-axis angles
         Maturation bins (Buskermolen 2018, Zaidel-Bar):
         - fa_nascent_count       : major axis < nascent_max_um
@@ -175,7 +221,7 @@ def extract_fa_features(
     )
     orientations = np.array([float(r.orientation) for r in regions], dtype=np.float64)
 
-    peripheral_count = int(np.sum(distances <= p.peripheral_distance_px))
+    peripheral_count = int(np.sum(distances <= p.resolved_peripheral_distance_px))
 
     nascent_count = int(np.sum(major_axes_um < p.nascent_max_um))
     focal_complex_count = int(

@@ -156,6 +156,24 @@ def test_spatial_cv_falls_back_on_small_image() -> None:
     assert len(result.fold_r2_scores) == 1
 
 
+def test_spatial_cv_k_adapts_to_mid_sized_images() -> None:
+    """40-cell image with cv_k=5 requested runs with effective k=4 (≥10 cells/fold).
+
+    This is the Fix 7 adaptivity — a mid-sized image no longer falls
+    through to a single random split just because the requested cv_k
+    produces folds smaller than 10 cells.
+    """
+    df = _build_spatial_df(n=40, seed=3, spatial_signal=True)
+    params = SpatialGNNParams(
+        cv_strategy="spatial", cv_k=5, epochs=20, random_state=3
+    )
+    result = train_spatial_gnn(df, pixel_size_um=0.325, params=params)
+    assert result.cv_strategy == "spatial"
+    # 40 // 10 = 4 folds, bounded below by 2
+    assert result.cv_k == 4
+    assert len(result.fold_r2_scores) == 4
+
+
 def test_feature_importance_deterministic_across_cv_calls() -> None:
     """Same random_state → byte-identical feature importance dict.
 

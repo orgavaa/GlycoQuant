@@ -25,10 +25,48 @@ class ActinParams:
     """Parameters for structure-tensor computation and cortical ring geometry.
 
     Defaults mirror ``configs/default.yaml → features.actin``.
+
+    Both spatially-sized knobs (tensor smoothing σ, cortical ring
+    width) are **µm-native**. The default σ=0.65 µm is ~one actin
+    fiber width (Rezakhaniha 2012); the default cortical ring width
+    of 3.25 µm is ~2 stress-fiber periods into the cell body. These
+    µm defaults resolve to σ=2 px / ring=10 px at the canonical
+    0.325 µm/px (matching the legacy pixel defaults), but re-scale
+    correctly on BBBC022 (0.656 µm/px → σ≈1 px, ring≈5 px) so the
+    coherence and cortical-ratio readouts are comparable across
+    datasets. ``structure_tensor_sigma_px`` / ``cortical_ring_width_px``
+    remain as legacy overrides; when non-``None`` they take precedence
+    over the µm-native fields.
     """
 
-    structure_tensor_sigma: float = 2.0
-    cortical_ring_width_px: int = 10
+    # Legacy pixel-unit fields — kept for backward compat.
+    structure_tensor_sigma_px: float | None = None
+    cortical_ring_width_px: int | None = None
+    # µm-native fields (source of truth)
+    structure_tensor_sigma_um: float = 0.65  # one actin fiber width
+    cortical_ring_width_um: float = 3.25  # ~2 stress-fiber periods
+    pixel_size_um: float = 0.325
+
+    # Back-compat attribute expected by legacy callers (tests) that
+    # construct ``ActinParams(structure_tensor_sigma=3.0)``. Defaults
+    # to ``None`` so the µm-native field wins.
+    structure_tensor_sigma: float | None = None
+
+    @property
+    def resolved_structure_tensor_sigma(self) -> float:
+        """Gaussian σ for the structure tensor, in pixels."""
+        if self.structure_tensor_sigma is not None:
+            return float(self.structure_tensor_sigma)
+        if self.structure_tensor_sigma_px is not None:
+            return float(self.structure_tensor_sigma_px)
+        return max(0.5, self.structure_tensor_sigma_um / self.pixel_size_um)
+
+    @property
+    def resolved_cortical_ring_width_px(self) -> int:
+        """Cortical ring width in pixels."""
+        if self.cortical_ring_width_px is not None:
+            return int(self.cortical_ring_width_px)
+        return max(1, int(round(self.cortical_ring_width_um / self.pixel_size_um)))
 
 
 def extract_actin_features(
@@ -81,10 +119,12 @@ def extract_actin_features(
     mean_intensity = float(cell_values.mean()) if cell_values.size else math.nan
 
     coherence, orientation_deg = _structure_tensor_features(
-        actin_channel, this_cell, p.structure_tensor_sigma
+        actin_channel, this_cell, p.resolved_structure_tensor_sigma
     )
 
-    cortical_ratio = _cortical_ratio(actin_channel, this_cell, p.cortical_ring_width_px)
+    cortical_ratio = _cortical_ratio(
+        actin_channel, this_cell, p.resolved_cortical_ring_width_px
+    )
 
     return {
         "actin_mean_intensity": mean_intensity,

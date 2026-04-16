@@ -60,8 +60,22 @@ class DinoV2Params:
     channel_assignment: tuple[str, str, str] = field(
         default_factory=lambda: ("dapi", "glycocalyx", "yap")
     )
-    bbox_padding_px: int = 8
+    # µm-native pericellular padding (source of truth). 2.6 µm ≈ 8 px
+    # at 0.325 µm/px (the legacy pixel default). Resolves differently
+    # on BBBC022 (0.656 µm/px → 4 px) so the physical crop footprint
+    # is comparable across optics. ``bbox_padding_px`` is a legacy
+    # override; when non-``None`` it takes precedence.
+    bbox_padding_um: float = 2.6
+    bbox_padding_px: int | None = None
+    pixel_size_um: float = 0.325
     device: str = "cpu"
+
+    @property
+    def resolved_bbox_padding_px(self) -> int:
+        """Bounding-box padding in pixels, resolved from µm at call time."""
+        if self.bbox_padding_px is not None:
+            return int(self.bbox_padding_px)
+        return max(1, int(round(self.bbox_padding_um / self.pixel_size_um)))
 
 
 class DinoV2Embedder:
@@ -273,7 +287,7 @@ def build_cell_crop(
     if not props:
         return None
     minr, minc, maxr, maxc = props[0].bbox
-    pad = params.bbox_padding_px
+    pad = params.resolved_bbox_padding_px
     minr = max(0, minr - pad)
     minc = max(0, minc - pad)
     maxr = min(cell_mask.shape[0], maxr + pad)
@@ -380,13 +394,24 @@ class ChannelAdaptiveDinoParams:
     """
 
     crop_size: int = _CELL_DINO_INPUT_SIZE
-    bbox_padding_px: int = 8
+    # µm-native padding — same policy as DinoV2Params. Resolves to 8 px
+    # at 0.325 µm/px, 4 px at 0.656 µm/px.
+    bbox_padding_um: float = 2.6
+    bbox_padding_px: int | None = None
+    pixel_size_um: float = 0.325
     channel_order: tuple[str, ...] = field(
         default_factory=lambda: _CELL_DINO_CHANNEL_ORDER
     )
     device: str = "cpu"
     checkpoint_path: str | None = None
     repo_dir: str | None = None
+
+    @property
+    def resolved_bbox_padding_px(self) -> int:
+        """Bounding-box padding in pixels, resolved from µm at call time."""
+        if self.bbox_padding_px is not None:
+            return int(self.bbox_padding_px)
+        return max(1, int(round(self.bbox_padding_um / self.pixel_size_um)))
 
 
 class ChannelAdaptiveDinoEmbedder:
@@ -577,7 +602,7 @@ def build_cell_crop_multichannel(
     if not props:
         return None
     minr, minc, maxr, maxc = props[0].bbox
-    pad = params.bbox_padding_px
+    pad = params.resolved_bbox_padding_px
     minr = max(0, minr - pad)
     minc = max(0, minc - pad)
     maxr = min(cell_mask.shape[0], maxr + pad)
