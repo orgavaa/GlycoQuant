@@ -223,11 +223,19 @@ async def submit_analysis(
             detail="Provide either demo_condition or an upload.",
         )
 
-    from glycoquant.io import load_multichannel_image, split_into_channels
+    from glycoquant.io import (
+        load_multichannel_image_with_provenance,
+        split_into_channels,
+    )
 
     # Load the channels into RAM (small for synthetic demos; streamed
     # for uploads). Uploaded files are consumed here and not saved to
     # disk — the worker operates on the already-loaded numpy arrays.
+    # The _with_provenance variant detects confocal z-stacks and
+    # returns a max-projection along z, surfacing what was done in the
+    # provenance dict so the UI can show "z-stack of 23 planes
+    # max-projected" instead of silently grabbing one slice.
+    z_provenance: dict = {}
     if demo_condition is not None:
         path = DEMO_DIR / f"{demo_condition}.tiff"
         if not path.is_file():
@@ -235,12 +243,12 @@ async def submit_analysis(
                 status_code=404,
                 detail=f"Demo image not found: {demo_condition}",
             )
-        raw = load_multichannel_image(path)
+        raw, z_provenance = load_multichannel_image_with_provenance(path)
     else:
         assert upload is not None
         content = await upload.read()
         try:
-            raw = load_multichannel_image(content)
+            raw, z_provenance = load_multichannel_image_with_provenance(content)
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(
                 status_code=422,
@@ -279,6 +287,19 @@ async def submit_analysis(
         )
     else:
         mapping, channel_warnings, substitute_channels = _partial_channel_mapping(n_channels)
+
+    # Surface the z-stack provenance (if any) as a user-visible
+    # warning so the Overview tab can display "Z-stack of N planes
+    # max-projected" instead of the user wondering why their stack
+    # collapsed silently.
+    if z_provenance.get("z_projection") == "max":
+        n_planes = z_provenance.get("z_planes")
+        channel_warnings.append(
+            f"Z-stack auto-detected ({n_planes} planes); collapsed to a "
+            "maximum-intensity projection for 2D analysis. For true 3D "
+            "extraction pre-process the stack externally and upload the "
+            "single plane you want to analyse."
+        )
 
     # Always split ALL available channels so Cell-DINO gets pixel data
     # for every slot. The substitute_channels list tells the assembler

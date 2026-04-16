@@ -215,10 +215,18 @@ def run_analysis_job(
         store.update(job_id, phase="segmenting", pct=15, message="Detecting cells and nuclei")
         _t1 = _time.monotonic()
         segmenter = _get_segmenter()
+        # adaptive_diameter=True: when the user-supplied diameter
+        # under-segments (typical failure mode on big spread fibroblasts
+        # on soft hydrogels), the segmenter sweeps a small range of
+        # diameters and picks the one producing the most cells in the
+        # biological size band. Falls back to the original mask if no
+        # sweep value beats it. Adds at most a few seconds to runtime
+        # and only kicks in when the initial mask is anomalous.
         cell_mask, nuclear_mask = segmenter.segment_both(
             channels[_seg_channel(channels)],
             channels["dapi"],
             cell_diameter=float(cell_diameter),
+            adaptive_diameter=True,
         )
         _t2 = _time.monotonic()
         n_cells = int((cell_mask > 0).max() and len(set(cell_mask.flat) - {0}))
