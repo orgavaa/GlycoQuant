@@ -426,7 +426,14 @@ class PhenotypeResponse(BaseModel):
 
 
 class SpatialGNNResponse(BaseModel):
-    """Spatial context GNN — Delaunay + GCN mechano prediction."""
+    """Spatial context GNN — Delaunay + GCN mechano prediction.
+
+    ``r2_score`` is the mean R² across spatial CV folds (single value
+    when ``cv_strategy == "random"``). ``r2_std`` and
+    ``fold_r2_scores`` expose fold-to-fold variability so the UI can
+    surface an honest error bar instead of a single optimistic number.
+    """
+
     job_id: str
     r2_score: float
     node_importance: dict[str, float]
@@ -435,6 +442,10 @@ class SpatialGNNResponse(BaseModel):
     cells_json: str  # [{cell_id, predicted, actual}, ...]
     graph_figure_json: str
     importance_figure_json: str
+    r2_std: float = 0.0
+    cv_strategy: str = "random"
+    cv_k: int = 1
+    fold_r2_scores: list[float] = Field(default_factory=list)
 
 
 class CrossModalResponse(BaseModel):

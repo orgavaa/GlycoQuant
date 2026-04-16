@@ -205,6 +205,10 @@ async def _run_spatial_gnn_inner(job_id: str, max_edge_dist_um: float) -> Spatia
         cells_json=cells.to_json(orient="records"),
         graph_figure_json=graph_fig.to_json(),
         importance_figure_json=importance_fig.to_json(),
+        r2_std=result.r2_std,
+        cv_strategy=result.cv_strategy,
+        cv_k=result.cv_k,
+        fold_r2_scores=list(result.fold_r2_scores),
     )
 
 
