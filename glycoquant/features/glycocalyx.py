@@ -36,10 +36,28 @@ from skimage.measure import regionprops
 
 from glycoquant.features._spatial import morans_i_on_mask
 
-# Minimum floor for the dynamically-sized pericellular ring. Smaller
-# than ~3 px and the ring becomes one pixel wide at the diagonal,
-# which fractures under discrete topology.
-_MIN_RING_WIDTH_PX = 3
+# Minimum floor for the dynamically-sized pericellular ring. Specified
+# in microns (~1 confocal PSF diameter) so the physical minimum is
+# preserved across acquisition optics: at 0.325 µm/px the floor is
+# 3 px (the old hard-coded value), at 0.656 µm/px it is 2 px. Below
+# this physical size the ring becomes one-pixel-wide at the diagonal
+# and fractures under discrete topology, so we also enforce an
+# absolute 2-px floor as a discretisation backstop.
+_MIN_RING_WIDTH_UM: float = 1.0
+_MIN_RING_WIDTH_PX_ABSOLUTE_FLOOR: int = 2
+
+
+def _resolve_min_ring_width_px(pixel_size_um: float) -> int:
+    """Physical minimum ring width in pixels, clamped to a 2-px floor."""
+    if pixel_size_um <= 0.0:
+        return _MIN_RING_WIDTH_PX_ABSOLUTE_FLOOR
+    px = int(round(_MIN_RING_WIDTH_UM / pixel_size_um))
+    return max(_MIN_RING_WIDTH_PX_ABSOLUTE_FLOOR, px)
+
+
+# Legacy alias — old call sites that imported ``_MIN_RING_WIDTH_PX``
+# directly continue to resolve to the canonical 0.325 µm/px value (3 px).
+_MIN_RING_WIDTH_PX = _resolve_min_ring_width_px(0.325)
 
 
 @dataclass(frozen=True)
@@ -66,6 +84,11 @@ class GlycocalyxParams:
 
     pericellular_ring_width_px: int = 10
     adaptive_ring_width: bool = True
+    # Acquisition pixel size in microns. Used to resolve the
+    # discretisation-floor on the adaptive ring width so the
+    # per-cell shell width stays physically meaningful (~1 µm
+    # minimum) across acquisition optics.
+    pixel_size_um: float = 0.325
     n_radial_bins: int = 20
     coverage_threshold_method: str = "otsu"  # "otsu" | "percentile" | "fixed"
     coverage_threshold_percentile: float = 75.0
@@ -234,7 +257,9 @@ def _resolve_ring_width(this_cell: np.ndarray, params: GlycocalyxParams) -> int:
         return int(params.pericellular_ring_width_px)
     equiv_diam = float(props[0].equivalent_diameter_area)
     width = int(round(0.1 * equiv_diam))
-    return max(_MIN_RING_WIDTH_PX, width)
+    # Physical-unit minimum: never drop below ~1 µm on the given optics
+    min_px = _resolve_min_ring_width_px(params.pixel_size_um)
+    return max(min_px, width)
 
 
 def _build_pericellular_ring(this_cell: np.ndarray, ring_width: int) -> np.ndarray:

@@ -33,6 +33,7 @@ from glycoquant.features import (
 )
 from glycoquant.preprocessing import (
     DEFAULT_BACKGROUND_RADIUS_PX,
+    DEFAULT_BACKGROUND_RADIUS_UM,
     subtract_background,
 )
 from glycoquant.profiles.mechano_score import (
@@ -88,14 +89,47 @@ class AssemblerConfig:
     # cells are available.
     mechano_score_mode: str = "pca"
     # Illumination / background correction applied to every intensity
-    # channel before feature extraction (DAPI is skipped). Setting
-    # ``background_radius_px=0`` disables the correction — useful for
-    # unit tests that assert on raw synthetic intensities.
-    background_radius_px: int = DEFAULT_BACKGROUND_RADIUS_PX
+    # channel before feature extraction (DAPI is skipped). The radius
+    # is µm-native (``background_radius_um``) so the physical
+    # footprint stays invariant across acquisition optics — at the
+    # default 7.5 µm it resolves to 23 px on 0.325 µm/px confocal and
+    # to 11 px on BBBC022's 0.656 µm/px, *same biological feature cap*.
+    # ``background_radius_px`` is kept as a legacy override for unit
+    # tests that need a deterministic pixel size; when non-None it
+    # takes precedence over ``background_radius_um``. Setting either
+    # to 0 disables the correction.
+    background_radius_um: float = DEFAULT_BACKGROUND_RADIUS_UM
+    background_radius_px: int | None = None
 
     def __post_init__(self) -> None:
+        from dataclasses import replace
+
+        # Every child Param class carries its own ``pixel_size_um``
+        # so its µm-native fields can resolve to pixels locally. The
+        # assembler is the single source of truth — we propagate
+        # ``self.pixel_size_um`` into every child unless the child
+        # was explicitly constructed with a non-default value (which
+        # we detect by comparing against the class default 0.325).
+        def _with_pixel_size(obj):  # noqa: ANN001 - any Param dataclass
+            if obj is None:
+                return None
+            if not hasattr(obj, "pixel_size_um"):
+                return obj
+            if obj.pixel_size_um == self.pixel_size_um:
+                return obj
+            # Only overwrite when the child still holds the class
+            # default — preserves the caller's deliberate overrides.
+            if obj.pixel_size_um == 0.325:
+                return replace(obj, pixel_size_um=self.pixel_size_um)
+            return obj
+
         if self.glycocalyx is None:
-            object.__setattr__(self, "glycocalyx", GlycocalyxParams())
+            object.__setattr__(
+                self, "glycocalyx", GlycocalyxParams(pixel_size_um=self.pixel_size_um)
+            )
+        else:
+            object.__setattr__(self, "glycocalyx", _with_pixel_size(self.glycocalyx))
+
         if self.focal_adhesions is None:
             object.__setattr__(
                 self,
@@ -103,24 +137,23 @@ class AssemblerConfig:
                 FocalAdhesionParams(pixel_size_um=self.pixel_size_um),
             )
         else:
-            # Propagate the assembler-level pixel size into the FA
-            # params unless the caller explicitly overrode it. This
-            # keeps the FA bins coherent with the rest of the
-            # pipeline when the user changes the sidebar value.
-            if self.focal_adhesions.pixel_size_um != self.pixel_size_um and (
-                self.focal_adhesions.pixel_size_um == 0.325
-            ):
-                from dataclasses import replace
+            object.__setattr__(
+                self, "focal_adhesions", _with_pixel_size(self.focal_adhesions)
+            )
 
-                object.__setattr__(
-                    self,
-                    "focal_adhesions",
-                    replace(self.focal_adhesions, pixel_size_um=self.pixel_size_um),
-                )
         if self.actin is None:
-            object.__setattr__(self, "actin", ActinParams())
+            object.__setattr__(
+                self, "actin", ActinParams(pixel_size_um=self.pixel_size_um)
+            )
+        else:
+            object.__setattr__(self, "actin", _with_pixel_size(self.actin))
+
         if self.dinov2 is None:
-            object.__setattr__(self, "dinov2", DinoV2Params())
+            object.__setattr__(
+                self, "dinov2", DinoV2Params(pixel_size_um=self.pixel_size_um)
+            )
+        else:
+            object.__setattr__(self, "dinov2", _with_pixel_size(self.dinov2))
 
 
 class ProfileAssembler:
@@ -202,10 +235,20 @@ class ProfileAssembler:
         # White top-hat background subtraction on every intensity
         # channel (glycocalyx / YAP / paxillin / actin). DAPI is left
         # untouched — it drives segmentation and nuclear morphometry
-        # where top-hat would destroy nucleolar brights.
-        if self.config.background_radius_px > 0:
+        # where top-hat would destroy nucleolar brights. The structuring
+        # element is µm-native so its physical footprint is invariant
+        # across acquisition optics; the legacy px override takes
+        # precedence only when explicitly set (typically by tests).
+        if self.config.background_radius_px is not None:
+            if self.config.background_radius_px > 0:
+                channels = subtract_background(
+                    channels, radius_px=self.config.background_radius_px
+                )
+        elif self.config.background_radius_um > 0:
             channels = subtract_background(
-                channels, radius_px=self.config.background_radius_px
+                channels,
+                radius_um=self.config.background_radius_um,
+                pixel_size_um=self.config.pixel_size_um,
             )
 
         cell_ids = sorted(int(v) for v in np.unique(cell_mask).tolist() if v != 0)
