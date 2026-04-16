@@ -279,12 +279,48 @@ function SpatialSection({ jobId }: { jobId: string | null }) {
 }
 
 function SpatialResults({ data }: { data: SpatialGNNResponse }) {
+  const hasCv = data.cv_k !== undefined && data.cv_k > 0;
+  const cvStrategy = data.cv_strategy ?? "random";
+  const r2Std = data.r2_std ?? 0;
+  const cvK = data.cv_k ?? 1;
+  const strategyLabel = cvStrategy === "spatial" ? "spatial block CV" : "random split";
+  const strategyTint =
+    cvStrategy === "spatial"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : "bg-amber-50 text-amber-700 border-amber-200";
+  const r2Label = hasCv
+    ? cvStrategy === "spatial"
+      ? `R² over ${cvK} spatial folds`
+      : "R² (held-out, random split)"
+    : "R² (held-out)";
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-6 pb-3 border-b border-gray-100">
         <div>
-          <div className="text-[18px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{data.r2_score.toFixed(3)}</div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">R² (held-out)</div>
+          <div
+            className="text-[18px] font-semibold text-gray-900 inline-flex items-baseline gap-1"
+            style={{ fontFeatureSettings: "'tnum'" }}
+          >
+            <span>{data.r2_score.toFixed(3)}</span>
+            {hasCv && cvStrategy === "spatial" && r2Std > 0 && (
+              <span className="text-[12px] font-normal text-gray-500">
+                ± {r2Std.toFixed(2)}
+              </span>
+            )}
+          </div>
+          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+            {r2Label}
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-medium normal-case tracking-normal ${strategyTint}`}
+              title={
+                cvStrategy === "spatial"
+                  ? "Spatial block cross-validation via k-means on cell centroids. Stricter than a random split because the train/test boundary respects graph autocorrelation (Roberts 2017)."
+                  : "Random 80/20 split — fell back from spatial because the image has too few cells or too few per-fold cells for block CV. R² is likely optimistic vs. the spatial estimate."
+              }
+            >
+              {strategyLabel}
+            </span>
+          </div>
         </div>
         <div>
           <div className="text-[14px] font-semibold text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>{data.n_edges}</div>
@@ -300,6 +336,19 @@ function SpatialResults({ data }: { data: SpatialGNNResponse }) {
         R² is the held-out variance of mechano score explained by neighbourhood features on
         this image. Higher values indicate more spatial structure; low values do not exclude
         cell-autonomous regulation.
+        {cvStrategy === "spatial" && data.fold_r2_scores && data.fold_r2_scores.length > 1 && (
+          <span className="block mt-1 text-gray-400">
+            Per-fold R²:{" "}
+            <span style={{ fontFeatureSettings: "'tnum'" }}>
+              {data.fold_r2_scores.map((r, i) => (
+                <span key={i}>
+                  {i > 0 && " · "}
+                  {r.toFixed(2)}
+                </span>
+              ))}
+            </span>
+          </span>
+        )}
       </div>
 
       <div>

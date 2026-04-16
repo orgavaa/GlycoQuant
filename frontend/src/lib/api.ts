@@ -369,6 +369,8 @@ export interface PhenotypeResponse {
 
 export interface SpatialGNNResponse {
   job_id: string;
+  /** Mean R² across spatial CV folds (or single random split when
+   * cv_strategy="random"). */
   r2_score: number;
   node_importance: Record<string, number>;
   n_edges: number;
@@ -376,6 +378,15 @@ export interface SpatialGNNResponse {
   cells_json: string;
   graph_figure_json: string;
   importance_figure_json: string;
+  /** Standard deviation of R² across folds. 0 when cv_strategy="random". */
+  r2_std?: number;
+  /** Actual CV strategy used — may differ from the requested strategy
+   * when the image is too small for meaningful spatial blocking. */
+  cv_strategy?: "spatial" | "random";
+  /** Number of folds actually run. */
+  cv_k?: number;
+  /** Per-fold R². Length equals cv_k. */
+  fold_r2_scores?: number[];
 }
 
 export interface CrossModalResponse {
