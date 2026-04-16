@@ -265,6 +265,19 @@ class PriorGeneEntry(BaseModel):
     pathway_rank: int | None = None
     pathway_score: float | None = None
     abs_rank_divergence: int | None = None
+    pathway_signed_score: float | None = Field(
+        default=None,
+        description=(
+            "Directionally-aware sidecar on the dynamic pathway score. "
+            "Weighted median of sign(signed_z[m]) × inverse_distance(g, m) "
+            "across the 15-gene mechano signature, using the same image-"
+            "derived magnitude weights. Positive = topologically close to "
+            "over-activated axes (candidate KO to attenuate phenotype); "
+            "negative = close to under-activated axes (candidate KO to "
+            "restore phenotype). Populated only on /priors/contextual "
+            "responses; None on the static /priors response."
+        ),
+    )
 
 
 class MetabolicInhibitor(BaseModel):
@@ -302,6 +315,16 @@ class PriorsResponse(BaseModel):
     # Axis A — dynamic image-aware re-weighting
     dynamic: bool = False
     mechano_weights: dict[str, float] | None = None
+    mechano_signed_z: dict[str, float] | None = Field(
+        default=None,
+        description=(
+            "Direction-of-deviation sidecar: {mechano_gene: signed_z}. "
+            "Each value is the mean of signed z-scores from contributing "
+            "features. Positive = axis over-activated in the observed "
+            "image relative to the reference cohort; negative = under-"
+            "activated. Populated only when dynamic=True."
+        ),
+    )
     used_fallback_reference: bool = False
     # Axis B — on-demand Geneformer generation
     can_generate_geneformer: bool = False

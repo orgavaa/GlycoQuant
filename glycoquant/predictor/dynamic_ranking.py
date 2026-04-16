@@ -191,6 +191,49 @@ def load_reference_cohort(path: str | Path | None = None) -> ReferenceCohort:
 # ---------------------------------------------------------------------------
 
 
+def _compute_feature_z(
+    features_df: pd.DataFrame,
+    reference: ReferenceCohort,
+) -> dict[str, float]:
+    """Return ``{feature_name: signed_z}`` over :data:`FEATURE_TO_MECHANO`.
+
+    Shared helper for :func:`compute_mechano_weights` (which takes the
+    absolute value to build an L1-normalised weight vector) and
+    :func:`compute_mechano_signed_z` (which sums the raw signed values
+    per mechano gene to expose direction). Keeping the z-score
+    computation in one place guarantees the two aggregators see
+    identical numerical inputs.
+
+    Features absent from ``features_df`` or with all-NaN values are
+    simply omitted from the returned dict; reference entries with
+    non-positive std are treated the same way. The virtual
+    ``yap_target_ctgf_cyr61_ankrd1`` alias reads from ``yap_nc_ratio``.
+    """
+    feature_z: dict[str, float] = {}
+    for feature_name in FEATURE_TO_MECHANO:
+        source_column = (
+            "yap_nc_ratio"
+            if feature_name == "yap_target_ctgf_cyr61_ankrd1"
+            else feature_name
+        )
+        if source_column not in features_df.columns:
+            continue
+        col = features_df[source_column].to_numpy(dtype=np.float64)
+        if col.size == 0 or not np.any(np.isfinite(col)):
+            continue
+        obs_mean = float(np.nanmean(col))
+        if not math.isfinite(obs_mean):
+            continue
+        ref = reference.features.get(feature_name)
+        if ref is None:
+            continue
+        ref_mean, ref_std = ref
+        if ref_std <= 0.0:
+            continue
+        feature_z[feature_name] = (obs_mean - ref_mean) / ref_std
+    return feature_z
+
+
 def compute_mechano_weights(
     features_df: pd.DataFrame,
     reference: ReferenceCohort,
@@ -205,8 +248,11 @@ def compute_mechano_weights(
     2. Z-score that mean against the reference cohort's mean/std:
        ``z = (obs_mean - ref_mean) / ref_std``.
     3. Take ``|z|`` — we want extreme deviation *in either direction*
-       to drive the ranking, since over- and under-activation of a
-       pathway are both biologically informative.
+       to drive the magnitude ranking, since over- and under-activation
+       of a pathway are both biologically informative at the *axis*
+       level. The *direction* of deviation is exposed separately via
+       :func:`compute_mechano_signed_z`, which enables the downstream
+       ``signed_scores`` column in :class:`DynamicRanking`.
     4. For each mechano gene in the 15-gene signature, sum the ``|z|``
        contributions from every feature whose map includes it.
     5. Apply an L1 normalisation so weights sum to 1.0.
@@ -243,32 +289,9 @@ def compute_mechano_weights(
     if n == 0:
         return {}
 
-    # Step 1–3: per-feature absolute z-scores.
-    feature_abs_z: dict[str, float] = {}
-    for feature_name in FEATURE_TO_MECHANO:
-        # Not every feature survives every extractor. In particular
-        # "yap_target_ctgf_cyr61_ankrd1" is a virtual alias of
-        # yap_nc_ratio — we fold it in below.
-        source_column = (
-            "yap_nc_ratio"
-            if feature_name == "yap_target_ctgf_cyr61_ankrd1"
-            else feature_name
-        )
-        if source_column not in features_df.columns:
-            continue
-        col = features_df[source_column].to_numpy(dtype=np.float64)
-        if col.size == 0 or not np.any(np.isfinite(col)):
-            continue
-        obs_mean = float(np.nanmean(col))
-        if not math.isfinite(obs_mean):
-            continue
-        ref = reference.features.get(feature_name)
-        if ref is None:
-            continue
-        ref_mean, ref_std = ref
-        if ref_std <= 0.0:
-            continue
-        feature_abs_z[feature_name] = abs((obs_mean - ref_mean) / ref_std)
+    # Steps 1–3: per-feature signed z-scores → absolute value
+    feature_signed_z = _compute_feature_z(features_df, reference)
+    feature_abs_z = {name: abs(z) for name, z in feature_signed_z.items()}
 
     # Step 4: accumulate per-mechano-gene contributions. Use a small
     # epsilon when flagging "any signal" — floating-point noise in a
@@ -303,6 +326,61 @@ def compute_mechano_weights(
     # Re-normalise after flooring so the sum is exactly 1.0
     s = sum(normalised.values())
     return {g: v / s for g, v in normalised.items()}
+
+
+def compute_mechano_signed_z(
+    features_df: pd.DataFrame,
+    reference: ReferenceCohort,
+    mechano_genes: list[str] | None = None,
+) -> dict[str, float]:
+    """Return ``{mechano_gene: signed_z}`` — direction of deviation per axis.
+
+    Companion to :func:`compute_mechano_weights`. Uses the *same*
+    feature→gene map and the *same* z-scores, but:
+
+    - Does **not** take absolute value. Over-activation of an axis
+      (e.g. Paszek-bulky glycocalyx → ``yap_nc_ratio`` elevated)
+      yields positive signed_z at YAP1/WWTR1; under-activation
+      (heparinase-digested → ``yap_nc_ratio`` suppressed) yields
+      negative signed_z.
+    - Aggregates as the **mean** of the per-feature signed z-scores
+      mapped onto each gene (not a sum; we do not need the mean to
+      L1-normalise because this vector is an informational sidecar,
+      not a weighting vector).
+    - Does **not** apply a floor, and does **not** fall back to
+      "uniform" — axes with no contributing features return ``0.0``
+      (no observed deviation rather than an imputed one).
+
+    The returned vector is surfaced on the ``PriorsResponse`` so the UI
+    can display directional chevrons next to each mechano gene, and is
+    passed into :func:`recompute_pathway_ranking` as the ``signed_z``
+    kwarg to compute the ``signed_scores`` column on
+    :class:`DynamicRanking`.
+    """
+    if mechano_genes is None:
+        mechano_genes = get_mechano_signature()
+
+    out: dict[str, float] = {g: 0.0 for g in mechano_genes}
+    if not mechano_genes:
+        return out
+
+    feature_signed_z = _compute_feature_z(features_df, reference)
+
+    # Sum then divide by contribution count — arithmetic mean of the
+    # signed contributions per gene. This keeps signed_z comparable
+    # across genes with different cardinality in the map.
+    sums: dict[str, float] = {g: 0.0 for g in mechano_genes}
+    counts: dict[str, int] = {g: 0 for g in mechano_genes}
+    for feature_name, z in feature_signed_z.items():
+        for gene in FEATURE_TO_MECHANO[feature_name]:
+            if gene in sums:
+                sums[gene] += z
+                counts[gene] += 1
+
+    for gene in mechano_genes:
+        if counts[gene] > 0:
+            out[gene] = sums[gene] / counts[gene]
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -367,19 +445,33 @@ class DynamicRanking:
     ranks : dict[str, int]
         Rank 1 = highest score. Ties break alphabetically for
         determinism (matches the static generator).
+    signed_scores : dict[str, float]
+        Optional directional sidecar. When
+        :func:`recompute_pathway_ranking` is called with a ``signed_z``
+        argument, this holds ``{glycocalyx_gene: weighted_median(
+        sign(signed_z[m]) × inverse_distance(g, m))}``. A strongly
+        positive value means the gene is topologically close to axes
+        that are **over-activated** in this image; a strongly negative
+        value means close to axes that are **under-activated**. Empty
+        dict when ``signed_z`` is not provided, which keeps the static
+        ranking byte-exact (see the regression guardrail test).
     source_metadata : dict
         Passthrough of the static prior's metadata plus the image-
-        derived mechano weight vector under ``mechano_weights``.
+        derived mechano weight vector under ``mechano_weights`` and,
+        when ``signed_z`` was provided, the raw signed z-score vector
+        under ``mechano_signed_z``.
     """
 
     scores: dict[str, float]
     ranks: dict[str, int]
+    signed_scores: dict[str, float] = field(default_factory=dict)
     source_metadata: dict[str, Any] = field(default_factory=dict)
 
 
 def recompute_pathway_ranking(
     pathway_prior: PriorTable,
     weights: dict[str, float],
+    signed_z: dict[str, float] | None = None,
 ) -> DynamicRanking:
     """Re-aggregate the pathway prior with image-derived mechano weights.
 
@@ -389,9 +481,12 @@ def recompute_pathway_ranking(
     distances, using the weights produced by
     :func:`compute_mechano_weights`.
 
-    Sanity guarantee (enforced by the unit tests): uniform weights
-    produce the exact same ranking as the static prior. That is the
-    regression guardrail for the whole re-weighting refactor.
+    Sanity guarantee (enforced by the unit tests): uniform weights and
+    ``signed_z=None`` produce the exact same ranking as the static
+    prior. That is the regression guardrail for the whole re-weighting
+    refactor. The optional ``signed_z`` argument adds a directional
+    sidecar — it does **not** alter the magnitude ranking, which stays
+    exclusively a function of ``weights``.
 
     Parameters
     ----------
@@ -401,27 +496,56 @@ def recompute_pathway_ranking(
     weights : dict[str, float]
         ``{mechano_gene: weight}``. Ideally sums to 1.0 but any
         positive vector is accepted.
+    signed_z : dict[str, float], optional
+        ``{mechano_gene: signed_z}`` from
+        :func:`compute_mechano_signed_z`. When provided, the returned
+        :class:`DynamicRanking` additionally carries
+        ``signed_scores[g] = weighted_median(sign(signed_z[m]) ×
+        inverse_distance(g, m))`` across the same weights — a
+        directionally-aware score expressing whether the glycocalyx
+        gene sits topologically close to **over-activated** axes
+        (positive) or **under-activated** axes (negative) in the
+        observed image. Defaults to ``None`` → ``signed_scores = {}``.
 
     Returns
     -------
     DynamicRanking
     """
     if not pathway_prior.available:
-        return DynamicRanking(scores={}, ranks={}, source_metadata={})
+        return DynamicRanking(scores={}, ranks={}, signed_scores={}, source_metadata={})
 
     scores: dict[str, float] = {}
+    signed_scores: dict[str, float] = {}
     for gene, ranking in pathway_prior.rankings.items():
         per_target = ranking.per_mechano  # {target: inverse_distance}
         if not per_target:
             scores[gene] = math.nan
+            if signed_z is not None:
+                signed_scores[gene] = math.nan
             continue
         targets_in_both = [t for t in per_target if t in weights]
         if not targets_in_both:
             scores[gene] = math.nan
+            if signed_z is not None:
+                signed_scores[gene] = math.nan
             continue
         inv_values = [float(per_target[t]) for t in targets_in_both]
         w_values = [float(weights[t]) for t in targets_in_both]
         scores[gene] = weighted_median(inv_values, w_values)
+
+        # Signed sidecar: multiply each per-target inverse distance by
+        # the sign of that target's observed signed_z, then apply the
+        # same weighted-median aggregator with the same magnitude
+        # weights. A target with no observed deviation contributes 0
+        # (sign(0) = 0) — neutral — which matches the behaviour of
+        # ``compute_mechano_signed_z`` for axes with no contributing
+        # features.
+        if signed_z is not None:
+            signed_values = [
+                float(np.sign(signed_z.get(t, 0.0))) * float(per_target[t])
+                for t in targets_in_both
+            ]
+            signed_scores[gene] = weighted_median(signed_values, w_values)
 
     # Sort descending by score; **ties preserve the static rank** so
     # uniform weights reproduce the committed pathway_ranks.json
@@ -443,4 +567,11 @@ def recompute_pathway_ranking(
     metadata = dict(pathway_prior.metadata)
     metadata["dynamic"] = True
     metadata["mechano_weights"] = dict(weights)
-    return DynamicRanking(scores=scores, ranks=ranks, source_metadata=metadata)
+    if signed_z is not None:
+        metadata["mechano_signed_z"] = dict(signed_z)
+    return DynamicRanking(
+        scores=scores,
+        ranks=ranks,
+        signed_scores=signed_scores,
+        source_metadata=metadata,
+    )

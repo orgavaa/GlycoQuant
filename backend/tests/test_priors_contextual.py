@@ -112,3 +112,44 @@ def test_contextual_priors_empty_df_returns_static_ranking(client: TestClient) -
         g["gene"] for g in sorted(data["genes"], key=lambda g: g["pathway_rank"] or 999)
     ][:3]
     assert static_top3 == dynamic_top3
+
+
+def test_contextual_priors_exposes_signed_direction(client: TestClient) -> None:
+    """Elevated YAP → response carries mechano_signed_z with YAP1 > 0.
+
+    Also verifies every per-gene entry has a populated
+    ``pathway_signed_score`` (the directionally-aware sidecar on the
+    dynamic ranking).
+    """
+    elevated_yap_df = _feature_df_json(yap_nc_ratio=[2.8, 3.0, 2.9, 3.1, 3.2])
+    resp = client.post(
+        "/priors/contextual",
+        json={"features_df_json": elevated_yap_df, "cell_count": 5},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+
+    # Top-level signed-z vector covers the full signature
+    signed_z = data.get("mechano_signed_z")
+    assert signed_z is not None, "mechano_signed_z missing from dynamic response"
+    assert len(signed_z) == 15
+    assert signed_z["YAP1"] > 0.0
+    assert signed_z["WWTR1"] > 0.0
+
+    # Every gene has a finite pathway_signed_score
+    for g in data["genes"]:
+        score = g.get("pathway_signed_score")
+        assert score is not None, f"{g['gene']} missing pathway_signed_score"
+        assert isinstance(score, (int, float))
+
+
+def test_static_priors_do_not_expose_signed_sidecar(client: TestClient) -> None:
+    """GET /priors is the static endpoint — no direction information."""
+    resp = client.get("/priors")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["dynamic"] is False
+    assert data.get("mechano_signed_z") is None
+    # Individual genes also have no signed score on the static endpoint
+    for g in data["genes"]:
+        assert g.get("pathway_signed_score") is None
