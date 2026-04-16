@@ -68,7 +68,14 @@ _MECHANO_FEATURES: tuple[_MechanoFeature, ...] = (
     _MechanoFeature("nuclear_aspect_ratio"),
     _MechanoFeature("nuclear_solidity", invert=True),
     _MechanoFeature("nuclear_to_cell_area_ratio", invert=True),
-    _MechanoFeature("cell_spread_area"),
+    # ``cell_spread_area`` was previously in this panel but was removed:
+    # ``yap_nc_ratio_size_corrected`` has already been regressed against
+    # ``cell_area`` via the Jones 2024 correction (see
+    # :func:`apply_yap_size_correction`). Including the convex-hull area
+    # in the panel re-injects the size axis PC1 was supposed to be free
+    # of, because spread area and cell area are near-collinear. Dropping
+    # it makes the score a pure mechanotransduction readout (YAP, FA,
+    # actin, nuclear shape) without a residual size confound.
 )
 
 

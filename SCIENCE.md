@@ -176,6 +176,18 @@ Pure `skimage.measure.regionprops` descriptors. These carry the least risk of bi
 
 ---
 
+## 8.1 Composite mechanotransduction score 🧪
+
+**Module:** `glycoquant/profiles/mechano_score.py`
+
+PCA projection onto a curated panel of 11 per-cell features (YAP translocation, FA maturation, actin contractility, nuclear envelope geometry). `yap_nc_ratio_size_corrected` drives the sign of PC1 (positive loading by construction) so the score has an interpretable direction. Falls back to an equal-weight z-score sum when fewer than 30 cells have a complete feature row. The per-image `MechanoScoreSummary` reports loadings, PC1 variance explained, and sample size so the scalar score is never a black box.
+
+### Why `cell_spread_area` is **not** in the panel 🧪
+
+`yap_nc_ratio_size_corrected` is already the residual of a Jones-2024 linear regression of `yap_nc_ratio` against `cell_area`. Including `cell_spread_area` (convex-hull area) in the PCA panel re-injects the size axis that the YAP correction was designed to remove — spread area and cell area are near-collinear on confocal data, so PC1 would again absorb the size variance and partially undo the correction. GlycoQuant drops spread area from the panel so the score is a pure mechanotransduction readout. A regression guardrail in `tests/test_mechano_score.py` asserts that `cell_spread_area` is not in `summary.loadings`, preventing silent re-addition.
+
+---
+
 ## 9. Deep embeddings — DINOv2
 
 **Module:** `glycoquant/features/deep_embedding.py`

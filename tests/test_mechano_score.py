@@ -111,11 +111,18 @@ def test_pca_score_explains_majority_variance_on_engineered_data() -> None:
     out, summary = compute_mechano_score(df, mode="pca")
     assert summary.mode == "pca"
     assert summary.n_cells_used == 200
-    # 7 features driven by the latent factor → PC1 should soak up
-    # well over 30% of total variance.
+    # 6 features driven by the latent factor (post cell_spread_area
+    # removal) → PC1 should still soak up well over 30% of total
+    # variance. If this threshold becomes marginal in a future refactor,
+    # the right fix is to tighten the engineered latent correlation in
+    # ``_build_mechano_dataframe``, *not* to lower this bar.
     assert summary.pc1_variance_explained > 0.30, summary.pc1_variance_explained
     assert "mechano_score" in out.columns
     assert out["mechano_score"].notna().sum() == 200
+    # Regression guardrail: cell_spread_area was removed from the panel
+    # because the Jones-2024 YAP size correction already handles the
+    # size axis. It must not silently reappear.
+    assert "cell_spread_area" not in summary.loadings
 
 
 def test_pca_score_correlates_with_size_corrected_yap() -> None:
