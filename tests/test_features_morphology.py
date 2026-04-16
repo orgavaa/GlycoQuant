@@ -23,6 +23,10 @@ def cell_mask(cell_specs: list) -> np.ndarray:
 
 def test_returns_expected_keys(cell_mask: np.ndarray) -> None:
     features = extract_morphology_features(cell_mask, cell_id=1)
+    # Morphology now exposes the centroid — required by the spatial GNN
+    # (Delaunay graph construction reads centroid_x / centroid_y from
+    # the per-cell DataFrame). Previously only shape descriptors were
+    # returned.
     assert set(features.keys()) == {
         "cell_area",
         "cell_perimeter",
@@ -30,6 +34,8 @@ def test_returns_expected_keys(cell_mask: np.ndarray) -> None:
         "cell_aspect_ratio",
         "cell_solidity",
         "cell_spread_area",
+        "centroid_x",
+        "centroid_y",
     }
 
 
