@@ -114,6 +114,39 @@ app = modal.App(APP_NAME)
     image=image,
     gpu="L4",
     volumes={CACHE_MOUNT: model_volume},
+    timeout=60,
+    scaledown_window=300,
+)
+def health_check() -> dict[str, Any]:
+    """Cheap GPU warm-up function for the live demo path.
+
+    Triggers a Modal container cold-start so the user's first real
+    /analyze call lands on a warm container instead of waiting 30-60s.
+    Returns a tiny dict with the resolved device + a heartbeat so the
+    frontend can verify the GPU side is reachable before the demo.
+
+    Runtime: ~30s on cold start, <100ms when warm.
+    """
+    import time
+
+    t0 = time.monotonic()
+    try:
+        from glycoquant.compute import describe_device
+
+        device = describe_device()
+    except Exception as exc:  # noqa: BLE001
+        device = f"unknown ({type(exc).__name__})"
+    return {
+        "ok": True,
+        "device": device,
+        "elapsed_ms": int((time.monotonic() - t0) * 1000),
+    }
+
+
+@app.function(
+    image=image,
+    gpu="L4",
+    volumes={CACHE_MOUNT: model_volume},
     timeout=600,
     scaledown_window=300,
 )

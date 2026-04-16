@@ -42,21 +42,35 @@ EXTRACTOR_NAMES = {
 
 
 def _partial_channel_mapping(n_channels: int) -> tuple[dict[str, int], list[str], list[str]]:
-    """Return ``({name: index}, warnings, substitute_channels)`` for positional assignment."""
+    """Return ``({name: index}, warnings, substitute_channels)`` for positional assignment.
+
+    Canonical order is DAPI, WGA, YAP, paxillin, phalloidin, anti-HS.
+    The 6th slot is optional — most uploads today are 5-channel and
+    the 5-channel path is treated as the happy case (no warning).
+    """
     warnings: list[str] = []
     substitutes: list[str] = []
+    canonical_5 = ("dapi", "glycocalyx", "yap", "paxillin", "actin")
     if n_channels >= 5:
-        if n_channels > 5:
+        # 6th channel = optional anti-HS antibody (Fix H5 plumbing).
+        # Take it positionally when present; warn only if there's a 7th+
+        # we can't place.
+        used = min(n_channels, 6)
+        if n_channels > 6:
             warnings.append(
-                f"Image has {n_channels} channels; used the first 5 in the "
-                "canonical order DAPI, WGA, YAP, paxillin, phalloidin. "
-                "Re-order your channels if this is wrong."
+                f"Image has {n_channels} channels; used the first 6 in the "
+                "canonical order DAPI, WGA, YAP, paxillin, phalloidin, "
+                "anti-HS. Re-order your channels if this is wrong."
             )
-        return {name: i for i, name in enumerate(CANONICAL_CHANNELS)}, warnings, substitutes
+        return (
+            {name: i for i, name in enumerate(CANONICAL_CHANNELS[:used])},
+            warnings,
+            substitutes,
+        )
 
-    mapping = {name: i for i, name in enumerate(CANONICAL_CHANNELS[:n_channels])}
-    missing = CANONICAL_CHANNELS[n_channels:]
-    skipped = [EXTRACTOR_NAMES[m] for m in missing]
+    mapping = {name: i for i, name in enumerate(canonical_5[:n_channels])}
+    missing = canonical_5[n_channels:]
+    skipped = [EXTRACTOR_NAMES[m] for m in missing if m in EXTRACTOR_NAMES]
     warnings.append(
         f"Image has {n_channels} channels; expected 5 in the order DAPI, WGA, "
         f"YAP, paxillin, phalloidin. Missing slots ({', '.join(missing)}) will be "
@@ -103,16 +117,26 @@ def _explicit_channel_mapping(
             "yap": "yap", "yap antibody": "yap",
             "paxillin": "paxillin",
             "phalloidin": "actin", "actin": "actin",
+            # 6th slot — anti-HS antibody (10E4 / F58-10E4). Accept the
+            # canonical name and the dropdown's display label.
+            "heparan_sulfate": "heparan_sulfate",
+            "anti-hs (10e4 / f58-10e4)": "heparan_sulfate",
+            "anti-hs": "heparan_sulfate",
         }
         canonical = role_map.get(role_lower)
         if canonical and canonical in CANONICAL_CHANNELS:
             mapping[canonical] = idx
 
-    # Report skipped extractors
+    # Report skipped extractors. ``heparan_sulfate`` is intentionally
+    # excluded from the warning list — it's an OPTIONAL 6th channel that
+    # most uploads will not carry, and warning every user that their
+    # 5-channel image is "missing the HS extractor" would be noise.
+    optional_channels = {"heparan_sulfate"}
     for ch in CANONICAL_CHANNELS:
-        if ch not in mapping and ch != "dapi":
+        if ch not in mapping and ch != "dapi" and ch not in optional_channels:
+            extractor_name = EXTRACTOR_NAMES.get(ch, f"{ch} features")
             warnings.append(
-                f"{ch.capitalize()} channel not assigned — {EXTRACTOR_NAMES[ch]} will be skipped."
+                f"{ch.capitalize()} channel not assigned — {extractor_name} will be skipped."
             )
 
     return mapping, warnings, substitutes, echo
@@ -209,6 +233,7 @@ async def submit_analysis(
     include_deep_features: bool = Form(default=False),  # noqa: B008
     pixel_size_um: float | None = Form(default=None),  # noqa: B008
     channel_assignments: str | None = Form(default=None),  # noqa: B008
+    batch_id: str | None = Form(default=None),  # noqa: B008
     upload: UploadFile | None = File(default=None),  # noqa: B008
 ) -> AnalyzeResponse:
     """Queue an analysis job and return its ``job_id`` immediately.
@@ -335,6 +360,14 @@ async def submit_analysis(
             "channel_warnings": channel_warnings,
             "substitute_channels": substitute_channels,
             "channel_assignments": assignments_echo,
+            # H3 / D3 — batch identifier for cross-session ComBat
+            # correction. None when the user didn't supply one. The
+            # ComBat module (glycoquant.profiles.batch_correction)
+            # ships today; full multi-job correction in the API is a
+            # follow-up. For now batch_id is captured + echoed on the
+            # JobResult so a later /analysis/combat endpoint can
+            # group jobs by it.
+            "batch_id": (batch_id or None),
         }
     )
 
@@ -352,6 +385,30 @@ async def submit_analysis(
         status=job.status,
         created_at=job.created_at.isoformat(),
     )
+
+
+@router.post("/warmup")
+async def warmup_modal() -> dict[str, object]:
+    """Pre-warm the Modal GPU container so the first /analyze call is fast.
+
+    Cold-start latency on a Modal L4 is typically 30-60s. Calling this
+    endpoint before a live demo means the user's first real analysis
+    lands on a warm container with sub-second dispatch instead of the
+    'page hangs for a minute' impression. Safe to call repeatedly —
+    when the container is already warm, returns in ~100ms.
+
+    Returns 503 when the provider is not Modal (no-op makes no sense
+    on the local provider) or when the deployed health_check function
+    is missing — actionable error so the operator runs
+    ``modal deploy backend/modal_app.py``.
+    """
+    from backend.app.gpu_client import warm_up_modal
+
+    try:
+        result = warm_up_modal()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {"ok": True, "modal": result}
 
 
 @router.get("/jobs/{job_id}", response_model=JobStatusResponse)

@@ -1,5 +1,6 @@
-import { Download } from "lucide-react";
-import { exportUrl } from "@/lib/api";
+import { useState } from "react";
+import { Download, Flame } from "lucide-react";
+import { exportUrl, warmupModal } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
 
 export type ViewId = "analysis" | "ranking" | "methods";
@@ -9,17 +10,45 @@ interface TopBarProps {
   onChangeView: (v: ViewId) => void;
 }
 
+type WarmupState = "idle" | "running" | "ready" | "error";
+
 export function TopBar({ activeView, onChangeView }: TopBarProps) {
   const latestJobId = useJobStore((s) => s.latestJobId);
   const canExport = !!latestJobId;
+  const [warmupState, setWarmupState] = useState<WarmupState>("idle");
+  const [warmupDetail, setWarmupDetail] = useState<string>("");
+
   const handleExport = () => {
     if (!latestJobId) return;
-    // The endpoint returns a StreamingResponse with
-    // Content-Disposition: attachment — a top-level assign triggers
-    // the browser's native download flow and preserves the suggested
-    // filename ("glycoquant-<id8>-<timestamp>.zip").
     window.location.assign(exportUrl(latestJobId));
   };
+
+  const handleWarmup = async () => {
+    if (warmupState === "running") return;
+    setWarmupState("running");
+    setWarmupDetail("Provoking GPU container cold-start (30-60s)…");
+    try {
+      const r = await warmupModal();
+      setWarmupState("ready");
+      setWarmupDetail(
+        `Modal ready · ${r.modal.device} · ${r.modal.elapsed_ms}ms heartbeat`,
+      );
+    } catch (exc) {
+      setWarmupState("error");
+      const msg = exc instanceof Error ? exc.message : String(exc);
+      setWarmupDetail(msg);
+    }
+  };
+
+  const warmupTint =
+    warmupState === "ready"
+      ? "text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+      : warmupState === "error"
+        ? "text-red-700 border-red-300 hover:bg-red-50"
+        : warmupState === "running"
+          ? "text-orange-600 border-orange-200 animate-pulse"
+          : "text-gray-700 border-gray-300 hover:bg-gray-50";
+
   return (
     <nav className="h-14 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0 z-50">
       <img src="/logo.png" alt="GlycoQuant" className="h-7 w-7 rounded mr-2" draggable={false} />
@@ -30,6 +59,24 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         <NavTab label="Methods" active={activeView === "methods"} onClick={() => onChangeView("methods")} />
       </div>
       <div className="flex-1" />
+      <button
+        onClick={handleWarmup}
+        disabled={warmupState === "running"}
+        title={
+          warmupDetail ||
+          "Pre-warm the Modal GPU container so the first analysis call lands on a warm container instead of paying a 30-60s cold-start. Call once before a live demo."
+        }
+        className={`flex items-center gap-1.5 text-xs font-medium border rounded-md px-3 py-1.5 mr-2 transition-colors ${warmupTint}`}
+      >
+        <Flame size={14} strokeWidth={1.5} />
+        {warmupState === "running"
+          ? "Warming GPU…"
+          : warmupState === "ready"
+            ? "GPU warm"
+            : warmupState === "error"
+              ? "Warm-up failed"
+              : "Warm up GPU"}
+      </button>
       <button
         onClick={handleExport}
         disabled={!canExport}

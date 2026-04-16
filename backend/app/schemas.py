@@ -247,6 +247,17 @@ class JobResult(BaseModel):
             "the frontend then shows a degraded-but-truthful state."
         ),
     )
+    batch_id: str | None = Field(
+        default=None,
+        description=(
+            "User-supplied identifier grouping multiple uploads from the "
+            "same imaging session for cross-session ComBat correction. "
+            "Captured but not auto-applied today; a later batched-analysis "
+            "endpoint will group JobResults by this field and pass them to "
+            "glycoquant.profiles.batch_correction.combat_correct. None when "
+            "the user did not provide one."
+        ),
+    )
 
 
 class JobStatusResponse(BaseModel):

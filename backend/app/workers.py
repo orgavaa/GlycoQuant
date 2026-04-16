@@ -173,6 +173,7 @@ def run_analysis_job(
             if job_for_meta is not None:
                 remote_result.substitute_channels = list(job_for_meta.meta.get("substitute_channels", []))
                 remote_result.channel_assignments = job_for_meta.meta.get("channel_assignments")
+                remote_result.batch_id = job_for_meta.meta.get("batch_id")
                 # Cache full features (with deep_*) for ML endpoints,
                 # then strip deep_* from the response to keep polling fast
                 job_for_meta.meta["_features_df_full_json"] = remote_result.features_df_json
@@ -306,6 +307,7 @@ def run_analysis_job(
         if job_meta is not None:
             result.substitute_channels = list(job_meta.meta.get("substitute_channels", []))
             result.channel_assignments = job_meta.meta.get("channel_assignments")
+            result.batch_id = job_meta.meta.get("batch_id")
 
         # Cache channels, masks, and full features (with deep_* columns)
         # for the per-cell crops endpoint and ML feature endpoints.

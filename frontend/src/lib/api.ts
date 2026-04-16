@@ -81,6 +81,8 @@ export interface JobResult {
   pixel_size_um?: number;
   channel_assignments?: Record<string, string> | null;
   substitute_channels?: string[];
+  /** User-supplied batch identifier for cross-session ComBat correction. */
+  batch_id?: string | null;
   cell_overlay?: {
     image_w: number;
     image_h: number;
@@ -307,6 +309,9 @@ export interface SubmitAnalyzeArgs {
   includeDeepFeatures: boolean;
   pixelSizeUm?: number;
   channelAssignments?: Record<string, string>;
+  /** Optional batch identifier for cross-session ComBat correction.
+   * Captured today; the multi-job correction endpoint is wired separately. */
+  batchId?: string;
 }
 
 export async function submitAnalyze(args: SubmitAnalyzeArgs): Promise<AnalyzeResponse> {
@@ -320,6 +325,9 @@ export async function submitAnalyze(args: SubmitAnalyzeArgs): Promise<AnalyzeRes
   }
   if (args.channelAssignments) {
     form.append("channel_assignments", JSON.stringify(args.channelAssignments));
+  }
+  if (args.batchId && args.batchId.trim().length > 0) {
+    form.append("batch_id", args.batchId.trim());
   }
   const { data } = await api.post<AnalyzeResponse>("/analysis/analyze", form, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -367,6 +375,19 @@ export async function recomputeCorrelation(
  * triggers the backend's StreamingResponse download. */
 export function exportUrl(jobId: string): string {
   return `${BASE_URL}/analysis/jobs/${jobId}/export`;
+}
+
+/** Pre-warm the Modal GPU container. Call before a live demo so the
+ * first real analyze call doesn't pay the 30-60s cold-start penalty. */
+export async function warmupModal(): Promise<{
+  ok: boolean;
+  modal: { ok: boolean; device: string; elapsed_ms: number };
+}> {
+  const { data } = await api.post<{
+    ok: boolean;
+    modal: { ok: boolean; device: string; elapsed_ms: number };
+  }>("/analysis/warmup", undefined, { timeout: 120_000 });
+  return data;
 }
 
 export async function fetchPriors(): Promise<PriorsResponse> {

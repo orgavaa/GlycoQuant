@@ -25,6 +25,7 @@ Provider = Literal["local", "modal"]
 MODAL_APP_NAME = "glycoquant-gpu"
 MODAL_FUNCTION_NAME = "run_pipeline"
 MODAL_GENEFORMER_FUNCTION_NAME = "generate_geneformer_prior"
+MODAL_HEALTH_CHECK_FUNCTION_NAME = "health_check"
 
 # Cached remote function handles so we only pay the lookup cost once
 # per worker process. Invalidated implicitly on process restart.
@@ -210,3 +211,52 @@ def poll_geneformer_call(call_id: str) -> tuple[str, dict[str, Any] | None]:
             "geneformer_ranks.json schema."
         )
     return "complete", result
+
+
+def warm_up_modal(timeout_s: float = 90.0) -> dict[str, Any]:
+    """Trigger the Modal GPU container so the first real call is warm.
+
+    Cold-start latency on Modal L4 is typically 30-60s. Calling this
+    pre-demo means the user's first /analyze call lands on a warm
+    container with sub-second dispatch, instead of a confusing
+    'page hangs for a minute' experience.
+
+    Returns the health-check payload from Modal (device + heartbeat).
+    Raises ``RuntimeError`` with a clear message when the provider is
+    not Modal, the function is missing, or the call times out.
+    """
+    if get_provider() != "modal":
+        raise RuntimeError(
+            "Modal warm-up requires GLYCOQUANT_GPU_PROVIDER=modal. "
+            "Local provider needs no warm-up — first call runs on the "
+            "FastAPI worker process directly."
+        )
+    try:
+        import modal
+    except ImportError as exc:
+        raise RuntimeError(
+            "modal package not installed in the Railway service. "
+            "Re-deploy with the modal pip dependency."
+        ) from exc
+    try:
+        fn = modal.Function.from_name(
+            MODAL_APP_NAME, MODAL_HEALTH_CHECK_FUNCTION_NAME
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"Modal health_check function not found "
+            f"({MODAL_APP_NAME}/{MODAL_HEALTH_CHECK_FUNCTION_NAME}). "
+            "Run `modal deploy backend/modal_app.py` to publish it."
+        ) from exc
+    try:
+        result = fn.remote()
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"Modal warm-up call failed: {type(exc).__name__}: {exc}"
+        ) from exc
+    if not isinstance(result, dict):
+        raise RuntimeError(
+            f"Modal health_check returned unexpected type {type(result).__name__}; "
+            "expected dict with keys 'ok', 'device', 'elapsed_ms'."
+        )
+    return result
