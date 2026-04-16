@@ -41,7 +41,13 @@ from scipy.ndimage import white_tophat
 
 # Channels that carry quantitative fluorescence we want to normalise.
 # DAPI is omitted on purpose — see module docstring.
-INTENSITY_CHANNELS: tuple[str, ...] = ("glycocalyx", "yap", "paxillin", "actin")
+INTENSITY_CHANNELS: tuple[str, ...] = (
+    "glycocalyx",
+    "yap",
+    "paxillin",
+    "actin",
+    "heparan_sulfate",
+)
 
 # Default structuring-element radius in microns. Chosen to be larger
 # than any single focal adhesion, pericellular shell, or actin fiber

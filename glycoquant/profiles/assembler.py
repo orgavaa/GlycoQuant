@@ -27,6 +27,7 @@ from glycoquant.features import (
     extract_actin_features,
     extract_fa_features,
     extract_glycocalyx_features,
+    extract_hs_features,
     extract_morphology_features,
     extract_nuclear_morphology_features,
     extract_yap_features,
@@ -45,7 +46,19 @@ from glycoquant.segmentation import CellSegmenter
 # Canonical channel names accepted by ``process_image``. The assembler
 # only runs an extractor if its channel is present, so callers can
 # pass any subset.
-CANONICAL_CHANNELS = ("dapi", "glycocalyx", "yap", "paxillin", "actin")
+# Sixth canonical slot ``heparan_sulfate`` is reserved for an anti-HS
+# antibody channel (10E4 / F58-10E4) — the wet-lab complement to WGA
+# that resolves the syndecan/glypican axis WGA cannot see (Galustian
+# 1995). When present, the assembler runs the hs_* feature extractor;
+# absent, the rest of the pipeline is unaffected.
+CANONICAL_CHANNELS = (
+    "dapi",
+    "glycocalyx",
+    "yap",
+    "paxillin",
+    "actin",
+    "heparan_sulfate",
+)
 
 
 @dataclass
@@ -329,6 +342,20 @@ class ProfileAssembler:
             row.update(
                 extract_glycocalyx_features(
                     channels["glycocalyx"], cell_mask, cell_id, self.config.glycocalyx
+                )
+            )
+        # Sibling HS extractor — runs only when the optional 6th
+        # canonical channel is present. The extractor reuses the
+        # WGA pericellular geometry/texture math but emits hs_* keys
+        # so both readouts can sit on the same DataFrame for the
+        # cross-modal predictor and the correlation heatmap.
+        if "heparan_sulfate" in channels:
+            row.update(
+                extract_hs_features(
+                    channels["heparan_sulfate"],
+                    cell_mask,
+                    cell_id,
+                    self.config.glycocalyx,
                 )
             )
         if "yap" in channels:

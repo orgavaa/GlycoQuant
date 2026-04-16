@@ -31,7 +31,14 @@ DEFAULT_DISPLAY_MAX_SIDE = 2048  # pixels
 
 # Canonical channel names that downstream code (ProfileAssembler,
 # DinoV2Embedder) expects.
-CANONICAL_CHANNEL_NAMES = ("dapi", "glycocalyx", "yap", "paxillin", "actin")
+CANONICAL_CHANNEL_NAMES = (
+    "dapi",
+    "glycocalyx",
+    "yap",
+    "paxillin",
+    "actin",
+    "heparan_sulfate",
+)
 
 
 # ---------------------------------------------------------------------------
