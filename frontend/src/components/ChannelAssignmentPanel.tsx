@@ -2,7 +2,20 @@ import { useState } from "react";
 import { Info } from "lucide-react";
 import type { DemoChannelSlotSource } from "@/lib/api";
 
-const CANONICAL_ORDER = ["dapi", "glycocalyx", "yap", "paxillin", "actin"];
+const CANONICAL_ORDER = [
+  "dapi",
+  "glycocalyx",
+  "yap",
+  "paxillin",
+  "actin",
+  "heparan_sulfate",
+];
+
+// Maximum channels surfaced in the UI. Extended from 5 → 6 to expose
+// the optional anti-HS antibody slot (10E4 / F58-10E4) — the wet-lab
+// complement to WGA that resolves the syndecan/glypican axis. See
+// docs/HEPARAN_SULFATE_PROTOCOL.md.
+const MAX_CHANNELS = 6;
 
 const ROLE_OPTIONS = [
   { value: "dapi", label: "DAPI (nuclei)" },
@@ -10,6 +23,7 @@ const ROLE_OPTIONS = [
   { value: "yap", label: "YAP antibody" },
   { value: "paxillin", label: "Paxillin (focal adhesions)" },
   { value: "actin", label: "Phalloidin (actin)" },
+  { value: "heparan_sulfate", label: "Anti-HS (10E4 / F58-10E4)" },
   { value: "other", label: "Other" },
   { value: "unknown", label: "Unknown / skip" },
 ];
@@ -20,6 +34,7 @@ const ROLE_COLORS: Record<string, string> = {
   yap: "#762a83",
   paxillin: "#b35806",
   actin: "#4d4d4d",
+  heparan_sulfate: "#8a2be2",
   other: "#9ca3af",
   unknown: "#d1d5db",
 };
@@ -44,7 +59,7 @@ export function ChannelAssignmentPanel({ slotSources, nChannels, value, onChange
         </span>
       </div>
 
-      {Array.from({ length: Math.min(nChannels, 5) }, (_, i) => {
+      {Array.from({ length: Math.min(nChannels, MAX_CHANNELS) }, (_, i) => {
         const idx = String(i);
         const currentRole = value[idx] ?? "unknown";
         const source = slotSources?.[CANONICAL_ORDER[i]];
@@ -97,8 +112,9 @@ export function ChannelAssignmentPanel({ slotSources, nChannels, value, onChange
           </button>
           {showHints && (
             <div className="mt-2 space-y-1.5 p-2 bg-gray-50 rounded-md">
-              {Array.from({ length: Math.min(nChannels, 5) }, (_, i) => {
-                const source = slotSources[CANONICAL_ORDER[i]];
+              {Array.from({ length: Math.min(nChannels, MAX_CHANNELS) }, (_, i) => {
+                const canonical = CANONICAL_ORDER[i];
+                const source = canonical ? slotSources[canonical] : undefined;
                 if (!source) return null;
                 return (
                   <div key={i} className="text-[10px] leading-snug">
@@ -135,10 +151,10 @@ export function ChannelAssignmentPanel({ slotSources, nChannels, value, onChange
  */
 export function defaultAssignmentsFromManifest(
   slotSources: Record<string, DemoChannelSlotSource> | null,
-  nChannels: number = 5,
+  nChannels: number = 6,
 ): Record<string, string> {
   const assignments: Record<string, string> = {};
-  for (let i = 0; i < Math.min(nChannels, 5); i++) {
+  for (let i = 0; i < Math.min(nChannels, MAX_CHANNELS); i++) {
     const canonical = CANONICAL_ORDER[i];
     const source = slotSources?.[canonical];
     if (source && source.matches_labouesse_protocol) {
@@ -146,7 +162,9 @@ export function defaultAssignmentsFromManifest(
     } else if (source) {
       assignments[String(i)] = "unknown";
     } else {
-      assignments[String(i)] = canonical;
+      // 6th slot defaults to "unknown" until the user opts into HS
+      // — most uploads today will be 5-channel
+      assignments[String(i)] = canonical ?? "unknown";
     }
   }
   return assignments;
@@ -155,10 +173,10 @@ export function defaultAssignmentsFromManifest(
 /**
  * Build default positional assignments for uploads.
  */
-export function defaultPositionalAssignments(nChannels: number = 5): Record<string, string> {
+export function defaultPositionalAssignments(nChannels: number = 6): Record<string, string> {
   const assignments: Record<string, string> = {};
-  for (let i = 0; i < Math.min(nChannels, 5); i++) {
-    assignments[String(i)] = CANONICAL_ORDER[i];
+  for (let i = 0; i < Math.min(nChannels, MAX_CHANNELS); i++) {
+    assignments[String(i)] = CANONICAL_ORDER[i] ?? "unknown";
   }
   return assignments;
 }

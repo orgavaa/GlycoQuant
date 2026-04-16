@@ -16,6 +16,35 @@ import {
 } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
 
+/** Common confocal acquisition pixel sizes in µm/px.
+ *
+ * Pre-calculated from the standard objective × camera-pixel-pitch
+ * combinations. The user MUST verify against their own microscope's
+ * metadata — these are typical, not authoritative. Used as a
+ * convenience picker so a Labouesse PI demo doesn't accidentally
+ * leave the BBBC022 default 0.656 in place.
+ */
+const PIXEL_SIZE_PRESETS: ReadonlyArray<{ id: string; label: string; um: number }> = [
+  { id: "leica-100x", label: "Leica 100× (0.063 µm)", um: 0.063 },
+  { id: "zeiss-63x-airy", label: "Zeiss 63× Airyscan (0.084 µm)", um: 0.084 },
+  { id: "leica-63x", label: "Leica 63× (0.103 µm)", um: 0.103 },
+  { id: "zeiss-63x", label: "Zeiss 63× (0.137 µm)", um: 0.137 },
+  { id: "zeiss-40x", label: "Zeiss 40× (0.163 µm)", um: 0.163 },
+  { id: "zeiss-20x", label: "Zeiss 20× (0.227 µm)", um: 0.227 },
+  { id: "leica-20x", label: "Leica 20× (0.325 µm)", um: 0.325 },
+  { id: "leica-20x-2x", label: "Leica 20× 2× zoom (0.163 µm)", um: 0.163 },
+  { id: "bbbc022", label: "BBBC022 (0.656 µm)", um: 0.656 },
+];
+
+function pixelSizePresetMatch(value: number): string {
+  // Tolerance of 1% so floating-point drift from manual edits doesn't
+  // unstick the dropdown — but a deliberate manual entry shows "custom".
+  for (const p of PIXEL_SIZE_PRESETS) {
+    if (Math.abs(p.um - value) / Math.max(p.um, 1e-9) < 0.01) return p.id;
+  }
+  return "custom";
+}
+
 export function LoaderView() {
   const job = useAnalysisJob();
   const setLatestRawPreviewUrl = useJobStore(s => s.setLatestRawPreviewUrl);
@@ -26,6 +55,7 @@ export function LoaderView() {
   const [cellDiameter, setCellDiameter] = useState(80);
   const [pixelSizeUm, setPixelSizeUm] = useState(0.656);
   const [includeDeep, setIncludeDeep] = useState(false);
+  const [batchId, setBatchId] = useState("");
   const [channelAssignments, setChannelAssignments] = useState<Record<string, string>>(
     defaultPositionalAssignments()
   );
@@ -71,6 +101,7 @@ export function LoaderView() {
       includeDeepFeatures: includeDeep,
       pixelSizeUm,
       channelAssignments,
+      batchId: batchId.trim() || undefined,
     });
   };
 
@@ -207,24 +238,71 @@ export function LoaderView() {
                   </div>
                   <div>
                     <label className="text-[10px] text-gray-400 mb-1 block">Pixel size (&micro;m)</label>
-                    <input type="number" value={pixelSizeUm} min={0.05} max={2} step={0.005}
-                      onChange={(e) => setPixelSizeUm(Number(e.target.value))}
-                      disabled={isRunning}
-                      className="w-full bg-white border border-gray-200 rounded-md px-2.5 py-1.5 text-[12px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
+                    <div className="flex gap-1.5">
+                      <input type="number" value={pixelSizeUm} min={0.05} max={2} step={0.005}
+                        onChange={(e) => setPixelSizeUm(Number(e.target.value))}
+                        disabled={isRunning}
+                        className="w-full bg-white border border-gray-200 rounded-md px-2.5 py-1.5 text-[12px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <select
+                        value={pixelSizePresetMatch(pixelSizeUm)}
+                        onChange={(e) => {
+                          const preset = PIXEL_SIZE_PRESETS.find(p => p.id === e.target.value);
+                          if (preset) setPixelSizeUm(preset.um);
+                        }}
+                        disabled={isRunning}
+                        title="Acquisition presets — picks the typical pixel size for common confocal optics. Always verify against your microscope's metadata."
+                        className="bg-white border border-gray-200 rounded-md px-1.5 py-1.5 text-[10px] text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="custom">Preset…</option>
+                        {PIXEL_SIZE_PRESETS.map(p => (
+                          <option key={p.id} value={p.id}>{p.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="text-[9px] text-gray-400 mt-1 leading-tight">
+                      Critical: every µm-native feature (FA size bins, ring width,
+                      cortical ring, top-hat radius) is wrong if this is wrong. Set
+                      it before each upload — the default 0.656 fits BBBC022 only.
+                    </div>
                   </div>
                 </div>
               </section>
 
-              {/* 5. Channel assignment */}
+              {/* 5. Channel assignment — supports up to 6 channels (5
+                   canonical Labouesse panel + optional anti-HS antibody) */}
               <section>
                 <ChannelAssignmentPanel
                   slotSources={pending.kind === "demo" ? pending.dataset.slot_sources : null}
-                  nChannels={5}
+                  nChannels={6}
                   value={channelAssignments}
                   onChange={setChannelAssignments}
                   disabled={isRunning}
                 />
+              </section>
+
+              {/* 6. Batch identifier — optional. Multiple uploads
+                   sharing the same batch_id can later be ComBat-corrected
+                   together via the cross-session correction module. */}
+              <section>
+                <div className="flex items-center gap-1.5 leading-none mb-2">
+                  <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-[1px]">
+                    Batch ID (optional)
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={batchId}
+                  onChange={(e) => setBatchId(e.target.value)}
+                  disabled={isRunning}
+                  placeholder="e.g. 2026-04-16_run_A"
+                  className="w-full bg-white border border-gray-200 rounded-md px-2.5 py-1.5 text-[12px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <div className="text-[9px] text-gray-400 mt-1 leading-tight">
+                  Group multiple uploads from the same imaging session for
+                  cross-session ComBat correction (Johnson 2007). Leave
+                  blank for single-image analyses.
+                </div>
               </section>
 
               {/* 6. Deep embeddings */}
