@@ -86,6 +86,13 @@ function OverviewTab({ result, cells }: Props) {
           { value: String(result.cell_count), label: "Cells analysed" },
           { value: fmtSigned(m.mean_mechano_score), label: "Mean mechano score" },
           { value: glycoMechR != null ? fmt(glycoMechR) : "\u2014", label: "Strongest |r|" },
+          {
+            value:
+              summary?.n_significant_pairs_fdr != null
+                ? String(summary.n_significant_pairs_fdr)
+                : "\u2014",
+            label: "Sig. pairs (FDR<0.05)",
+          },
         ]} />
         {/* One-sentence scientific interpretation */}
         {glycoMechR != null && summary?.top_correlation_pair && (
