@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import type { PriorGeneEntry } from "@/lib/api";
 
 interface RankingTableProps {
@@ -10,6 +11,12 @@ interface RankingTableProps {
 
 export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelectGene, staticRankByGene = null }: RankingTableProps) {
   const showDelta = staticRankByGene !== null;
+  // Signed column only renders when at least one gene carries the field —
+  // the static /priors response doesn't, the contextual /priors/contextual
+  // response does.
+  const showSigned = genes.some(
+    (g) => g.pathway_signed_score !== null && g.pathway_signed_score !== undefined,
+  );
   return (
     <div className="max-h-[520px] overflow-auto">
       <table className="w-full text-left">
@@ -24,6 +31,14 @@ export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelec
             )}
             <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Path rank</th>
             <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Path score</th>
+            {showSigned && (
+              <th
+                className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
+                title="Directionally-aware score. Positive = close to over-activated mechano axes. Negative = close to under-activated axes."
+              >
+                Signed
+              </th>
+            )}
             {showDelta && (
               <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider" title="Change vs. static ranking">&Delta;</th>
             )}
@@ -57,6 +72,11 @@ export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelec
                 )}
                 <td className="px-4 py-3 text-[13px] text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{g.pathway_rank ?? "\u2014"}</td>
                 <td className="px-4 py-3"><ScoreBar value={g.pathway_score} /></td>
+                {showSigned && (
+                  <td className="px-4 py-3">
+                    <SignedCell value={g.pathway_signed_score ?? null} />
+                  </td>
+                )}
                 {showDelta && <td className="px-4 py-3"><DeltaCell delta={delta} /></td>}
                 {geneformerAvailable && (
                   <td className={`px-4 py-3 text-[13px] ${g.abs_rank_divergence && g.abs_rank_divergence >= 5 ? "font-bold text-amber-600" : "text-gray-500"}`} style={{ fontFeatureSettings: "'tnum'" }}>
@@ -69,6 +89,33 @@ export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelec
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SignedCell({ value }: { value: number | null }) {
+  if (value === null || value === undefined) {
+    return <span className="text-gray-400 text-[11px]">&mdash;</span>;
+  }
+  // |value| < 0.02 is treated as neutral — below the noise floor of the
+  // weighted-median aggregator on typical images.
+  const dir: "up" | "down" | "neutral" =
+    Math.abs(value) < 0.02 ? "neutral" : value > 0 ? "up" : "down";
+  const Icon = dir === "up" ? ArrowUp : dir === "down" ? ArrowDown : Minus;
+  const color =
+    dir === "up" ? "text-red-600" : dir === "down" ? "text-blue-600" : "text-gray-400";
+  const tone =
+    dir === "up" ? "text-red-700" : dir === "down" ? "text-blue-700" : "text-gray-500";
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[11px]"
+      style={{ fontFeatureSettings: "'tnum'" }}
+    >
+      <Icon size={10} strokeWidth={2} className={color} />
+      <span className={tone}>
+        {value >= 0 ? "+" : ""}
+        {value.toFixed(2)}
+      </span>
+    </span>
   );
 }
 

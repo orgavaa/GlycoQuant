@@ -1,4 +1,6 @@
 import { Download } from "lucide-react";
+import { exportUrl } from "@/lib/api";
+import { useJobStore } from "@/lib/jobStore";
 
 export type ViewId = "analysis" | "ranking" | "methods";
 
@@ -8,6 +10,16 @@ interface TopBarProps {
 }
 
 export function TopBar({ activeView, onChangeView }: TopBarProps) {
+  const latestJobId = useJobStore((s) => s.latestJobId);
+  const canExport = !!latestJobId;
+  const handleExport = () => {
+    if (!latestJobId) return;
+    // The endpoint returns a StreamingResponse with
+    // Content-Disposition: attachment — a top-level assign triggers
+    // the browser's native download flow and preserves the suggested
+    // filename ("glycoquant-<id8>-<timestamp>.zip").
+    window.location.assign(exportUrl(latestJobId));
+  };
   return (
     <nav className="h-14 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0 z-50">
       <img src="/logo.png" alt="GlycoQuant" className="h-7 w-7 rounded mr-2" draggable={false} />
@@ -18,7 +30,20 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         <NavTab label="Methods" active={activeView === "methods"} onClick={() => onChangeView("methods")} />
       </div>
       <div className="flex-1" />
-      <button className="flex items-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors">
+      <button
+        onClick={handleExport}
+        disabled={!canExport}
+        title={
+          canExport
+            ? "Download per-cell features, results summary, and provenance bundle as a zip"
+            : "Run an analysis first — the export bundle needs a completed job"
+        }
+        className={`flex items-center gap-1.5 text-xs font-medium border rounded-md px-3 py-1.5 transition-colors ${
+          canExport
+            ? "text-gray-700 border-gray-300 hover:bg-gray-50"
+            : "text-gray-400 border-gray-200 cursor-not-allowed"
+        }`}
+      >
         <Download size={14} strokeWidth={1.5} />
         Export
       </button>

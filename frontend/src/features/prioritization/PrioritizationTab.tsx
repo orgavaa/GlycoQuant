@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Info, Zap, ChevronLeft, FlaskConical, Network, Table2, BarChart3, Layers } from "lucide-react";
+import { Info, Zap, ChevronLeft, FlaskConical, Network, Table2, BarChart3, Layers, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
@@ -144,11 +144,37 @@ export function PrioritizationTab() {
           {topWeights.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3">
               <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Most weighted:</span>
-              {topWeights.map(([gene, weight]) => (
-                <span key={gene} className="text-[10px] font-medium px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-800" style={{ fontFeatureSettings: "'tnum'" }}>
-                  {gene} {weight.toFixed(2)}
-                </span>
-              ))}
+              {topWeights.map(([gene, weight]) => {
+                const signedZ = priors.mechano_signed_z?.[gene] ?? 0;
+                // |z| < 0.1 treated as neutral — below the biological-null noise floor
+                const direction: "up" | "down" | "neutral" =
+                  Math.abs(signedZ) < 0.1 ? "neutral" : signedZ > 0 ? "up" : "down";
+                const DirIcon = direction === "up" ? ArrowUp : direction === "down" ? ArrowDown : Minus;
+                const dirColor =
+                  direction === "up"
+                    ? "text-red-600"
+                    : direction === "down"
+                    ? "text-blue-600"
+                    : "text-gray-400";
+                const dirTitle =
+                  direction === "up"
+                    ? `over-activated in this image (signed z = +${signedZ.toFixed(2)})`
+                    : direction === "down"
+                    ? `under-activated in this image (signed z = ${signedZ.toFixed(2)})`
+                    : `near the reference cohort null (|z| = ${Math.abs(signedZ).toFixed(2)})`;
+                return (
+                  <span
+                    key={gene}
+                    title={dirTitle}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-800"
+                    style={{ fontFeatureSettings: "'tnum'" }}
+                  >
+                    {gene}
+                    <DirIcon size={10} strokeWidth={2} className={dirColor} />
+                    {weight.toFixed(2)}
+                  </span>
+                );
+              })}
             </div>
           )}
           <button
@@ -256,6 +282,33 @@ export function PrioritizationTab() {
                 {g.pathway_score !== null && (
                   <div className="text-[11px] text-gray-500 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>
                     score {g.pathway_score.toFixed(3)}
+                  </div>
+                )}
+                {isDynamic && g.pathway_signed_score !== null && g.pathway_signed_score !== undefined && (
+                  <div
+                    className="text-[10px] mt-0.5 inline-flex items-center gap-0.5"
+                    style={{ fontFeatureSettings: "'tnum'" }}
+                    title="Positive = close to over-activated axes (candidate KO to attenuate). Negative = close to under-activated axes (candidate KO to restore)."
+                  >
+                    {g.pathway_signed_score > 0 ? (
+                      <ArrowUp size={9} strokeWidth={2} className="text-red-600" />
+                    ) : g.pathway_signed_score < 0 ? (
+                      <ArrowDown size={9} strokeWidth={2} className="text-blue-600" />
+                    ) : (
+                      <Minus size={9} strokeWidth={2} className="text-gray-400" />
+                    )}
+                    <span
+                      className={
+                        g.pathway_signed_score > 0
+                          ? "text-red-700"
+                          : g.pathway_signed_score < 0
+                          ? "text-blue-700"
+                          : "text-gray-500"
+                      }
+                    >
+                      signed {g.pathway_signed_score >= 0 ? "+" : ""}
+                      {g.pathway_signed_score.toFixed(2)}
+                    </span>
                   </div>
                 )}
                 <div className="mt-2 flex flex-wrap gap-1">

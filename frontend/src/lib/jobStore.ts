@@ -18,6 +18,9 @@ interface JobStoreState {
   // Actions
   setLatestJobId: (jobId: string) => void;
   setLatestJobResult: (result: JobResult, datasetLabel?: string | null, jobId?: string | null) => void;
+  /** Replace the current result in place without touching completedJobs
+   * or resetting ML panels — used by the recompute-correlation toggle. */
+  patchLatestJobResult: (result: JobResult) => void;
   setLatestRawPreviewUrl: (url: string | null) => void;
   clearLatestJobResult: () => void;
   setSelectedCellId: (cellId: number | null) => void;
@@ -53,6 +56,8 @@ export const useJobStore = create<JobStoreState>((set) => ({
         { result, label: datasetLabel ?? "Untitled" },
       ],
     })),
+  patchLatestJobResult: (result) =>
+    set({ latestJobResult: result }),
   clearLatestJobResult: () =>
     set({
       latestJobResult: null,

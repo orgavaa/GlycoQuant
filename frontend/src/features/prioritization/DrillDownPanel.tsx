@@ -171,14 +171,58 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
             </div>
             {evidence.path_edges.length > 0 && (
               <div className="space-y-1">
-                {evidence.path_edges.map((e, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px] text-gray-500">
-                    <span className="text-gray-700">{e.from}</span>
-                    <ArrowLeftRight size={10} strokeWidth={1.5} className="text-gray-300" />
-                    <span className="text-gray-700">{e.to}</span>
-                    <span className="ml-auto" style={{ fontFeatureSettings: "'tnum'" }}>conf {e.confidence.toFixed(3)}</span>
-                  </div>
-                ))}
+                {evidence.path_edges.map((e, i) => {
+                  const isCurated = e.source === "curated";
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2 text-[10px] ${
+                        isCurated ? "text-amber-800" : "text-gray-500"
+                      }`}
+                    >
+                      <span className={isCurated ? "text-amber-900 font-medium" : "text-gray-700"}>
+                        {e.from}
+                      </span>
+                      <ArrowLeftRight
+                        size={10}
+                        strokeWidth={1.5}
+                        className={isCurated ? "text-amber-400" : "text-gray-300"}
+                      />
+                      <span className={isCurated ? "text-amber-900 font-medium" : "text-gray-700"}>
+                        {e.to}
+                      </span>
+                      {isCurated && (
+                        <span
+                          className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-amber-200 bg-amber-50 text-amber-800 text-[9px] font-semibold uppercase tracking-wider"
+                          title={
+                            e.reason
+                              ? `Literature-traceable edge added below the STRING cutoff. ${e.reason}`
+                              : "Literature-traceable edge added below the STRING cutoff."
+                          }
+                        >
+                          CURATED
+                          {e.pubmed_doi && (
+                            <a
+                              href={`https://doi.org/${e.pubmed_doi}`}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              className="underline font-normal lowercase"
+                              onClick={(ev) => ev.stopPropagation()}
+                            >
+                              doi
+                            </a>
+                          )}
+                        </span>
+                      )}
+                      <span
+                        className="ml-auto"
+                        style={{ fontFeatureSettings: "'tnum'" }}
+                      >
+                        conf {e.confidence.toFixed(3)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -281,6 +282,15 @@ class MechanoScoreSummary:
     Surfaced via the backend ``JobResult.mechano_score_summary`` field
     so the frontend can render diagnostics next to the score
     distribution histogram.
+
+    The ``yap_size_correction_*`` fields expose the Jones-2024
+    correction's decision on this image. ``applied=True`` means the
+    slope survived the R² gate and was subtracted from
+    ``yap_nc_ratio`` to produce ``yap_nc_ratio_size_corrected``;
+    ``applied=False`` means the correction was skipped because
+    cell_area did not predict yap_nc_ratio (R² below the gate). Both
+    states propagate from :func:`apply_yap_size_correction` to here
+    so the UI can surface the reason without peeking at per-cell rows.
     """
 
     mode: str  # "pca" | "weighted_sum"
@@ -290,6 +300,13 @@ class MechanoScoreSummary:
     loadings: dict[str, float]
     mean: float
     std: float
+    # Jones-2024 size-correction diagnostic. All four default to None
+    # for backward compat when the dataclass is constructed outside
+    # ``apply_population_post_processing`` (e.g., in unit tests).
+    yap_size_correction_applied: bool | None = None
+    yap_size_correction_r2: float | None = None
+    yap_size_correction_slope_ci_lo: float | None = None
+    yap_size_correction_slope_ci_hi: float | None = None
 
 
 def compute_mechano_score(
@@ -475,10 +492,41 @@ def apply_population_post_processing(
     Convenience composition used by
     :meth:`ProfileAssembler.process_image`. Returns the enriched
     DataFrame and the score summary (or ``None`` if the score column
-    could not be computed because the input was empty).
+    could not be computed because the input was empty). The YAP
+    size-correction diagnostic produced by
+    :func:`apply_yap_size_correction` is pulled off the DataFrame's
+    first row (the diagnostic is image-level so every row carries the
+    same value) and attached to the returned :class:`MechanoScoreSummary`
+    so the UI can surface it without duplicating the per-row columns.
     """
     if df.empty:
         return df, None
     df = apply_yap_size_correction(df)
     df, summary = compute_mechano_score(df, mode=mode)
+
+    # Pull the YAP correction diagnostic off the first row (image-level
+    # value replicated across rows by apply_yap_size_correction). Use
+    # dataclasses.replace to produce a new frozen summary since the
+    # original is frozen=True.
+    from dataclasses import replace
+
+    def _first(col: str) -> Any:
+        if col not in df.columns or df[col].empty:
+            return None
+        val = df[col].iloc[0]
+        if isinstance(val, (bool, np.bool_)):
+            return bool(val)
+        try:
+            v = float(val)
+        except (TypeError, ValueError):
+            return None
+        return v if math.isfinite(v) else None
+
+    summary = replace(
+        summary,
+        yap_size_correction_applied=_first("yap_size_correction_applied"),
+        yap_size_correction_r2=_first("yap_size_correction_r2"),
+        yap_size_correction_slope_ci_lo=_first("yap_size_correction_slope_ci_lo"),
+        yap_size_correction_slope_ci_hi=_first("yap_size_correction_slope_ci_hi"),
+    )
     return df, summary

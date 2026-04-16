@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { ArrowLeftRight } from "lucide-react";
 import Plotly from "plotly.js-dist-min";
 import { HeroMetrics } from "./HeroMetrics";
@@ -8,6 +9,7 @@ import { Card } from "./Card";
 import { MLFeaturesPanel } from "./MLFeaturesPanel";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
+import { recomputeCorrelation } from "@/lib/api";
 import type { CellFeatures } from "@/lib/canvas/extract";
 import { fmt, fmtSigned } from "@/lib/utils";
 
@@ -86,6 +88,13 @@ function OverviewTab({ result, cells }: Props) {
           { value: String(result.cell_count), label: "Cells analysed" },
           { value: fmtSigned(m.mean_mechano_score), label: "Mean mechano score" },
           { value: glycoMechR != null ? fmt(glycoMechR) : "\u2014", label: "Strongest |r|" },
+          {
+            value:
+              summary?.n_significant_pairs_fdr != null
+                ? String(summary.n_significant_pairs_fdr)
+                : "\u2014",
+            label: "Sig. pairs (FDR<0.05)",
+          },
         ]} />
         {/* One-sentence scientific interpretation */}
         {glycoMechR != null && summary?.top_correlation_pair && (
@@ -99,17 +108,13 @@ function OverviewTab({ result, cells }: Props) {
             {" "}Mechano score {(m.mean_mechano_score ?? 0) < 0 ? "below" : "above"} population mean.
           </div>
         )}
+        {summary?.yap_size_correction_applied !== null && summary?.yap_size_correction_applied !== undefined && (
+          <YapCorrectionBadge summary={summary} />
+        )}
       </Card>
 
       {result.glyco_mechano_correlation_figure_json && (
-        <PlotlyCard
-          title={<><span>Glycocalyx</span><ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" /><span>Mechanotransduction</span></>}
-          subtitle={summary?.top_correlation_pair
-            ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]})`
-            : undefined}
-          figureJson={result.glyco_mechano_correlation_figure_json}
-          maxHeight={360}
-        />
+        <CorrelationCard result={result} />
       )}
 
       {result.mechano_score_distribution_figure_json && (
@@ -233,4 +238,134 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
     return () => { if (el) Plotly.purge(el); };
   }, [figureJson, maxHeight]);
   return <div ref={ref} className="w-full" />;
+}
+
+const PERMUTATION_N = 1000;
+
+function CorrelationCard({ result }: { result: JobResult }) {
+  const latestJobId = useJobStore((s) => s.latestJobId);
+  const patchLatestJobResult = useJobStore((s) => s.patchLatestJobResult);
+  const [nullMode, setNullMode] = useState<"parametric" | "permutation">("parametric");
+  const summary = result.mechano_score_summary;
+
+  const recompute = useMutation({
+    mutationFn: async (nPerm: number) => {
+      if (!latestJobId) throw new Error("No active job");
+      return recomputeCorrelation(latestJobId, nPerm);
+    },
+    onSuccess: (newResult, nPerm) => {
+      patchLatestJobResult(newResult);
+      setNullMode(nPerm > 0 ? "permutation" : "parametric");
+    },
+  });
+
+  const handleFlip = (next: "parametric" | "permutation") => {
+    if (next === nullMode || recompute.isPending || !latestJobId) return;
+    recompute.mutate(next === "permutation" ? PERMUTATION_N : 0);
+  };
+
+  const subtitle = summary?.top_correlation_pair
+    ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]})`
+    : undefined;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
+          <button
+            type="button"
+            onClick={() => handleFlip("parametric")}
+            disabled={!latestJobId || recompute.isPending}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded transition-colors ${
+              nullMode === "parametric"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            title="Parametric Spearman p-value from scipy. Fast; assumes asymptotic sampling distribution."
+          >
+            Parametric null
+          </button>
+          <button
+            type="button"
+            onClick={() => handleFlip("permutation")}
+            disabled={!latestJobId || recompute.isPending}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded transition-colors ${
+              nullMode === "permutation"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            title={`Empirical null from ${PERMUTATION_N} shuffles of the mechano column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
+          >
+            Empirical null (slower)
+          </button>
+        </div>
+        {recompute.isPending && (
+          <span className="text-[10px] text-gray-400">
+            Computing {nullMode === "permutation" ? "parametric" : "empirical"} null…
+          </span>
+        )}
+        {recompute.isError && (
+          <span className="text-[10px] text-red-600" title={String(recompute.error)}>
+            Recompute failed
+          </span>
+        )}
+      </div>
+      <PlotlyCard
+        title={
+          <>
+            <span>Glycocalyx</span>
+            <ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" />
+            <span>Mechanotransduction</span>
+          </>
+        }
+        subtitle={
+          nullMode === "permutation" && subtitle
+            ? `${subtitle} (empirical null, ${PERMUTATION_N} permutations)`
+            : subtitle
+        }
+        figureJson={result.glyco_mechano_correlation_figure_json ?? ""}
+        maxHeight={360}
+      />
+    </div>
+  );
+}
+
+function YapCorrectionBadge({ summary }: { summary: NonNullable<JobResult["mechano_score_summary"]> }) {
+  const applied = summary.yap_size_correction_applied;
+  const r2 = summary.yap_size_correction_r2;
+  const lo = summary.yap_size_correction_slope_ci_lo;
+  const hi = summary.yap_size_correction_slope_ci_hi;
+  const hasCi = typeof lo === "number" && typeof hi === "number" && Number.isFinite(lo) && Number.isFinite(hi);
+  const r2Str = typeof r2 === "number" && Number.isFinite(r2) ? r2.toFixed(2) : "—";
+  const fmtSlope = (v: number) => (v >= 0 ? `+${v.toExponential(1)}` : v.toExponential(1));
+  const tint = applied
+    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+    : "bg-amber-50 border-amber-200 text-amber-900";
+  const dotTint = applied ? "bg-emerald-500" : "bg-amber-500";
+  const headline = applied
+    ? "Jones-2024 YAP size correction applied"
+    : "Jones-2024 YAP size correction skipped";
+  const explanation = applied
+    ? `Cell area predicted YAP N/C strongly enough (r² = ${r2Str}) for the slope to be subtracted from yap_nc_ratio. Residuals feed yap_nc_ratio_size_corrected.`
+    : `Cell area did not predict YAP N/C on this image (r² = ${r2Str}, below the 0.05 gate). Raw yap_nc_ratio was passed through unchanged — the mechano panel reads the uncorrected column.`;
+  return (
+    <div className={`mt-3 pt-3 border-t border-gray-100`}>
+      <div className={`rounded-md border px-3 py-2 ${tint}`}>
+        <div className="flex items-center gap-2 text-[12px] font-semibold">
+          <span className={`h-1.5 w-1.5 rounded-full ${dotTint}`} />
+          {headline}
+        </div>
+        <div className="mt-1 text-[11px] leading-relaxed opacity-80">{explanation}</div>
+        {hasCi && (
+          <div
+            className="mt-1 text-[10px] opacity-70"
+            style={{ fontFeatureSettings: "'tnum'" }}
+            title="Percentile bootstrap 95% CI on the regression slope (200 resamples). CI crossing zero indicates a slope not distinguishable from noise."
+          >
+            slope 95% CI [{fmtSlope(lo as number)}, {fmtSlope(hi as number)}]
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

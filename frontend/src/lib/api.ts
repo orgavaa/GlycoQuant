@@ -49,6 +49,14 @@ export interface MechanoScoreSummary {
   std: number | null;
   top_correlation_r: number | null;
   top_correlation_pair: [string, string] | null;
+  /** Number of glyco×mechano tiles with BH-FDR q < 0.05. */
+  n_significant_pairs_fdr?: number | null;
+  /** True when the Jones-2024 YAP size correction was subtracted from
+   * yap_nc_ratio on this image. False when the R² gate skipped it. */
+  yap_size_correction_applied?: boolean | null;
+  yap_size_correction_r2?: number | null;
+  yap_size_correction_slope_ci_lo?: number | null;
+  yap_size_correction_slope_ci_hi?: number | null;
 }
 
 export type DeepEmbeddingBackend = "dinov2_base" | "cell_dino_channel_adaptive";
@@ -131,6 +139,11 @@ export interface PriorGeneEntry {
   pathway_rank: number | null;
   pathway_score: number | null;
   abs_rank_divergence: number | null;
+  /** Directionally-aware sidecar on the dynamic pathway score.
+   * Positive = close to over-activated mechano axes (candidate KO to attenuate).
+   * Negative = close to under-activated axes (candidate KO to restore).
+   * Present only on /priors/contextual responses. */
+  pathway_signed_score?: number | null;
 }
 
 export interface MetabolicInhibitor {
@@ -153,6 +166,10 @@ export interface PriorsResponse {
   panel_summary_figure_json?: string | null;
   dynamic?: boolean;
   mechano_weights?: Record<string, number> | null;
+  /** Direction-of-deviation sidecar per mechano gene. Positive = axis
+   * over-activated vs the reference cohort; negative = under-activated.
+   * Populated only when dynamic=true. */
+  mechano_signed_z?: Record<string, number> | null;
   used_fallback_reference?: boolean;
   can_generate_geneformer?: boolean;
 }
@@ -176,6 +193,14 @@ export interface PathwayEdge {
   from: string;
   to: string;
   confidence: number;
+  /** Provenance tag — "string" for STRING v12 edges (default),
+   * "curated" for literature-traceable edges added below the STRING
+   * cutoff where primary literature is strong. */
+  source?: "string" | "curated";
+  /** PubMed DOI of the primary reference — present only on curated edges. */
+  pubmed_doi?: string;
+  /** One-line biochemical rationale for the curated edge. */
+  reason?: string;
 }
 
 export interface PathwayEvidence {
@@ -307,6 +332,32 @@ export async function fetchJobStatus(jobId: string): Promise<JobStatusResponse> 
   return data;
 }
 
+/** POST the glyco↔mechano correlation recompute with a new null method.
+ *
+ * n_permutations=0 → parametric scipy null (fast, returns the original
+ * figure shape). n_permutations>0 → empirical null via shuffle (slower
+ * but distribution-free, preferred for heavy-tailed fluorescence data).
+ * Reads the cached per-cell DataFrame on the backend — no image
+ * re-upload required.
+ */
+export async function recomputeCorrelation(
+  jobId: string,
+  nPermutations: number,
+): Promise<JobResult> {
+  const { data } = await api.post<JobResult>(
+    `/analysis/jobs/${jobId}/recompute-correlation`,
+    undefined,
+    { params: { n_permutations: nPermutations } },
+  );
+  return data;
+}
+
+/** URL to the per-job export zip. Directing the browser to this URL
+ * triggers the backend's StreamingResponse download. */
+export function exportUrl(jobId: string): string {
+  return `${BASE_URL}/analysis/jobs/${jobId}/export`;
+}
+
 export async function fetchPriors(): Promise<PriorsResponse> {
   const { data } = await api.get<PriorsResponse>("/priors");
   return data;
@@ -360,6 +411,8 @@ export interface PhenotypeResponse {
 
 export interface SpatialGNNResponse {
   job_id: string;
+  /** Mean R² across spatial CV folds (or single random split when
+   * cv_strategy="random"). */
   r2_score: number;
   node_importance: Record<string, number>;
   n_edges: number;
@@ -367,6 +420,15 @@ export interface SpatialGNNResponse {
   cells_json: string;
   graph_figure_json: string;
   importance_figure_json: string;
+  /** Standard deviation of R² across folds. 0 when cv_strategy="random". */
+  r2_std?: number;
+  /** Actual CV strategy used — may differ from the requested strategy
+   * when the image is too small for meaningful spatial blocking. */
+  cv_strategy?: "spatial" | "random";
+  /** Number of folds actually run. */
+  cv_k?: number;
+  /** Per-fold R². Length equals cv_k. */
+  fold_r2_scores?: number[];
 }
 
 export interface CrossModalResponse {
