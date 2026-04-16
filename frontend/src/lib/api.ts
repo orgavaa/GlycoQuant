@@ -332,6 +332,26 @@ export async function fetchJobStatus(jobId: string): Promise<JobStatusResponse> 
   return data;
 }
 
+/** POST the glyco↔mechano correlation recompute with a new null method.
+ *
+ * n_permutations=0 → parametric scipy null (fast, returns the original
+ * figure shape). n_permutations>0 → empirical null via shuffle (slower
+ * but distribution-free, preferred for heavy-tailed fluorescence data).
+ * Reads the cached per-cell DataFrame on the backend — no image
+ * re-upload required.
+ */
+export async function recomputeCorrelation(
+  jobId: string,
+  nPermutations: number,
+): Promise<JobResult> {
+  const { data } = await api.post<JobResult>(
+    `/analysis/jobs/${jobId}/recompute-correlation`,
+    undefined,
+    { params: { n_permutations: nPermutations } },
+  );
+  return data;
+}
+
 export async function fetchPriors(): Promise<PriorsResponse> {
   const { data } = await api.get<PriorsResponse>("/priors");
   return data;

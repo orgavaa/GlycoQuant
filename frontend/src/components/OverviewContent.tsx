@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { ArrowLeftRight } from "lucide-react";
 import Plotly from "plotly.js-dist-min";
 import { HeroMetrics } from "./HeroMetrics";
@@ -8,6 +9,7 @@ import { Card } from "./Card";
 import { MLFeaturesPanel } from "./MLFeaturesPanel";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
+import { recomputeCorrelation } from "@/lib/api";
 import type { CellFeatures } from "@/lib/canvas/extract";
 import { fmt, fmtSigned } from "@/lib/utils";
 
@@ -112,14 +114,7 @@ function OverviewTab({ result, cells }: Props) {
       </Card>
 
       {result.glyco_mechano_correlation_figure_json && (
-        <PlotlyCard
-          title={<><span>Glycocalyx</span><ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" /><span>Mechanotransduction</span></>}
-          subtitle={summary?.top_correlation_pair
-            ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]})`
-            : undefined}
-          figureJson={result.glyco_mechano_correlation_figure_json}
-          maxHeight={360}
-        />
+        <CorrelationCard result={result} />
       )}
 
       {result.mechano_score_distribution_figure_json && (
@@ -243,6 +238,96 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
     return () => { if (el) Plotly.purge(el); };
   }, [figureJson, maxHeight]);
   return <div ref={ref} className="w-full" />;
+}
+
+const PERMUTATION_N = 1000;
+
+function CorrelationCard({ result }: { result: JobResult }) {
+  const latestJobId = useJobStore((s) => s.latestJobId);
+  const patchLatestJobResult = useJobStore((s) => s.patchLatestJobResult);
+  const [nullMode, setNullMode] = useState<"parametric" | "permutation">("parametric");
+  const summary = result.mechano_score_summary;
+
+  const recompute = useMutation({
+    mutationFn: async (nPerm: number) => {
+      if (!latestJobId) throw new Error("No active job");
+      return recomputeCorrelation(latestJobId, nPerm);
+    },
+    onSuccess: (newResult, nPerm) => {
+      patchLatestJobResult(newResult);
+      setNullMode(nPerm > 0 ? "permutation" : "parametric");
+    },
+  });
+
+  const handleFlip = (next: "parametric" | "permutation") => {
+    if (next === nullMode || recompute.isPending || !latestJobId) return;
+    recompute.mutate(next === "permutation" ? PERMUTATION_N : 0);
+  };
+
+  const subtitle = summary?.top_correlation_pair
+    ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]})`
+    : undefined;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
+          <button
+            type="button"
+            onClick={() => handleFlip("parametric")}
+            disabled={!latestJobId || recompute.isPending}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded transition-colors ${
+              nullMode === "parametric"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            title="Parametric Spearman p-value from scipy. Fast; assumes asymptotic sampling distribution."
+          >
+            Parametric null
+          </button>
+          <button
+            type="button"
+            onClick={() => handleFlip("permutation")}
+            disabled={!latestJobId || recompute.isPending}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded transition-colors ${
+              nullMode === "permutation"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            title={`Empirical null from ${PERMUTATION_N} shuffles of the mechano column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
+          >
+            Empirical null (slower)
+          </button>
+        </div>
+        {recompute.isPending && (
+          <span className="text-[10px] text-gray-400">
+            Computing {nullMode === "permutation" ? "parametric" : "empirical"} null…
+          </span>
+        )}
+        {recompute.isError && (
+          <span className="text-[10px] text-red-600" title={String(recompute.error)}>
+            Recompute failed
+          </span>
+        )}
+      </div>
+      <PlotlyCard
+        title={
+          <>
+            <span>Glycocalyx</span>
+            <ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" />
+            <span>Mechanotransduction</span>
+          </>
+        }
+        subtitle={
+          nullMode === "permutation" && subtitle
+            ? `${subtitle} (empirical null, ${PERMUTATION_N} permutations)`
+            : subtitle
+        }
+        figureJson={result.glyco_mechano_correlation_figure_json ?? ""}
+        maxHeight={360}
+      />
+    </div>
+  );
 }
 
 function YapCorrectionBadge({ summary }: { summary: NonNullable<JobResult["mechano_score_summary"]> }) {

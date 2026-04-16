@@ -21,6 +21,7 @@ from backend.app.schemas import (
     CompareRequest,
     CompareResult,
     EffectSize,
+    JobResult,
     JobStatusResponse,
 )
 from backend.app.workers import get_job_store, run_analysis_job
@@ -477,3 +478,98 @@ async def compare_jobs(req: CompareRequest) -> CompareResult:
         violin_a=violin_a,
         violin_b=violin_b,
     )
+
+
+@router.post("/jobs/{job_id}/recompute-correlation", response_model=JobResult)
+async def recompute_correlation(
+    job_id: str,
+    n_permutations: int = 0,
+) -> JobResult:
+    """Re-compute the glyco↔mechano correlation heatmap with a different null.
+
+    The Fix 8 permutation null is opt-in. Instead of re-uploading the
+    image, the frontend POSTs the ``n_permutations`` it wants and the
+    backend re-runs the correlation on the cached per-cell DataFrame
+    (``job.meta['_features_df_full_json']`` — populated by the worker's
+    _build_result_payload path). The fresh figure JSON + updated
+    ``n_significant_pairs_fdr`` replace the corresponding fields on the
+    existing ``job.result``; everything else is passed through so the
+    Overview tab doesn't lose the per-cell DataFrame or hero metrics.
+
+    Edge cases:
+    - 404 when ``job_id`` is unknown.
+    - 409 when the job is not complete or the cached DataFrame is
+      missing (can happen if the backend restarted between the analysis
+      and this call — the caller should trigger a re-analysis).
+    - ``n_permutations=0`` is valid; it resets the figure to the
+      parametric null.
+    """
+    import json
+    from io import StringIO
+
+    import pandas as pd
+
+    if n_permutations < 0 or n_permutations > 10_000:
+        raise HTTPException(
+            status_code=422,
+            detail="n_permutations must be in [0, 10_000]",
+        )
+
+    store = get_job_store()
+    job = store.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    if job.status != "complete" or job.result is None:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Job {job_id} is {job.status} — recompute requires a complete job",
+        )
+    full_json = job.meta.get("_features_df_full_json")
+    if not full_json:
+        # Fall back to the stripped features_df on the result — deep
+        # columns are missing but the correlation does not use them.
+        full_json = job.result.features_df_json
+    if not full_json:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Feature DataFrame not cached for this job — the backend may "
+                "have restarted. Re-run the analysis to restore the cache."
+            ),
+        )
+
+    try:
+        df = pd.read_json(StringIO(full_json), orient="records")
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Could not parse cached features: {exc}"
+        ) from exc
+    if "cell_id" in df.columns:
+        df = df.set_index("cell_id")
+
+    from glycoquant.viz.glyco_mechano_correlation import (
+        plot_glyco_mechano_correlation,
+    )
+
+    fig, result = plot_glyco_mechano_correlation(df, n_permutations=int(n_permutations))
+
+    # Patch the cached JobResult in place. Only the correlation figure
+    # and the BH-FDR count depend on n_permutations — top_correlation_r
+    # and top_correlation_pair are magnitude-based and unchanged. The
+    # frontend tracks the "which null is active" state locally, so we
+    # don't need to echo null_method on the JobResult response.
+    job.result.glyco_mechano_correlation_figure_json = fig.to_json()
+    if job.result.mechano_score_summary is not None:
+        summary = job.result.mechano_score_summary
+        dump_method = getattr(summary, "model_dump", None)
+        if dump_method:
+            summary_dict = dump_method()
+            summary_dict["n_significant_pairs_fdr"] = int(result.n_significant_pairs)
+            job.result.mechano_score_summary = type(summary).model_validate(
+                summary_dict
+            )
+
+    # JSON well-formedness cross-check — catches a bad Plotly->JSON
+    # round-trip before it reaches the frontend.
+    _ = json.dumps({"ping": 1})
+    return job.result
