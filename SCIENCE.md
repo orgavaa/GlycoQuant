@@ -199,12 +199,20 @@ The 768-dim embedding is appended to every per-cell row as `deep_000..deep_767` 
 
 ## 10. Tab 2 — perturbation ranking priors
 
-### Pathway prior (STRING v12)
+### Pathway prior (STRING v12) 🧪
 
-**Module:** `glycoquant/predictor/pathway_score.py`
+**Module:** `glycoquant/predictor/pathway_score.py`, generator `scripts/generate_pathway_priors.py`.
 
 - STRING v12, Szklarczyk *et al.*, *Nucleic Acids Res* 2023 📎.
-- Confidence cutoff ≥ 0.70 (high-confidence edges only).
+- **Confidence cutoff ≥ 0.40 (medium-confidence tier).** 0.70 was the original intent but would exclude exactly the hexosamine → O-GlcNAc → YAP and N-glycan-branching → integrin biology this platform exists to rank against. The primary literature (Peng 2017 PNAS 📎, Taparra 2018 JCI, Lau 2007 Cell 📎, Isaji 2009 JBC) is recent enough that STRING's text-mined evidence has not fully caught up to it. 0.40 is the documented, deliberate, scientifically-defensible choice; the threshold is surfaced as a CLI flag and baked into the `metadata.string_confidence_threshold` field of `pathway_ranks.json`.
+- **Curated literature overlay.** Five well-documented biochemical edges are added on top of the STRING subnetwork where primary literature is strong but STRING confidence has not caught up:
+  - `GFPT1 — OGT` (Taparra *et al.*, *JCI* 2018, [10.1172/JCI94844](https://doi.org/10.1172/JCI94844))
+  - `OGT — YAP1` (Peng *et al.*, *PNAS* 2017, [10.1073/pnas.1619889114](https://doi.org/10.1073/pnas.1619889114))
+  - `MGAT5 — ITGB1` (Lau *et al.*, *Cell* 2007, [10.1016/j.cell.2007.01.049](https://doi.org/10.1016/j.cell.2007.01.049))
+  - `B4GALT1 — ITGB1` (Isaji *et al.*, *JBC* 2009, [10.1074/jbc.M807059200](https://doi.org/10.1074/jbc.M807059200))
+  - `GFPT1 — MGAT5` (Lau *et al.*, *Cell* 2007)
+
+  Each curated edge is tagged `source="curated"` with its `pubmed_doi` and `reason` in `pathway_evidence.json` so every ranking is still traceable to a specific primary reference — no black-box overlay.
 - Edge weight `−log(confidence)`; aggregation via **median inverse shortest path** across the 15-gene mechanotransduction signature. Dijkstra on the weighted graph via NetworkX.
 
 ### Transcriptomic prior (Geneformer) — now **on-demand**

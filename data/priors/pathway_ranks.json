@@ -1,14 +1,18 @@
 {
   "metadata": {
     "source": "STRING v12",
+    "string_confidence_threshold": 0.4,
     "confidence_threshold": 0.4,
     "species": 9606,
     "aggregation": "median_inverse_shortest_path",
-    "generated_utc": "2026-04-13T13:48:03.137645+00:00",
+    "generated_utc": "2026-04-16T17:31:42.958165+00:00",
     "n_glycocalyx_genes": 22,
     "n_mechano_genes": 15,
     "n_graph_nodes": 37,
-    "n_graph_edges": 177
+    "n_graph_edges": 177,
+    "curated_edge_count": 5,
+    "curated_edges_overlaid": 4,
+    "curated_edge_policy": "Literature-traceable edges added below the STRING cutoff where the primary literature is strong but STRING confidence has not caught up. Each curated edge carries source='curated' and pubmed_doi in pathway_evidence.json for full provenance. The glycocalyx <-> mechanotransduction axis (hexosamine -> O-GlcNAc -> YAP; N-glycan branching of integrins) is the specific biology being bridged."
   },
   "genes": {
     "SDC1": {

@@ -55,13 +55,13 @@ predictor:
     pathway_evidence_path: "data/priors/pathway_evidence.json"
     pathway_only_fallback: true  # if geneformer_path missing, render pathway-only with banner
 
-  pathway_scoring:
-    # Method pinned for scientific defensibility
-    string_version: "v12.0"
-    string_confidence_threshold: 0.7
-    string_species: 9606  # human
-    edge_weight: "neg_log_confidence"
-    aggregation: "median_inverse_shortest_path"
+  # NOTE: the STRING confidence threshold, species, and aggregation
+  # method are owned by scripts/generate_pathway_priors.py and baked
+  # into the generated JSON's metadata block. They are not read at
+  # runtime; the previous `pathway_scoring` YAML block was orphaned
+  # documentation and was deleted to eliminate the drift between the
+  # documented threshold (0.70) and the actual script default (0.40).
+  # See SCIENCE.md §10 for the policy.
 
   geneformer_offline:
     # Parameters consumed ONLY by scripts/generate_geneformer_priors.py
