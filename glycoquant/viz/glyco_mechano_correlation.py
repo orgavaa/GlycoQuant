@@ -16,9 +16,26 @@ relationships (e.g. WGA texture vs YAP N/C) are not necessarily
 linear and rank correlation is robust to the heavy-tailed
 distributions typical of fluorescence intensity readouts.
 
-Multiple-comparison correction uses Bonferroni over the total
-number of cells in the rectangular matrix; significance markers
-are surfaced as a star annotation on each cell.
+Multiple-comparison correction
+------------------------------
+Raw p-values from ``scipy.stats.spearmanr`` are corrected with the
+Benjamini–Hochberg step-up FDR procedure (Benjamini & Hochberg,
+*JRSS-B* 1995) via :func:`scipy.stats.false_discovery_control`
+(scipy ≥ 1.11). BH is preferred over Bonferroni for this dense
+rectangular screen because many real biological pairs are
+expected — Bonferroni's family-wise error control is too
+conservative and suppresses genuine effects. Correction is applied
+over the flat vector of finite p-values (skipping pairs with <5
+cells or constant columns, which remain NaN throughout) and the
+resulting q-values are scattered back into a matrix of the same
+shape as ``r_matrix``.
+
+Significance markers are rendered as a single (*), double (**), or
+triple (***) star annotation at the centre of each heatmap tile,
+corresponding to q<0.05, q<0.01, q<0.001 respectively. The subtitle
+reports the total count of tiles significant at the FDR α=0.05
+threshold so a user can judge at a glance whether the coupling is
+sparse (few tiles lit) or broad (many tiles lit).
 """
 from __future__ import annotations
 
@@ -28,9 +45,22 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from scipy.stats import spearmanr
+from scipy.stats import false_discovery_control, spearmanr
 
 from glycoquant.theme import get_plotly_layout_template
+
+# FDR α for the cell-level significance tiers in the heatmap. Counted
+# tiles in ``n_significant_pairs`` use this threshold; the three-star
+# visual tiers use strictly smaller thresholds for stronger evidence.
+ALPHA: float = 0.05
+# Tiers (threshold, glyph) in descending order of evidence strength.
+# The renderer picks the first tier whose threshold is *larger* than
+# the tile's q-value, so q=0.0005 → "***", q=0.02 → "*", q=0.1 → no annotation.
+_STAR_TIERS: tuple[tuple[float, str], ...] = (
+    (0.001, "***"),
+    (0.01, "**"),
+    (0.05, "*"),
+)
 
 # Glycocalyx feature columns this figure considers (any subset that
 # the input DataFrame actually contains is plotted; missing columns
@@ -77,12 +107,33 @@ class GlycoMechanoCorrelation:
     Carries the matrices the backend exports as part of
     ``mechano_score_summary`` (top correlation surfaced to the UI as
     a hero metric).
+
+    Attributes
+    ----------
+    r_matrix, p_matrix : np.ndarray
+        Shape ``(n_glyco, n_mechano)``. NaN entries mark pairs that
+        could not be scored (fewer than 5 finite cells, constant
+        column, or a scipy exception).
+    q_matrix : np.ndarray
+        Same shape as ``p_matrix``. Benjamini–Hochberg FDR-adjusted
+        q-values over the finite subset of ``p_matrix``. Positions
+        corresponding to NaN p-values stay NaN in ``q_matrix``.
+    n_significant_pairs : int
+        Number of (i, j) tiles with a finite q-value strictly below
+        :data:`ALPHA`. Zero when all p-values are NaN.
+    top_r, top_pair : float, tuple[str, str] | None
+        Strongest absolute correlation and its (glyco, mechano)
+        feature names. Kept as a magnitude-based hero metric (not
+        q-based) so it is comparable across images with different
+        cell counts and hence different FDR cutoffs.
     """
 
     glyco_features: list[str]
     mechano_features: list[str]
     r_matrix: np.ndarray  # shape (n_glyco, n_mechano)
     p_matrix: np.ndarray  # shape (n_glyco, n_mechano)
+    q_matrix: np.ndarray  # shape (n_glyco, n_mechano); BH-FDR adjusted
+    n_significant_pairs: int  # count of finite q < ALPHA
     top_r: float
     top_pair: tuple[str, str] | None
 
@@ -143,14 +194,52 @@ def compute_glyco_mechano_correlation(
                 top_r = r
                 top_pair = (glyco_cols[i], mechano_cols[j])
 
+    # Benjamini–Hochberg FDR adjustment on the flat vector of finite
+    # p-values. NaN p-values (skipped pairs) stay NaN in q_matrix so
+    # downstream consumers can distinguish "not tested" from "tested,
+    # not significant". scipy's false_discovery_control does not tolerate
+    # NaN, so we run it on the finite subset and scatter back.
+    q_matrix = _bh_adjust_matrix(p_matrix)
+    with np.errstate(invalid="ignore"):
+        n_significant_pairs = int(
+            np.sum(np.isfinite(q_matrix) & (q_matrix < ALPHA))
+        )
+
     return GlycoMechanoCorrelation(
         glyco_features=glyco_cols,
         mechano_features=mechano_cols,
         r_matrix=r_matrix,
         p_matrix=p_matrix,
+        q_matrix=q_matrix,
+        n_significant_pairs=n_significant_pairs,
         top_r=top_r,
         top_pair=top_pair,
     )
+
+
+def _bh_adjust_matrix(p_matrix: np.ndarray) -> np.ndarray:
+    """Return a BH-FDR-adjusted q-value matrix of the same shape.
+
+    Finite p-values across the whole rectangular matrix are pooled
+    into a single family for correction (no row- or column-wise
+    stratification — the family of interest is the full glyco×mechano
+    screen). NaN entries of ``p_matrix`` pass through as NaN.
+
+    Uses :func:`scipy.stats.false_discovery_control` with the default
+    ``method='bh'``. Idempotent on an all-NaN input.
+    """
+    q_matrix = np.full_like(p_matrix, np.nan, dtype=np.float64)
+    flat = p_matrix.ravel()
+    finite_mask = np.isfinite(flat)
+    if not finite_mask.any():
+        return q_matrix
+    adjusted = false_discovery_control(flat[finite_mask], method="bh")
+    # ``false_discovery_control`` bounds output to [0, 1] by construction,
+    # but clamp defensively in case of floating-point drift.
+    adjusted = np.clip(adjusted, 0.0, 1.0)
+    flat_q = q_matrix.ravel()
+    flat_q[finite_mask] = adjusted
+    return flat_q.reshape(p_matrix.shape)
 
 
 def plot_glyco_mechano_correlation(
@@ -174,11 +263,24 @@ def plot_glyco_mechano_correlation(
     # the 320px rail width. Clean heatmap + hover is the pro pattern.
 
     title_parts = ["Glycocalyx ↔ mechanotransduction correlation"]
+    total_tested = int(np.sum(np.isfinite(result.r_matrix)))
     if result.top_pair is not None:
         g, m = result.top_pair
+        subtitle = (
+            f"top |ρ| = {result.top_r:+.2f} — {g} vs {m}"
+            f" · {result.n_significant_pairs}/{total_tested} pairs "
+            f"sig. at FDR<{ALPHA:.2f}"
+        )
+        title_parts.append(
+            f"<br><span style='font-size:11px;color:#8B92A8'>{subtitle}</span>"
+        )
+    elif total_tested > 0:
+        # Matrix was computed but every pair was uninteresting; still
+        # surface the FDR-significant count (likely 0) for transparency.
         title_parts.append(
             f"<br><span style='font-size:11px;color:#8B92A8'>"
-            f"top |r| = {result.top_r:+.2f} — {g} vs {m}</span>"
+            f"{result.n_significant_pairs}/{total_tested} pairs "
+            f"sig. at FDR<{ALPHA:.2f}</span>"
         )
     title = "".join(title_parts)
 
@@ -253,7 +355,50 @@ def plot_glyco_mechano_correlation(
         }
     )
     fig.update_layout(**layout)
+
+    # Cell-level significance stars: one annotation per FDR-significant
+    # tile. Uses the heatmap's categorical tick labels as xref/yref
+    # anchors so the annotation lands at the tile centre regardless of
+    # figure size. ``xanchor="center"`` + ``yanchor="middle"`` centres
+    # the glyph in the tile; ``showarrow=False`` hides the default
+    # connector; a thin white stroke keeps the glyph legible against
+    # either end of the RdBu colorscale.
+    for i in range(result.q_matrix.shape[0]):
+        for j in range(result.q_matrix.shape[1]):
+            q = result.q_matrix[i, j]
+            glyph = _q_to_star(q)
+            if glyph is None:
+                continue
+            fig.add_annotation(
+                x=short_mechano[j],
+                y=short_glyco[i],
+                xref="x",
+                yref="y",
+                text=glyph,
+                showarrow=False,
+                font={"size": 11, "color": "#000000", "family": "Inter"},
+                xanchor="center",
+                yanchor="middle",
+                # Plotly supports a text-stroke via bgcolor+bordercolor
+                # workarounds but they distort the tile; a plain black
+                # glyph is readable on every cell of RdBu_r at |ρ| ≤ 0.8.
+            )
+
     return fig, result
+
+
+def _q_to_star(q: float) -> str | None:
+    """Return the significance glyph for a q-value, or ``None`` below the cutoff.
+
+    Uses the module-level :data:`_STAR_TIERS` ladder — the strongest
+    tier wins. NaN (untested pair) returns ``None``.
+    """
+    if not math.isfinite(q):
+        return None
+    for threshold, glyph in _STAR_TIERS:
+        if q < threshold:
+            return glyph
+    return None
 
 
 def plot_mechano_score_distribution(

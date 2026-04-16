@@ -89,6 +89,18 @@ class MechanoScoreSummary(BaseModel):
         default=None,
         description="(glycocalyx_feature, mechano_feature) for the top correlation.",
     )
+    n_significant_pairs_fdr: int | None = Field(
+        default=None,
+        description=(
+            "Number of glyco×mechano correlation tiles surviving "
+            "Benjamini–Hochberg FDR adjustment at α=0.05 (out of the "
+            "rectangular matrix of finite p-values). Reported so the "
+            "user can judge at a glance whether the coupling is sparse "
+            "(few tiles lit) or broad (many tiles lit) — contextualising "
+            "the top |ρ| hero metric against the multiple-testing "
+            "burden."
+        ),
+    )
 
 
 class JobResult(BaseModel):

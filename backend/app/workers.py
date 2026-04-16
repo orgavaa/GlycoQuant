@@ -539,6 +539,7 @@ def _build_result_payload(
                 else None
             ),
             top_correlation_pair=glyco_mechano_result.top_pair,
+            n_significant_pairs_fdr=int(glyco_mechano_result.n_significant_pairs),
         )
 
     hero_metrics = {
