@@ -1,6 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Upload, Settings, Layers, Play } from "lucide-react";
+import {
+  Upload,
+  Settings,
+  Layers,
+  Play,
+  Sparkles,
+  ArrowLeftRight,
+  ImageIcon,
+} from "lucide-react";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import {
@@ -15,6 +23,48 @@ import {
   type DemoCondition,
 } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
+
+/** Pick three "featured" demo conditions for the empty-state tiles.
+ *
+ * Preference ladder, in this order:
+ *   1. Labouesse-protocol exemplars (control / siSDC1 / heparinase)
+ *      from the bundled synthetic fixtures — these were generated to
+ *      demonstrate the platform on a known biology spectrum.
+ *   2. HPA datasets (HPA_*) — real microscopy with relevant proteins.
+ *   3. Whatever else is available, in order.
+ *
+ * Always returns up to 3 conditions; an empty list is safe.
+ */
+function pickFeaturedDemos(conditions: readonly DemoCondition[]): DemoCondition[] {
+  if (conditions.length === 0) return [];
+  const priorityNames = [
+    "control",
+    "siSDC1",
+    "heparinase",
+    "HPA_SDC1_U2OS",
+    "HPA_CD44_U251MG",
+    "HPA_YAP1_U2OS",
+  ];
+  const featured: DemoCondition[] = [];
+  const used = new Set<string>();
+  for (const name of priorityNames) {
+    const found = conditions.find((c) => c.name === name);
+    if (found && !used.has(found.name)) {
+      featured.push(found);
+      used.add(found.name);
+      if (featured.length === 3) return featured;
+    }
+  }
+  // Fill remaining slots with whatever's available
+  for (const c of conditions) {
+    if (!used.has(c.name)) {
+      featured.push(c);
+      used.add(c.name);
+      if (featured.length === 3) return featured;
+    }
+  }
+  return featured;
+}
 
 /** Common confocal acquisition pixel sizes in µm/px.
  *
@@ -106,6 +156,18 @@ export function LoaderView() {
   };
 
   const conditions = demoQuery.data?.conditions ?? [];
+  const featured = useMemo(() => pickFeaturedDemos(conditions), [conditions]);
+
+  // Single source of truth for "user picked a demo" — used by both the
+  // dropdown and the centre-screen featured tiles so the side-effects
+  // stay in lockstep (sets pending + pixel size + channel assignments
+  // + resets the running job).
+  const selectDemo = (dataset: DemoCondition) => {
+    setPending({ kind: "demo", dataset });
+    if (dataset.pixel_size_um) setPixelSizeUm(dataset.pixel_size_um);
+    setChannelAssignments(defaultAssignmentsFromManifest(dataset.slot_sources));
+    job.reset();
+  };
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
@@ -114,22 +176,7 @@ export function LoaderView() {
         {previewSrc ? (
           <img src={previewSrc} alt="Preview" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center pr-[380px] px-8">
-            <div className="text-center max-w-xl">
-              <h1 className="text-white text-[32px] font-bold tracking-tight mb-4">GlycoQuant</h1>
-              <p className="text-gray-400 text-[14px] leading-relaxed">
-                Single-cell glycocalyx&ndash;mechanotransduction coupling from standard fluorescence microscopy.
-              </p>
-              <p className="text-gray-500 text-[12px] leading-relaxed mt-3">
-                Segments every cell with Cellpose-SAM, extracts 26 interpretable biophysical features
-                spanning glycocalyx organisation, YAP localisation, focal-adhesion maturation, and actin
-                coherence, then maps the per-cell coupling between surface coat and mechanical signalling.
-              </p>
-              <div className="text-gray-600 text-[10px] tracking-[0.1em] uppercase mt-6">
-                Select a dataset to begin
-              </div>
-            </div>
-          </div>
+          <EmptyState featured={featured} onPickDemo={selectDemo} />
         )}
       </div>
 
@@ -164,12 +211,7 @@ export function LoaderView() {
             <select
               onChange={(e) => {
                 const found = conditions.find(c => c.name === e.target.value);
-                if (found) {
-                  setPending({ kind: "demo", dataset: found });
-                  if (found.pixel_size_um) setPixelSizeUm(found.pixel_size_um);
-                  setChannelAssignments(defaultAssignmentsFromManifest(found.slot_sources));
-                  job.reset();
-                }
+                if (found) selectDemo(found);
               }}
               disabled={isRunning}
               defaultValue=""
@@ -178,11 +220,26 @@ export function LoaderView() {
               <option value="" disabled>
                 {demoQuery.isLoading ? "Loading..." : `Select from ${conditions.length} datasets`}
               </option>
-              {conditions.map(c => (
-                <option key={c.name} value={c.name}>
-                  {c.display_name || c.name}
-                </option>
-              ))}
+              {/* Featured datasets pinned at the top so the PI doesn't
+                  scroll past 30 BBBC022 wells to find a Labouesse-relevant
+                  exemplar. The "All datasets" optgroup carries everything,
+                  including the featured ones again for completeness. */}
+              {featured.length > 0 && (
+                <optgroup label="\u2605 Featured">
+                  {featured.map(c => (
+                    <option key={`feat-${c.name}`} value={c.name}>
+                      {c.display_name || c.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label={`All datasets (${conditions.length})`}>
+                {conditions.map(c => (
+                  <option key={c.name} value={c.name}>
+                    {c.display_name || c.name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </section>
 
@@ -366,5 +423,174 @@ export function LoaderView() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+// ---------------------------------------------------------------------------
+// Empty-state landing block (Tier 1 + Tier 2 polish)
+// ---------------------------------------------------------------------------
+
+/**
+ * Faint dot-grid background. Pure black canvas reads as broken/loading
+ * to a fresh user; a near-invisible texture plus a soft radial fade
+ * communicates "this is the data viewport, currently empty" without
+ * adding noise. Inline SVG to avoid a new asset.
+ */
+const CANVAS_PATTERN_DATA_URI =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>` +
+      `<circle cx='1' cy='1' r='1' fill='%23ffffff' fill-opacity='0.06'/>` +
+      `</svg>`,
+  );
+
+interface EmptyStateProps {
+  featured: DemoCondition[];
+  onPickDemo: (dataset: DemoCondition) => void;
+}
+
+/**
+ * The pre-analysis landing screen. Three pieces of content, in order
+ * of decreasing prominence:
+ *
+ *   1. The 3-step pipeline strip — a 30-second answer to "what does
+ *      this thing do" so a PI dropping in cold has context.
+ *   2. Three featured-demo tiles — click-to-load thumbnails. Removes
+ *      the "what dataset" friction; PI sees actual microscopy
+ *      previews instead of a wall of text.
+ *   3. A subtle "or upload your own" affordance pointing at the rail.
+ */
+function EmptyState({ featured, onPickDemo }: EmptyStateProps) {
+  return (
+    <div
+      className="w-full h-full flex items-center justify-center pr-[380px] px-8"
+      style={{
+        backgroundImage: `radial-gradient(circle at center, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0) 60%), url("${CANVAS_PATTERN_DATA_URI}")`,
+      }}
+    >
+      <div className="max-w-3xl w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-white text-[32px] font-bold tracking-tight mb-3">
+            GlycoQuant
+          </h1>
+          <p className="text-gray-400 text-[13px] leading-relaxed max-w-xl mx-auto">
+            Single-cell glycocalyx&ndash;mechanotransduction coupling from
+            standard fluorescence microscopy.
+          </p>
+        </div>
+
+        {/* 3-step pipeline strip — answers "what does this do" before
+            the user clicks anything. Three icons, three labels. */}
+        <PipelineStrip />
+
+        {/* Featured demo tiles — only render once the demo list has
+            actually loaded so we don't flicker an empty grid. The 3-tile
+            layout is intentional: more would scroll, fewer would feel
+            sparse beneath the pipeline strip. */}
+        {featured.length > 0 ? (
+          <div className="mt-10">
+            <div className="text-center text-gray-500 text-[10px] tracking-[0.12em] uppercase mb-4">
+              Try a featured dataset
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {featured.map((c) => (
+                <FeaturedDemoTile key={c.name} dataset={c} onPick={onPickDemo} />
+              ))}
+            </div>
+            <div className="text-center text-gray-600 text-[10px] mt-4">
+              or pick from the full list / upload your own &rarr;
+            </div>
+          </div>
+        ) : (
+          <div className="text-center text-gray-500 text-[10px] tracking-[0.12em] uppercase mt-10">
+            Select a dataset on the right to begin
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PipelineStrip() {
+  const steps = [
+    {
+      Icon: Upload,
+      label: "Upload",
+      detail: "TIFF / PNG, 5–6 channels, any optics",
+    },
+    {
+      Icon: Sparkles,
+      label: "Segment + extract",
+      detail: "Cellpose-SAM + 26 per-cell features",
+    },
+    {
+      Icon: ArrowLeftRight,
+      label: "Correlate",
+      detail: "WGA \u2194 mechanotransduction, FDR-corrected",
+    },
+  ];
+  return (
+    <div className="flex items-center justify-center gap-2">
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex items-center">
+          <div className="flex flex-col items-center text-center px-3 py-2">
+            <div className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center mb-1.5">
+              <step.Icon size={16} strokeWidth={1.6} className="text-gray-300" />
+            </div>
+            <div className="text-gray-200 text-[11px] font-semibold leading-tight">
+              {step.label}
+            </div>
+            <div className="text-gray-500 text-[9px] leading-tight max-w-[110px] mt-0.5">
+              {step.detail}
+            </div>
+          </div>
+          {i < steps.length - 1 && (
+            <div className="text-gray-600 text-[14px] mx-1">&rarr;</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FeaturedDemoTile({
+  dataset,
+  onPick,
+}: {
+  dataset: DemoCondition;
+  onPick: (d: DemoCondition) => void;
+}) {
+  const [imgErrored, setImgErrored] = useState(false);
+  const previewUrl = demoPreviewUrl(dataset.name);
+  return (
+    <button
+      onClick={() => onPick(dataset)}
+      className="group text-left rounded-lg overflow-hidden border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-colors"
+    >
+      <div className="aspect-square bg-black/40 relative overflow-hidden">
+        {imgErrored ? (
+          <div className="w-full h-full flex items-center justify-center text-gray-600">
+            <ImageIcon size={20} strokeWidth={1.5} />
+          </div>
+        ) : (
+          <img
+            src={previewUrl}
+            alt={dataset.display_name || dataset.name}
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+            onError={() => setImgErrored(true)}
+          />
+        )}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
+      </div>
+      <div className="px-3 py-2">
+        <div className="text-gray-100 text-[11px] font-semibold tracking-tight leading-tight truncate">
+          {dataset.display_name || dataset.name}
+        </div>
+        <div className="text-gray-500 text-[9px] mt-0.5 truncate">
+          {dataset.cell_line || dataset.gene || dataset.source || "demo"}
+        </div>
+      </div>
+    </button>
   );
 }
