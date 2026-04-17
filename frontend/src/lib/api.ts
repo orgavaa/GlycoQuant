@@ -260,10 +260,6 @@ export interface CellCropsResponse {
 // Endpoint wrappers
 // ---------------------------------------------------------------------------
 
-export async function fetchHealth(): Promise<{ status: string; version: string }> {
-  const { data } = await api.get("/health");
-  return data;
-}
 
 export async function fetchDemoList(): Promise<DemoListResponse> {
   const { data } = await api.get<DemoListResponse>("/demo");
@@ -387,6 +383,20 @@ export async function warmupModal(): Promise<{
     ok: boolean;
     modal: { ok: boolean; device: string; elapsed_ms: number };
   }>("/analysis/warmup", undefined, { timeout: 120_000 });
+  return data;
+}
+
+/** Liveness check against the backend. Surfaced as a green/red dot
+ * next to the GlycoQuant logo so the user sees backend reachability
+ * before they click anything. Polled every 30s. */
+export interface HealthResponse {
+  status: string;
+  version?: string;
+  device?: string;
+  device_detail?: string;
+}
+export async function fetchHealth(): Promise<HealthResponse> {
+  const { data } = await api.get<HealthResponse>("/health", { timeout: 5_000 });
   return data;
 }
 
