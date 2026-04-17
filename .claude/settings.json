@@ -87,7 +87,9 @@
       "Bash(pip uninstall:*)",
       "Bash(.venv/Scripts/python.exe -c \"import modal; print\\('Modal version:', modal.__version__\\)\")",
       "Bash(echo \"EXIT=$?\")",
-      "Bash(ls -la /c/Users/uzanv/Documents/GlycoQuant/backend/modal*)"
+      "Bash(ls -la /c/Users/uzanv/Documents/GlycoQuant/backend/modal*)",
+      "Bash(wc -l glycoquant/features/*.py glycoquant/profiles/mechano_score.py)",
+      "Bash(grep -rn -E \"_PX|_px |_px:|_px =|_px,|sigma|threshold.*= ?[0-9]|= ?[0-9]+\\\\.[0-9]+$|= ?[0-9]+ +#\" glycoquant/ --include=\"*.py\")"
     ],
     "deny": [
       "Bash(rm -rf /)",

@@ -44,7 +44,7 @@ export function GlycoLogo({ className }: { className?: string }) {
         x="16"
         y="20.5"
         textAnchor="middle"
-        fontFamily="Inter, system-ui, sans-serif"
+        fontFamily="IBM Plex Sans, system-ui, sans-serif"
         fontWeight="700"
         fontSize="10"
         fill="#f8fafc"

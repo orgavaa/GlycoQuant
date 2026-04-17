@@ -226,7 +226,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       const bx = size.w - barPx - 24, by = size.h - 20;
       ctx.fillStyle = "#fff"; ctx.fillRect(bx, by, barPx, 2);
       ctx.fillRect(bx, by - 4, 1, 10); ctx.fillRect(bx + barPx - 1, by - 4, 1, 10);
-      ctx.font = "600 10px Inter, sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.textAlign = "center";
+      ctx.font = "600 10px 'IBM Plex Sans', sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.textAlign = "center";
       ctx.fillText("50 \u00b5m", bx + barPx / 2, by - 8);
     }
   }, [size, polygons, showSegmentation, activeOverlay, overlayValues, selectedCellId, hoveredCellId, imgDims, toScreen, getTransform, result.pixel_size_um, visibleCellIds]);

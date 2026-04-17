@@ -216,10 +216,10 @@ function PlotlyInline({ figureJson, maxHeight }: { figureJson: string; maxHeight
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "#fff",
-      font: { family: "Inter, sans-serif", color: "#9ca3af", size: 10 },
+      font: { family: "IBM Plex Sans, sans-serif", color: "#9ca3af", size: 10 },
       margin: { l: 52, r: 20, t: 6, b: 48, pad: 2 },
-      xaxis: { ...backendXaxis, gridcolor: "#f3f4f6", tickfont: { size: 10, family: "Inter" } },
-      yaxis: { ...backendYaxis, gridcolor: "#f3f4f6", tickfont: { size: 10, family: "Inter" } },
+      xaxis: { ...backendXaxis, gridcolor: "#f3f4f6", tickfont: { size: 10, family: "IBM Plex Sans" } },
+      yaxis: { ...backendYaxis, gridcolor: "#f3f4f6", tickfont: { size: 10, family: "IBM Plex Sans" } },
     };
 
     const data = (parsed.data as Record<string, unknown>[]).map(trace => {

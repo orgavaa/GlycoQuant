@@ -47,7 +47,7 @@ export function RadarChart({ values, size = 200 }: RadarChartProps) {
         const [x, y] = polar((360 / n) * i, r + 16);
         return (
           <text key={axis.key} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-            fill="#9ca3af" fontSize="9" fontFamily="Inter, sans-serif">
+            fill="#9ca3af" fontSize="9" fontFamily="IBM Plex Sans, sans-serif">
             {axis.label}
           </text>
         );
