@@ -5,8 +5,6 @@ import {
   Settings,
   Layers,
   Play,
-  Sparkles,
-  ArrowLeftRight,
   ImageIcon,
 } from "lucide-react";
 import { useAnalysisJob } from "@/hooks/useAnalysisJob";
@@ -188,7 +186,7 @@ export function LoaderView() {
           <section>
             <h2 className="text-[18px] font-bold text-gray-900 tracking-tight mb-1.5">GlycoQuant</h2>
             <p className="text-[11px] text-gray-600 leading-relaxed mb-2">
-              Single-cell glycocalyx&ndash;mechanotransduction coupling from standard fluorescence microscopy.
+              Image-analysis platform for glycocalyx&ndash;mechanotransduction coupling, with per-cell readouts on standard fluorescence microscopy.
             </p>
             <p className="text-[11px] text-gray-500 leading-relaxed">
               Segments every cell with Cellpose-SAM, extracts 26 interpretable biophysical features
@@ -475,14 +473,10 @@ function EmptyState({ featured, onPickDemo }: EmptyStateProps) {
             GlycoQuant
           </h1>
           <p className="text-gray-400 text-[13px] leading-relaxed max-w-xl mx-auto">
-            Single-cell glycocalyx&ndash;mechanotransduction coupling from
-            standard fluorescence microscopy.
+            Image-analysis platform for glycocalyx&ndash;mechanotransduction
+            coupling, with per-cell readouts on standard fluorescence microscopy.
           </p>
         </div>
-
-        {/* 3-step pipeline strip — answers "what does this do" before
-            the user clicks anything. Three icons, three labels. */}
-        <PipelineStrip />
 
         {/* Featured demo tiles — only render once the demo list has
             actually loaded so we don't flicker an empty grid. The 3-tile
@@ -508,48 +502,6 @@ function EmptyState({ featured, onPickDemo }: EmptyStateProps) {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function PipelineStrip() {
-  const steps = [
-    {
-      Icon: Upload,
-      label: "Upload",
-      detail: "TIFF / PNG, 5–6 channels, any optics",
-    },
-    {
-      Icon: Sparkles,
-      label: "Segment + extract",
-      detail: "Cellpose-SAM + 26 per-cell features",
-    },
-    {
-      Icon: ArrowLeftRight,
-      label: "Correlate",
-      detail: "WGA \u2194 mechanotransduction, FDR-corrected",
-    },
-  ];
-  return (
-    <div className="flex items-center justify-center gap-2">
-      {steps.map((step, i) => (
-        <div key={step.label} className="flex items-center">
-          <div className="flex flex-col items-center text-center px-3 py-2">
-            <div className="h-9 w-9 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center mb-1.5">
-              <step.Icon size={16} strokeWidth={1.6} className="text-gray-300" />
-            </div>
-            <div className="text-gray-200 text-[11px] font-semibold leading-tight">
-              {step.label}
-            </div>
-            <div className="text-gray-500 text-[9px] leading-tight max-w-[110px] mt-0.5">
-              {step.detail}
-            </div>
-          </div>
-          {i < steps.length - 1 && (
-            <div className="text-gray-600 text-[14px] mx-1">&rarr;</div>
-          )}
-        </div>
-      ))}
     </div>
   );
 }
