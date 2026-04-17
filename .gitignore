@@ -58,13 +58,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # Local editor / AI tooling artifacts — never tracked, never pushed
-.claude/
-.claude*
-CLAUDE.md
-CLAUDE*.md
-.cursor/
-.aider*
-.continue/
-*.claude-session
-*.agent-session
 models/
