@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Download, Flame } from "lucide-react";
 import { exportUrl, fetchHealth, warmupModal } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
-import { GlycoLogo } from "./GlycoLogo";
 
 export type ViewId = "analysis" | "ranking" | "methods";
 
@@ -98,7 +97,6 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
 
   return (
     <nav className="h-14 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0 z-50">
-      <GlycoLogo className="h-7 w-7 mr-2" />
       <span className="font-bold text-[16px] text-gray-900 tracking-[-0.3px]">GlycoQuant</span>
       <span
         className={`ml-2 h-1.5 w-1.5 rounded-full flex-shrink-0 ${healthDotTint}`}
