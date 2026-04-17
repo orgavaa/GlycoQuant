@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app import __version__
+from backend.app.middleware.usage_log import UsageLogMiddleware
 from backend.app.routers import analysis, demo, ml_features, priors
 
 # Frontend origin(s) allowed to call the API. Set via env var in
@@ -59,6 +60,8 @@ else:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+app.add_middleware(UsageLogMiddleware)
 
 app.include_router(analysis.router)
 app.include_router(priors.router)
