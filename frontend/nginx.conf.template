@@ -1,0 +1,33 @@
+server {
+    listen       ${PORT};
+    listen       [::]:${PORT};
+    server_name  _;
+
+    root   /usr/share/nginx/html;
+    index  index.html;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript application/wasm
+               text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+    gzip_min_length 1024;
+
+    # Long cache for hashed Vite assets
+    location /assets/ {
+        access_log off;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # SPA fallback — every non-asset path returns index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Healthcheck for Railway
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+}
