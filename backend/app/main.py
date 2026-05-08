@@ -36,8 +36,8 @@ def _is_wildcard_cors() -> bool:
 app = FastAPI(
     title="GlycoQuant API",
     description=(
-        "REST API for the GlycoQuant glycocalyx mechanotransduction "
-        "analysis platform. Segments fluorescence microscopy images, "
+        "REST API for the GlycoQuant WGA/glycan mechanophenotype "
+        "imaging prototype. Segments fluorescence microscopy images, "
         "extracts 26 interpretable per-cell features + optional DINOv2 "
         "embeddings, and serves the Tab 2 dual-prior ranking data."
     ),

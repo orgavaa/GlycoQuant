@@ -348,7 +348,7 @@ export function PrioritizationTab() {
             rightLabel="22 genes"
           />
           <p className="text-[11px] text-gray-500 mb-3">
-            Dot size encodes reachable mechano targets; colour encodes pathway proximity (same Blues scale as the per-target heatmap).
+            Dot size encodes reachable mechanotransduction-signature targets; colour encodes pathway proximity (same Blues scale as the per-target heatmap).
           </p>
           <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
         </Card>

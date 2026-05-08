@@ -247,7 +247,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
       const lines = cell ? [
         { l: "WGA peri.", v: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
         { l: "YAP N/C", v: fmt(cell.yap_nc_ratio_size_corrected as number | null) },
-        { l: "mechano", v: fmtSigned(cell.mechano_score as number | null) },
+        { l: "mechanophenotype", v: fmtSigned(cell.mechano_score as number | null) },
         { l: "FA mature", v: cell.fa_mature_fraction != null && Number.isFinite(cell.fa_mature_fraction as number) ? ((cell.fa_mature_fraction as number) * 100).toFixed(0) + "%" : "\u2014" },
       ] : [];
       setTooltip({ x: e.clientX, y: e.clientY, cellId: cid, lines });

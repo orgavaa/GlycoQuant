@@ -5,14 +5,30 @@ import numpy as np
 import plotly.graph_objects as go
 
 
+def _display_feature_name(name: str) -> str:
+    return (
+        name
+        .replace("glycocalyx_pericellular_ratio", "WGA pericellular ratio")
+        .replace("glycocalyx_", "WGA ")
+        .replace("mechano_score", "mechanophenotype score")
+        .replace("mechano_", "mechanophenotype ")
+        .replace("yap_", "YAP ")
+        .replace("fa_", "FA ")
+        .replace("actin_", "actin ")
+        .replace("nuclear_", "nuclear ")
+        .replace("cell_", "cell ")
+        .replace("_", " ")
+    )
+
+
 def plot_spatial_graph(
     centroids: list[list[float]],
     edge_index: list[list[int]],
     node_values: list[float],
     cell_ids: list[int],
-    value_label: str = "Mechano (spatial)",
+    value_label: str = "Mechanophenotype (spatial)",
 ) -> go.Figure:
-    """Delaunay graph with nodes colored by predicted mechano score."""
+    """Delaunay graph with nodes colored by predicted mechanophenotype score."""
     pts = np.array(centroids)
     vals = np.array(node_values)
     ids = np.array(cell_ids)
@@ -64,7 +80,7 @@ def plot_feature_importance(
 ) -> go.Figure:
     """Horizontal bar chart of node-feature importance."""
     sorted_items = sorted(importance.items(), key=lambda x: x[1], reverse=True)
-    names = [k for k, _ in sorted_items]
+    names = [_display_feature_name(k) for k, _ in sorted_items]
     values = [v for _, v in sorted_items]
 
     fig = go.Figure(go.Bar(

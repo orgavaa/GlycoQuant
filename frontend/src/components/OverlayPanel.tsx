@@ -64,7 +64,7 @@ export function OverlayPanel({
           kind="radio"
         />
         <ToggleRow
-          label="Mechano score"
+          label="Mechanophenotype"
           active={activeOverlay === "mechano"}
           onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")}
           kind="radio"

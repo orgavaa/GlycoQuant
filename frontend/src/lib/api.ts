@@ -49,7 +49,7 @@ export interface MechanoScoreSummary {
   std: number | null;
   top_correlation_r: number | null;
   top_correlation_pair: [string, string] | null;
-  /** Number of glyco×mechano tiles with BH-FDR q < 0.05. */
+  /** Number of WGA/glycan × mechanophenotype tiles with BH-FDR q < 0.05. */
   n_significant_pairs_fdr?: number | null;
   /** True when the Jones-2024 YAP size correction was subtracted from
    * yap_nc_ratio on this image. False when the R² gate skipped it. */
@@ -352,7 +352,7 @@ export async function fetchJobStatus(jobId: string): Promise<JobStatusResponse> 
   return data;
 }
 
-/** POST the glyco↔mechano correlation recompute with a new null method.
+/** POST the WGA/glycan ↔ mechanophenotype correlation recompute with a new null method.
  *
  * n_permutations=0 → parametric scipy null (fast, returns the original
  * figure shape). n_permutations>0 → empirical null via shuffle (slower

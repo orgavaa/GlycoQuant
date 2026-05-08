@@ -59,7 +59,7 @@ class CellFeature(BaseModel):
 
 
 class MechanoScoreSummary(BaseModel):
-    """Diagnostics for the composite mechanotransduction score.
+    """Diagnostics for the composite mechanophenotype score.
 
     Surfaced next to the score-distribution histogram on Tab 1 so the
     user can see how the score was computed (PCA vs. weighted-sum
@@ -79,20 +79,20 @@ class MechanoScoreSummary(BaseModel):
         default=None,
         description=(
             "Strongest absolute Spearman correlation between any "
-            "glycocalyx feature and any mechanotransduction feature "
-            "in this image. Surfaced as a hero metric so the central "
-            "PhD novelty (single-cell glyco↔mechano coupling) is "
-            "front-and-centre."
+            "WGA-derived pericellular feature and any "
+            "mechanotransduction-associated imaging feature in this image. "
+            "This is an image-local association, not a replicate-level "
+            "biological effect size."
         ),
     )
     top_correlation_pair: tuple[str, str] | None = Field(
         default=None,
-        description="(glycocalyx_feature, mechano_feature) for the top correlation.",
+        description="(WGA/glycan feature, mechanophenotype-associated feature) for the top correlation.",
     )
     n_significant_pairs_fdr: int | None = Field(
         default=None,
         description=(
-            "Number of glyco×mechano correlation tiles surviving "
+            "Number of WGA/glycan × mechanophenotype correlation tiles surviving "
             "Benjamini–Hochberg FDR adjustment at α=0.05 (out of the "
             "rectangular matrix of finite p-values). Reported so the "
             "user can judge at a glance whether the coupling is sparse "
@@ -152,21 +152,17 @@ class JobResult(BaseModel):
     glyco_mechano_correlation_figure_json: str | None = Field(
         default=None,
         description=(
-            "Plotly figure JSON for the rectangular glycocalyx × "
-            "mechanotransduction correlation heatmap. This is the "
-            "headline Tab 1 deliverable — single-cell correlative "
-            "analysis between glycocalyx conformation and "
-            "mechanotransduction state, a measurement no published "
-            "study has reported (Paszek 2014, Möckl 2019, Barai "
-            "2024, Hamrangsekachaee 2025 all stop at population "
-            "comparisons)."
+            "Plotly figure JSON for the rectangular WGA/glycan × "
+            "mechanotransduction-associated feature heatmap. The analysis "
+            "is descriptive and image-local; WGA is not a complete "
+            "glycocalyx composition or thickness measurement."
         ),
     )
     mechano_score_distribution_figure_json: str | None = Field(
         default=None,
         description=(
             "Plotly figure JSON for the per-cell composite "
-            "mechanotransduction score distribution (histogram + "
+            "mechanophenotype score distribution (histogram + "
             "mean line)."
         ),
     )

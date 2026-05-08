@@ -563,7 +563,7 @@ async def recompute_correlation(
     job_id: str,
     n_permutations: int = 0,
 ) -> JobResult:
-    """Re-compute the glyco↔mechano correlation heatmap with a different null.
+    """Re-compute the WGA/glycan ↔ mechanophenotype correlation heatmap with a different null.
 
     The Fix 8 permutation null is opt-in. Instead of re-uploading the
     image, the frontend POSTs the ``n_permutations`` it wants and the

@@ -116,7 +116,7 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
             <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-semibold text-gray-900">{status?.message ?? "Running on Modal GPU"}</div>
-              <div className="text-[11px] text-gray-500 mt-0.5">In-silico perturbation of 22 glycocalyx genes &times; 15 mechano targets</div>
+              <div className="text-[11px] text-gray-500 mt-0.5">In-silico perturbation of 22 glycocalyx genes &times; 15 mechanotransduction-signature targets</div>
             </div>
             <span className="text-[13px] font-bold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{pseudoPct}%</span>
           </div>

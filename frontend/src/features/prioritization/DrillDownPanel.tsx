@@ -9,7 +9,7 @@ import { fetchDrillDown } from "@/lib/api";
 const INTERVENTION_EFFECTS: Record<string, { glyco: string; mechano: string }> = {
   CD44: {
     glyco: "Reduced hyaluronan anchoring, thinner pericellular coat, decreased glycocalyx heterogeneity.",
-    mechano: "Decreased integrin clustering, reduced YAP nuclear translocation, lower mechano score.",
+    mechano: "Decreased integrin clustering, reduced YAP nuclear translocation, lower mechanophenotype score.",
   },
   SDC1: {
     glyco: "Loss of heparan-sulfate chains, reduced pericellular matrix density, altered growth factor sequestration.",
@@ -250,7 +250,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
           {showNetwork && (
             <div className="mt-3">
               <p className="text-[10px] text-gray-400 mb-2">
-                All shortest paths from <strong className="text-gray-600">{gene}</strong> to reachable mechano targets. Edge width proportional to STRING v12 confidence. Regenerated whenever you switch the glycocalyx gene above.
+                All shortest paths from <strong className="text-gray-600">{gene}</strong> to reachable mechanotransduction-signature targets. Edge width proportional to STRING v12 confidence. Regenerated whenever you switch the glycocalyx gene above.
               </p>
               <PlotlyFigure figureJson={drill.network_figure_json} />
             </div>

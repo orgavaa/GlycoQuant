@@ -20,12 +20,14 @@ const SUMMARY_AXES = [
   { key: "fa_mature_fraction", label: "FA mature" },
   { key: "actin_stress_fiber_coherence", label: "Actin coher." },
   { key: "cell_area", label: "Spread area" },
-  { key: "mechano_score", label: "Mechano" },
+  { key: "mechano_score", label: "Mechanophen." },
 ];
 
 function prettyFeature(raw: string): string {
   return raw
     .replace(/^glycocalyx_/, "WGA ")
+    .replace(/^mechano_score$/, "mechanophenotype score")
+    .replace(/^mechano_/, "mechanophenotype ")
     .replace(/^yap_/, "YAP ")
     .replace(/^fa_/, "FA ")
     .replace(/^actin_/, "actin ")
@@ -90,7 +92,7 @@ export function CellContent({ cell, cells }: Props) {
   const metricItems = [
     { label: "WGA pericellular", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
     { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: (v: number | null | undefined) => fmt(v) },
-    { label: "Mechano z", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
+    { label: "Mechanophenotype z", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
     { label: "FA mature", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
   ];
 
@@ -222,6 +224,11 @@ export function CellContent({ cell, cells }: Props) {
 
       {/* Feature groups */}
       <Card>
+        {featureGroups.some(g => g.prefix === "glycocalyx_") && (
+          <div className="mb-2 rounded-md bg-gray-50 px-2.5 py-2 text-[10px] leading-relaxed text-gray-500">
+            WGA reports lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal; it is not a complete glycocalyx composition or thickness measurement.
+          </div>
+        )}
         {featureGroups.map((g, i) => (
           <FeatureGroup key={g.name} name={g.name} features={g.features} defaultOpen={i === 0} />
         ))}

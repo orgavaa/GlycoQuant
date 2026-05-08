@@ -1,15 +1,11 @@
-"""Headline Tab 1 figure: glycocalyx ↔ mechanotransduction correlation matrix.
+"""WGA/glycan vs mechanotransduction-associated feature correlation matrix.
 
-This is the central PhD-novelty deliverable. The existing
-``correlation_map`` shows a square Pearson matrix over *all*
-features, which buries the cross-block signal in a sea of within-
-block correlations. This module instead computes only the
-**rectangular cross-block** correlation between glycocalyx features
-(rows) and mechanotransduction features (columns), at the single-
-cell level — a measurement that no published study has reported
-(Paszek 2014, Möckl 2019, Barai 2024 PNAS Nexus, Hamrangsekachaee
-2025 ACS Biomater. Sci. Eng. all stop at population-level
-comparisons across conditions).
+This module computes a rectangular cross-block Spearman correlation between
+WGA-derived pericellular features (rows) and mechanotransduction-associated
+imaging features (columns), at the single-cell level. The result is descriptive
+and image-local: it reports shared variation in the current field and does not
+validate causal mechanotransduction, glycocalyx composition, or glycocalyx
+thickness.
 
 Spearman is the default correlation method because the underlying
 relationships (e.g. WGA texture vs YAP N/C) are not necessarily
@@ -62,7 +58,7 @@ _STAR_TIERS: tuple[tuple[float, str], ...] = (
     (0.05, "*"),
 )
 
-# Glycocalyx feature columns this figure considers (any subset that
+# WGA pericellular feature columns this figure considers (any subset that
 # the input DataFrame actually contains is plotted; missing columns
 # are silently dropped). Order matches the conceptual progression:
 # bulk intensity → distribution shape → texture → spatial autocorr.
@@ -81,9 +77,8 @@ GLYCO_COLUMNS: tuple[str, ...] = (
     "glycocalyx_moran_i",
 )
 
-# Mechanotransduction feature columns. Order matches the
-# canonical mechano-axis from upstream sensing (FA) to downstream
-# transcription (YAP).
+# Mechanotransduction-associated imaging feature columns. Order follows
+# upstream adhesion/cytoskeleton features through downstream YAP partitioning.
 MECHANO_COLUMNS: tuple[str, ...] = (
     "mechano_score",
     "yap_nc_ratio_size_corrected",
@@ -141,7 +136,7 @@ class GlycoMechanoCorrelation:
     # the sample correlation, valid under the normality-of-ranks
     # approximation); ``"permutation"`` replaces it with an empirical
     # null from :func:`compute_glyco_mechano_correlation`'s
-    # ``n_permutations`` shuffles of the mechano column — makes no
+    # ``n_permutations`` shuffles of the mechanophenotype score column — makes no
     # distributional assumption and is preferred for heavy-tailed
     # fluorescence data.
     null_method: str = "parametric"
@@ -169,7 +164,7 @@ def compute_glyco_mechano_correlation(
     n_permutations : int
         When ``> 0`` the parametric p-value from
         :func:`scipy.stats.spearmanr` is replaced with an empirical
-        p-value from ``n_permutations`` shuffles of the mechano column.
+        p-value from ``n_permutations`` shuffles of the mechanophenotype score column.
         The permutation null is preferred for fluorescence intensity
         data whose marginal distributions violate the normality-of-
         ranks assumption behind the analytical Spearman null. The
@@ -317,7 +312,7 @@ def _bh_adjust_matrix(p_matrix: np.ndarray) -> np.ndarray:
 
     Finite p-values across the whole rectangular matrix are pooled
     into a single family for correction (no row- or column-wise
-    stratification — the family of interest is the full glyco×mechano
+    stratification — the family of interest is the full WGA/glycan × mechanophenotype
     screen). NaN entries of ``p_matrix`` pass through as NaN.
 
     Uses :func:`scipy.stats.false_discovery_control` with the default
@@ -369,7 +364,7 @@ def plot_glyco_mechano_correlation(
     # Cramming numbers into tiny heatmap cells is unreadable at
     # the 320px rail width. Clean heatmap + hover is the pro pattern.
 
-    # "WGA pericellular" rather than "Glycocalyx" is the scientifically
+    # "WGA pericellular" rather than a broad glycocalyx label is the scientifically
     # honest label — wheat-germ agglutinin binds sialic acid and
     # N-acetylglucosamine on the confocal-accessible outer coat but
     # does NOT bind heparan sulfate (the syndecan / glypican / EXT
@@ -377,7 +372,7 @@ def plot_glyco_mechano_correlation(
     # the pericellular shell but not the 50–500 nm glycopolymer
     # ultrastructure (Möckl 2019). Internally these stay called
     # "glycocalyx_*" columns for backward-compat with committed CSVs.
-    title_parts = ["WGA pericellular ↔ mechanotransduction correlation"]
+    title_parts = ["WGA pericellular ↔ mechanotransduction-associated features"]
     total_tested = int(np.sum(np.isfinite(result.r_matrix)))
     if result.top_pair is not None:
         g, m = result.top_pair
@@ -426,7 +421,7 @@ def plot_glyco_mechano_correlation(
             .replace("nuclear_aspect_ratio", "nuc AR")
             .replace("nuclear_solidity", "nuc solid")
             .replace("nuclear_to_cell_area_ratio", "nuc/cell")
-            .replace("mechano_score", "mechano")
+            .replace("mechano_score", "mechanophen.")
             .replace("_", " ")
         )
 
@@ -525,7 +520,7 @@ def plot_mechano_score_distribution(
     df: pd.DataFrame,
     column: str = "mechano_score",
 ) -> go.Figure:
-    """Histogram of the per-cell composite mechanotransduction score.
+    """Histogram of the per-cell composite mechanophenotype score.
 
     Drawn as a 30-bin histogram with a vertical mean line. Returns
     an empty figure if the column is missing or all-NaN — the
@@ -547,7 +542,7 @@ def plot_mechano_score_distribution(
                 "line": {"color": "#1a21ff", "width": 0.5},
                 "opacity": 0.8,
             },
-            hovertemplate="score=%{x:.2f}<br>cells=%{y}<extra></extra>",
+            hovertemplate="mechanophenotype=%{x:.2f}<br>cells=%{y}<extra></extra>",
         )
     )
     mean = float(finite.mean())
@@ -564,7 +559,7 @@ def plot_mechano_score_distribution(
         title=None,
         xaxis={
             "title": {
-                "text": "Mechano score",
+                "text": "Mechanophenotype score",
                 "font": {"size": 10, "color": "#566164", "family": "Inter"},
             },
             "tickfont": {"size": 10, "color": "#566164", "family": "Inter"},

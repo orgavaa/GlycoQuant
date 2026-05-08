@@ -5,13 +5,29 @@ import numpy as np
 import plotly.graph_objects as go
 
 
+def _display_feature_name(name: str) -> str:
+    return (
+        name
+        .replace("glycocalyx_pericellular_ratio", "WGA pericellular ratio")
+        .replace("glycocalyx_", "WGA ")
+        .replace("mechano_score", "mechanophenotype score")
+        .replace("mechano_", "mechanophenotype ")
+        .replace("yap_", "YAP ")
+        .replace("fa_", "FA ")
+        .replace("actin_", "actin ")
+        .replace("nuclear_", "nuclear ")
+        .replace("cell_", "cell ")
+        .replace("_", " ")
+    )
+
+
 def plot_cross_modal_r2(
     per_target_r2: dict[str, float],
     direction: str,
 ) -> go.Figure:
     """Horizontal bar chart of per-target R² values."""
     sorted_items = sorted(per_target_r2.items(), key=lambda x: x[1], reverse=True)
-    names = [k for k, _ in sorted_items]
+    names = [_display_feature_name(k) for k, _ in sorted_items]
     values = [v for _, v in sorted_items]
 
     colors = ["#059669" if v > 0.3 else "#d97706" if v > 0.1 else "#dc2626" for v in values]
@@ -25,9 +41,10 @@ def plot_cross_modal_r2(
     ))
 
     arrow = "\u2192"
-    label = f"Glycocalyx {arrow} Mechano" if "glyco_to" in direction else f"Mechano {arrow} Glycocalyx"
+    label = f"WGA/glycan {arrow} mechanophenotype" if "glyco_to" in direction else f"mechanophenotype {arrow} WGA/glycan"
 
     fig.update_layout(
+        title=dict(text=label, font=dict(size=12)),
         xaxis=dict(title="R\u00b2 (5-fold CV)", range=[min(0, min(values) - 0.05), max(values) + 0.15]),
         yaxis=dict(autorange="reversed"),
         plot_bgcolor="#fff", paper_bgcolor="#fff",
@@ -47,6 +64,7 @@ def plot_predicted_vs_actual(
     """Scatter: predicted vs actual for one target feature."""
     a = np.array(actual)
     p = np.array(predicted)
+    display_name = _display_feature_name(feature_name)
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -64,8 +82,8 @@ def plot_predicted_vs_actual(
     ))
 
     fig.update_layout(
-        xaxis=dict(title=f"Actual {feature_name}"),
-        yaxis=dict(title=f"Predicted {feature_name}"),
+        xaxis=dict(title=f"Actual {display_name}"),
+        yaxis=dict(title=f"Predicted {display_name}"),
         plot_bgcolor="#fff", paper_bgcolor="#fff",
         font=dict(family="Inter, sans-serif", size=11),
         margin=dict(l=60, r=20, t=30, b=50),
@@ -85,7 +103,7 @@ def plot_feature_importance(
 ) -> go.Figure:
     """Horizontal bar of input feature importance (gradient-based)."""
     sorted_items = sorted(importance.items(), key=lambda x: x[1], reverse=True)
-    names = [k for k, _ in sorted_items]
+    names = [_display_feature_name(k) for k, _ in sorted_items]
     values = [v for _, v in sorted_items]
 
     fig = go.Figure(go.Bar(

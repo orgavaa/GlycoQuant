@@ -892,9 +892,9 @@ def _build_segmentation_figure(
                 customdata=[[cell_id, glyco, yap, mechano, fa]] * n_pts,
                 hovertemplate=(
                     "<b>Cell %{customdata[0]}</b><br>"
-                    "Glycocalyx ratio: %{customdata[1]}<br>"
+                    "WGA pericellular ratio: %{customdata[1]}<br>"
                     "YAP N/C (corr): %{customdata[2]}<br>"
-                    "Mechano score: %{customdata[3]}<br>"
+                    "Mechanophenotype score: %{customdata[3]}<br>"
                     "FA mature frac: %{customdata[4]}"
                     "<extra></extra>"
                 ),
@@ -956,7 +956,7 @@ def _build_segmentation_figure(
 
     overlay_trace_ranges: dict[str, list[int]] = {"glycocalyx": [], "mechano": []}
 
-    # Glycocalyx fill overlay
+    # WGA pericellular fill overlay
     for cell_id, contour in cell_outline_polygons(cell_mask).items():
         val = _float_val(cell_id, "glycocalyx_pericellular_ratio")
         color = _viridis_color(val, glyco_min, glyco_max)

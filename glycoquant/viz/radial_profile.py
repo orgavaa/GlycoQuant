@@ -9,7 +9,7 @@ from glycoquant.theme import PALETTE, get_plotly_layout_template
 
 def plot_radial_profile(
     profiles: np.ndarray,
-    title: str = "Glycocalyx radial profile",
+    title: str = "WGA pericellular radial profile",
 ) -> go.Figure:
     """Mean ± std radial intensity across cells.
 

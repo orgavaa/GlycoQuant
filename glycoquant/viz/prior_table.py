@@ -1,7 +1,7 @@
 """Plotly visualizations for the perturbation ranking tab.
 
 Provides:
-- ``plot_drill_down_heatmap``: 2-row heatmap (Geneformer vs Pathway scores per mechano target)
+- ``plot_drill_down_heatmap``: 2-row heatmap (Geneformer vs Pathway scores per mechanotransduction-signature target)
 - ``plot_panel_summary``: Dot plot overview of all 22 glycocalyx genes
 - ``plot_pathway_network``: Force-directed network graph for a gene's shortest paths
 """
@@ -190,9 +190,9 @@ def plot_pathway_network(
     evidence_per_target: dict[str, dict],
     mechano_genes: list[str],
 ) -> go.Figure:
-    """Network graph showing shortest paths from a glycocalyx gene to all reachable mechano targets.
+    """Network graph showing shortest paths from a glycocalyx gene to all reachable mechanotransduction-signature targets.
 
-    Nodes: source gene (left), intermediates (middle), mechano targets (right).
+    Nodes: source gene (left), intermediates (middle), mechanotransduction-signature targets (right).
     Edges: thickness proportional to STRING confidence.
     """
     # Collect all unique nodes and edges across all reachable targets

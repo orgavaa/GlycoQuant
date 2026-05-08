@@ -10,7 +10,7 @@ def _short_label(name: str) -> str:
     """Shorten long feature names for readability in the heatmap."""
     return (
         name
-        .replace("glycocalyx_", "glyco·")
+        .replace("glycocalyx_", "WGA ")
         .replace("haralick_", "")
         .replace("pericellular_", "peri·")
         .replace("integrated_", "integ·")
@@ -51,7 +51,7 @@ def _short_label(name: str) -> str:
         .replace("cell_aspect_ratio", "cell AR")
         .replace("cell_solidity", "cell solid")
         .replace("cell_spread_area", "cell spread")
-        .replace("mechano_score", "mechano")
+        .replace("mechano_score", "mechanophen.")
         .replace("_", " ")
     )
 

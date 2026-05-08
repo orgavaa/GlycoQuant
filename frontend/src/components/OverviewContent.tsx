@@ -20,6 +20,20 @@ interface Props {
 
 type ViewTab = "overview" | "ml";
 
+function displayFeatureName(name: string): string {
+  return name
+    .replace(/^glycocalyx_pericellular_ratio$/, "WGA pericellular ratio")
+    .replace(/^glycocalyx_/, "WGA ")
+    .replace(/^mechano_score$/, "mechanophenotype score")
+    .replace(/^mechano_/, "mechanophenotype ")
+    .replace(/^yap_/, "YAP ")
+    .replace(/^fa_/, "FA ")
+    .replace(/^actin_/, "actin ")
+    .replace(/^nuclear_/, "nuclear ")
+    .replace(/^cell_/, "cell ")
+    .replace(/_/g, " ");
+}
+
 export function OverviewContent({ result, cells }: Props) {
   const [activeTab, setActiveTab] = useState<ViewTab>("overview");
 
@@ -89,7 +103,7 @@ function OverviewTab({ result, cells }: Props) {
         </div>
         <HeroMetrics metrics={[
           { value: String(result.cell_count), label: "Cells" },
-          { value: fmtSigned(m.mean_mechano_score), label: "Mean mechano" },
+          { value: fmtSigned(m.mean_mechano_score), label: "Mean mechanophenotype" },
           { value: glycoMechR != null ? fmt(glycoMechR) : "\u2014", label: "Top |rho|" },
           {
             value:
@@ -103,10 +117,10 @@ function OverviewTab({ result, cells }: Props) {
         {glycoMechR != null && summary?.top_correlation_pair && (
           <div className="mt-3 border-t border-gray-100 pt-3 text-[11px] leading-relaxed text-gray-600">
             {Math.abs(glycoMechR) > 0.5
-              ? `Moderate-to-strong coupling detected: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} is ${glycoMechR > 0 ? "positively" : "negatively"} associated with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
+              ? `Moderate-to-strong image-local association: ${displayFeatureName(summary.top_correlation_pair[0])} is ${glycoMechR > 0 ? "positively" : "negatively"} associated with ${displayFeatureName(summary.top_correlation_pair[1])} (|r| = ${fmt(glycoMechR)}).`
               : Math.abs(glycoMechR) > 0.3
-              ? `Weak-to-moderate association: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} shows ${glycoMechR > 0 ? "positive" : "negative"} correlation with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
-              : `Weak coupling in this field: strongest association is |r| = ${fmt(glycoMechR)} between ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} and ${summary.top_correlation_pair[1].replace("_", " ")}.`
+              ? `Weak-to-moderate image-local association: ${displayFeatureName(summary.top_correlation_pair[0])} shows ${glycoMechR > 0 ? "positive" : "negative"} correlation with ${displayFeatureName(summary.top_correlation_pair[1])} (|r| = ${fmt(glycoMechR)}).`
+              : `Weak image-local association: strongest pair is |r| = ${fmt(glycoMechR)} between ${displayFeatureName(summary.top_correlation_pair[0])} and ${displayFeatureName(summary.top_correlation_pair[1])}.`
             }
             {" "}Image-local association; not a replicate-level effect size.
           </div>
@@ -122,7 +136,7 @@ function OverviewTab({ result, cells }: Props) {
 
       {result.mechano_score_distribution_figure_json && (
         <PlotlyCard
-          title="Score distribution"
+          title="Mechanophenotype distribution"
           figureJson={result.mechano_score_distribution_figure_json}
           maxHeight={220}
         />
@@ -162,8 +176,11 @@ function CorrelationAudit({ figureJson, result }: { figureJson: string; result: 
               <span className="text-gray-700">Cellpose-SAM (cpsam)</span>
             </div>
             <div className="flex justify-between">
-              <span>Mechano score</span>
+              <span>Mechanophenotype score</span>
               <span className="text-gray-700">{summary?.mode === "pca" ? "PCA mode 1" : "Weighted sum"} ({summary?.n_features_used ?? "?"} features)</span>
+            </div>
+            <div className="rounded-md bg-gray-50 px-2 py-1.5 text-gray-600">
+              Composite imaging score from YAP N/C, focal adhesion, actin, and morphology features; requires perturbation calibration before interpretation as mechanotransduction.
             </div>
             {summary?.pc1_variance_explained != null && summary.pc1_variance_explained > 0 && (
               <div className="flex justify-between">
@@ -268,7 +285,7 @@ function CorrelationCard({ result }: { result: JobResult }) {
   };
 
   const subtitle = summary?.top_correlation_pair
-    ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${summary.top_correlation_pair[0]} \u00d7 ${summary.top_correlation_pair[1]})`
+    ? `Spearman \u03C1 matrix \u2014 top |r| = ${fmt(summary.top_correlation_r)} (${displayFeatureName(summary.top_correlation_pair[0])} \u00d7 ${displayFeatureName(summary.top_correlation_pair[1])})`
     : undefined;
 
   return (
@@ -297,7 +314,7 @@ function CorrelationCard({ result }: { result: JobResult }) {
                 ? "bg-gray-950 text-white shadow-sm"
                 : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
             } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
-            title={`Empirical null from ${PERMUTATION_N} shuffles of the mechano column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
+            title={`Empirical null from ${PERMUTATION_N} shuffles of the mechanophenotype score column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
           >
             Empirical null (slower)
           </button>
@@ -316,11 +333,11 @@ function CorrelationCard({ result }: { result: JobResult }) {
       <PlotlyCard
         title={
           <>
-            <span title="WGA lectin binds sialic acid + GlcNAc on the confocal-accessible outer coat. Heparan sulfate (the syndecan/glypican axis) requires a separate anti-HS antibody channel — see Methods.">
+            <span title="WGA lectin binds sialic acid + GlcNAc on the confocal-accessible outer coat. WGA is not a complete glycocalyx composition or thickness measurement. Heparan sulfate requires a separate anti-HS antibody channel.">
               WGA pericellular
             </span>
             <ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" />
-            <span>Mechanotransduction</span>
+            <span>Mechanotransduction-associated features</span>
           </>
         }
         subtitle={
@@ -352,7 +369,7 @@ function YapCorrectionBadge({ summary }: { summary: NonNullable<JobResult["mecha
     : "Jones-2024 YAP size correction skipped";
   const explanation = applied
     ? `Cell area predicted YAP N/C strongly enough (r² = ${r2Str}) for the slope to be subtracted from yap_nc_ratio. Residuals feed yap_nc_ratio_size_corrected.`
-    : `Cell area did not predict YAP N/C on this image (r² = ${r2Str}, below the 0.05 gate). Raw yap_nc_ratio was passed through unchanged — the mechano panel reads the uncorrected column.`;
+    : `Cell area did not predict YAP N/C on this image (r² = ${r2Str}, below the 0.05 gate). Raw yap_nc_ratio was passed through unchanged — the mechanophenotype panel reads the uncorrected column.`;
   return (
     <div className={`mt-3 pt-3 border-t border-gray-100`}>
       <div className={`rounded-md border px-3 py-2 ${tint}`}>

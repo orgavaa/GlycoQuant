@@ -13,7 +13,7 @@ const GPU_STAGES = [
   { at: 55,  pct: 35,  label: "Segmenting cells",           detail: "Running Cellpose-SAM to detect cell and nuclear boundaries" },
   { at: 75,  pct: 50,  label: "Extracting features",        detail: "Computing WGA, YAP, FA, actin, and morphology features per cell" },
   { at: 95,  pct: 65,  label: "Computing deep embeddings",  detail: "Running Cell-DINO ViT-L/16 inference on per-cell crops (5120-dim per cell)" },
-  { at: 120, pct: 78,  label: "Computing mechano score",    detail: "PCA over the curated 15-feature mechanotransduction panel" },
+  { at: 120, pct: 78,  label: "Computing mechanophenotype score", detail: "PCA over the curated mechanotransduction-associated imaging panel" },
   { at: 135, pct: 85,  label: "Generating visualizations",  detail: "Building correlation heatmaps, score distributions, and channel PNGs" },
   { at: 155, pct: 92,  label: "Serializing results",        detail: "Packaging per-cell data, figures, and overlays for transfer" },
   { at: 170, pct: 96,  label: "Transferring from GPU",      detail: "Sending the result payload back to the API server" },

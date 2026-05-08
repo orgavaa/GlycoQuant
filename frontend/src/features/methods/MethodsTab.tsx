@@ -45,7 +45,7 @@ const GROUPS: GroupSpec[] = [
     title: "WGA pericellular organisation",
     channel: "WGA-lectin (sialic acid + GlcNAc)",
     intent:
-      "Wheat-germ agglutinin (WGA) binds sialic-acid and N-acetylglucosamine residues on cell-surface glycoproteins and gangliosides. Under confocal imaging at ~0.3 µm/px, the WGA channel resolves the pericellular fluorescence shell — a measurable proxy for the cellular glycocalyx — but does NOT resolve heparan-sulfate glycosaminoglycan chains (the syndecan/glypican axis), and does NOT resolve the 50–500 nm glycopolymer ultrastructure that requires PAINT or MINFLUX (Möckl 2019). The descriptors below quantify the WGA pericellular signal's density, continuity, radial profile, and spatial texture; treat them as image-level surrogates for brush behaviour, not as direct ultrastructural measurements. For the heparan-sulfate axis, the platform exposes a separate hs_* feature group when an anti-HS antibody channel (10E4 / F58-10E4) is supplied.",
+      "Wheat-germ agglutinin (WGA) binds sialic-acid and N-acetylglucosamine residues on cell-surface glycoproteins and gangliosides. The measured channel is a lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal in the pericellular fluorescence shell. WGA is not a complete glycocalyx composition or thickness measurement, does not resolve heparan-sulfate glycosaminoglycan chains, and does not resolve 50–500 nm glycopolymer ultrastructure. The descriptors below quantify WGA pericellular density, continuity, radial profile, and spatial texture. For the heparan-sulfate axis, the platform exposes a separate hs_* feature group when an anti-HS antibody channel (10E4 / F58-10E4) is supplied.",
     icon: <Sparkles size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -57,7 +57,7 @@ const GROUPS: GroupSpec[] = [
       { name: "pericellular_ratio", plain: "Intensity contrast between the pericellular annulus and the intracellular compartment. Elevated values are consistent with a densely loaded, externally projecting brush; depressed values with a shallow or partially shed coat.", technical: "Mean pixel intensity in a 1–3 µm pericellular ring divided by the mean intensity inside the cell mask." },
       { name: "radial_decay_rate", plain: "Characteristic decay of lectin signal as a function of radial distance from the cell edge. Steep decay is consistent with a compact, tightly membrane-anchored coat; shallow decay with a diffuse, long-range brush.", technical: "Slope of a linear fit to the outward radial intensity profile." },
       { name: "radial_profile_00..19", plain: "Twenty concentric annular shells spanning approximately 0–10 µm outward from the cell boundary. Collectively these bins encode the brush-extension profile that downstream regression models consume directly.", technical: "Per-bin mean intensity of the outward radial intensity profile." },
-      { name: "coverage", plain: "Circumferential continuity of the coat around the cell. Depressed values flag focally depleted or shed regions and a fragmented glycocalyx architecture.", technical: "Fraction of the pericellular ring exceeding a locally-adaptive Otsu threshold." },
+      { name: "coverage", plain: "Circumferential continuity of the WGA-positive pericellular signal around the cell. Depressed values flag focally depleted or shed WGA-accessible regions.", technical: "Fraction of the pericellular ring exceeding a locally-adaptive Otsu threshold." },
       { name: "heterogeneity", plain: "Lateral variability of pericellular intensity. Elevated values are consistent with phase-separated or patchy coat organisation.", technical: "Coefficient of variation of pericellular intensity." },
       { name: "haralick_contrast / homogeneity / energy / correlation", plain: "Haralick descriptors of pericellular texture — independent readouts of local contrast, patch coherence, distributional uniformity, and directional autocorrelation.", technical: "Grey-level co-occurrence matrix (GLCM) features computed on the pericellular ring." },
       { name: "moran_i", plain: "Global spatial autocorrelation of pericellular intensity. Positive values indicate clustered bright/dim domains, zero indicates spatial randomness, negative values an anti-correlated (alternating) pattern.", technical: "Moran's I with queen-adjacency weights over the pericellular ring." },
@@ -70,7 +70,7 @@ const GROUPS: GroupSpec[] = [
     title: "YAP nuclear localisation",
     channel: "YAP / TAZ antibody",
     intent:
-      "YAP and its paralogue TAZ are Hippo-pathway transcriptional co-activators whose subcellular partitioning is regulated by substrate stiffness, cytoskeletal tension, and cell geometry (Dupont et al., Nature 2011; Elosegui-Artola et al., Cell 2017). Nuclear-to-cytoplasmic partitioning remains the canonical single-cell proxy for mechanotransduction pathway activity.",
+      "YAP and its paralogue TAZ are Hippo-pathway transcriptional co-activators whose subcellular partitioning is regulated by substrate stiffness, cytoskeletal tension, and cell geometry (Dupont et al., Nature 2011; Elosegui-Artola et al., Cell 2017). Nuclear-to-cytoplasmic partitioning is reported here as a mechanotransduction-associated imaging feature, not as a standalone pathway validation.",
     icon: <Target size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -166,8 +166,8 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-blue-50",
     badgeText: "text-blue-700",
     rows: [
-      { name: "mechano_score", plain: "Within-image, sign-corrected composite of YAP nuclear localisation, focal-adhesion maturity, and actin coherence. Zero-centred by construction; magnitudes encode per-cell rank relative to the current field and should not be compared across acquisitions.", technical: "First principal component of the three z-scored sub-scores after sign alignment against the YAP nc_ratio axis; rescaled to unit variance." },
-      { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "Canonical glycocalyx scalar re-exposed as one axis of the glyco ↔ mechano correlation plots on the Overview tab. Not an additional feature.", technical: "Alias of the pericellular_ratio feature surfaced for downstream plotting." },
+      { name: "mechano_score", plain: "Display label: Mechanophenotype score. Composite imaging score from YAP N/C, focal adhesion, actin, and morphology features; requires perturbation calibration before interpretation as mechanotransduction. Zero-centred within the current image; magnitudes are relative to this field, not absolute biological values across experiments.", technical: "First principal component of the z-scored sub-scores after sign alignment against the YAP nc_ratio axis; rescaled to unit variance. The exported feature identifier remains mechano_score for compatibility." },
+      { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "Display label: WGA pericellular ratio. Lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal re-exposed as one axis of the WGA/glycan ↔ mechanophenotype plots on the Overview tab. Not an additional feature.", technical: "Alias of the pericellular_ratio feature surfaced for downstream plotting. WGA is not a complete glycocalyx composition or thickness measurement." },
       { name: "deep_*", plain: "Optional 5 120-dimensional Cell-DINO ViT-L/16 embedding per cell, serving as a channel-adaptive visual fingerprint. Not surfaced in the tabular views; consumed by the embedding-based cluster-discovery module.", technical: "Cell-DINO ViT-L/16 (Bourriez et al. 2025) per-cell embedding computed on per-cell crops, enabled per-job by opt-in at submit time." },
     ],
   },
@@ -284,10 +284,11 @@ export function MethodsTab() {
             computed on the wrong stain.
           </li>
           <li>
-            <span className="font-medium text-gray-900">Composite scores.</span> Scores like
+            <span className="font-medium text-gray-900">Composite scores.</span> The exported column
             <code className="mx-1 px-1 bg-gray-100 rounded text-[11px] font-mono">mechano_score</code>
-            are z-scored within the current image — they tell you who's high or low
-            <em> in this field</em>, not an absolute biological value across experiments.
+            displays as <span className="font-medium text-gray-900">Mechanophenotype score</span>.
+            It is z-scored within the current image and requires perturbation calibration before
+            interpretation as mechanotransduction.
           </li>
           <li>
             <span className="font-medium text-gray-900">Deep embeddings (optional).</span>
