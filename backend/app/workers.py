@@ -166,6 +166,12 @@ def run_analysis_job(
                 print(f"[worker] Modal dispatch FAILED: {modal_exc}")
                 raise
             print(f"[worker] Modal returned result for job {job_id}: {remote_result.cell_count} cells")
+            store.update(
+                job_id,
+                phase="extracting",
+                pct=88,
+                message="Receiving GPU result payload",
+            )
             if channel_warnings:
                 remote_result.warnings = list(remote_result.warnings) + channel_warnings
             # Propagate channel metadata
@@ -180,6 +186,12 @@ def run_analysis_job(
             from io import StringIO as _SIO
 
             import pandas as _pd
+            store.update(
+                job_id,
+                phase="extracting",
+                pct=92,
+                message="Preparing per-cell feature table",
+            )
             try:
                 _df = _pd.read_json(_SIO(remote_result.features_df_json), orient="records")
                 _display = [c for c in _df.columns if not c.startswith("deep_")]
@@ -188,6 +200,12 @@ def run_analysis_job(
             except Exception:
                 pass
             # Slim the segmentation figure — drop heatmap z-arrays and overlay traces
+            store.update(
+                job_id,
+                phase="extracting",
+                pct=96,
+                message="Preparing visualization payload",
+            )
             try:
                 import json as _json
                 _seg = _json.loads(remote_result.segmentation_figure_json)

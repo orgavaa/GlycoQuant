@@ -48,6 +48,9 @@ export function useAnalysisJob() {
     queryKey: ["job", jobId],
     queryFn: () => fetchJobStatus(jobId!),
     enabled: !!jobId,
+    retry: 3,
+    retryDelay: 2000,
+    refetchIntervalInBackground: true,
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return 2000;

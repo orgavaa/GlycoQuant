@@ -343,7 +343,12 @@ export async function fetchCompare(jobIdA: string, jobIdB: string): Promise<Comp
 }
 
 export async function fetchJobStatus(jobId: string): Promise<JobStatusResponse> {
-  const { data } = await api.get<JobStatusResponse>(`/analysis/jobs/${jobId}`);
+  const { data } = await api.get<JobStatusResponse>(`/analysis/jobs/${jobId}`, {
+    // The final poll carries the full JobResult: channel PNGs, Plotly JSON,
+    // cell overlays, and per-cell features. On hosted GPU runs that transfer
+    // can exceed the generic 30s API timeout even though the job completed.
+    timeout: 300_000,
+  });
   return data;
 }
 

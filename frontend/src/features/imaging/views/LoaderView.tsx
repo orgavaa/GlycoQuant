@@ -668,6 +668,11 @@ export function LoaderView() {
                 submittedAt={job.submittedAt}
                 includesDeep={job.includesDeep}
                 isGpu={true}
+                pollingError={
+                  job.statusQuery.isError
+                    ? ((job.statusQuery.error as Error)?.message ?? "status request failed")
+                    : null
+                }
               />
             )}
 

@@ -34,9 +34,10 @@ interface Props {
   submittedAt: number | null;
   includesDeep: boolean;
   isGpu: boolean;
+  pollingError?: string | null;
 }
 
-export function PipelineProgress({ progress, submittedAt, includesDeep, isGpu }: Props) {
+export function PipelineProgress({ progress, submittedAt, includesDeep, isGpu, pollingError = null }: Props) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -79,8 +80,8 @@ export function PipelineProgress({ progress, submittedAt, includesDeep, isGpu }:
     currentStage = {
       at: 0,
       pct: backendPct,
-      label: progress?.phase ?? "Processing",
-      detail: progress?.message ?? "",
+      label: progress?.message ?? "Processing",
+      detail: progress?.phase ? `Backend phase: ${progress.phase}` : "",
     };
   }
 
@@ -92,33 +93,49 @@ export function PipelineProgress({ progress, submittedAt, includesDeep, isGpu }:
     return `${Math.floor(s / 60)}m ${(s % 60).toString().padStart(2, "0")}s`;
   };
 
-  // Estimate remaining time
-  const totalEstimate = isGpu ? (includesDeep ? 180 : 90) : (includesDeep ? 420 : 180);
+  // Estimate remaining time. Once the model has exceeded the optimistic
+  // estimate, keep the UI explicitly alive instead of showing "~0s remaining".
+  const stageEstimate = stages[stages.length - 1].at + (isGpu ? 30 : 60);
+  const totalEstimate = isGpu
+    ? Math.max(stageEstimate, includesDeep ? 210 : 180)
+    : Math.max(stageEstimate, includesDeep ? 420 : 240);
   const remaining = Math.max(0, totalEstimate - elapsed);
+  const overEstimate = elapsed > totalEstimate && estimatedPct >= 96;
+  const remainingLabel = overEstimate ? "receiving result" : `~${formatTime(remaining)} remaining`;
 
   return (
-    <div className="mt-5 space-y-3">
+    <div className="mt-5 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
       {/* Progress bar */}
-      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
         <div
-          className="h-full bg-blue-600 rounded-full transition-all duration-1000 ease-linear"
+          className="h-full rounded-full bg-gray-950 transition-all duration-1000 ease-linear"
           style={{ width: `${estimatedPct}%` }}
         />
       </div>
 
       {/* Current stage */}
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+        <div className="mt-0.5 h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-gray-300 border-t-gray-950" />
         <div className="flex-1 min-w-0">
           <div className="text-[13px] font-medium text-gray-900">{currentStage.label}</div>
           <div className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{currentStage.detail}</div>
+          {overEstimate && (
+            <div className="mt-1 text-[11px] leading-relaxed text-gray-500">
+              The GPU job is past the nominal runtime. The browser is still polling and will open the analysis view when the result payload arrives.
+            </div>
+          )}
+          {pollingError && (
+            <div className="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] leading-relaxed text-amber-800">
+              Status poll is retrying: {pollingError}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Time info */}
       <div className="flex items-center justify-between text-[11px] text-gray-400" style={{ fontFeatureSettings: "'tnum'" }}>
         <span>Elapsed: {formatTime(elapsed)}</span>
-        <span>~{formatTime(remaining)} remaining</span>
+        <span>{remainingLabel}</span>
       </div>
     </div>
   );
