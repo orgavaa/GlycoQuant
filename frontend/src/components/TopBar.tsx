@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Flame } from "lucide-react";
+import {
+  BookOpen,
+  Download,
+  Flame,
+  Network,
+  SlidersHorizontal,
+  type LucideProps,
+} from "lucide-react";
 import { exportUrl, fetchHealth, warmupModal } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
 
@@ -13,30 +20,38 @@ interface TopBarProps {
 
 type WarmupState = "idle" | "running" | "ready" | "error";
 
-const TAB_TOOLTIPS: Record<ViewId, string> = {
-  analysis:
-    "Single-image analysis: segment cells, extract per-cell features, " +
-    "render the WGA↔mechanotransduction correlation heatmap.",
-  ranking:
-    "Perturbation prioritization: 22 glycocalyx genes ranked against the " +
-    "15-gene mechanotransduction signature using STRING + Geneformer.",
-  methods:
-    "Per-feature documentation: what each scalar measures, what channel " +
-    "it requires, and the primary literature it stands on.",
-};
+const NAV_ITEMS: ReadonlyArray<{
+  id: ViewId;
+  label: string;
+  Icon: ComponentType<LucideProps>;
+  tooltip: string;
+}> = [
+  {
+    id: "analysis",
+    label: "Analysis",
+    Icon: SlidersHorizontal,
+    tooltip: "Configure fields, inspect masks, and review per-cell features.",
+  },
+  {
+    id: "ranking",
+    label: "Ranking",
+    Icon: Network,
+    tooltip: "Prioritize glycocalyx genes using pathway priors and optional Geneformer evidence.",
+  },
+  {
+    id: "methods",
+    label: "Methods",
+    Icon: BookOpen,
+    tooltip: "Feature definitions, channel requirements, and validation notes.",
+  },
+];
 
 export function TopBar({ activeView, onChangeView }: TopBarProps) {
   const latestJobId = useJobStore((s) => s.latestJobId);
   const canExport = !!latestJobId;
   const [warmupState, setWarmupState] = useState<WarmupState>("idle");
-  const [warmupDetail, setWarmupDetail] = useState<string>("");
+  const [warmupDetail, setWarmupDetail] = useState("");
 
-  // Backend liveness — polled every 30s. Three states drive the dot:
-  //  - green (ok)       → backend reachable, status=ok
-  //  - amber (loading)  → first fetch in flight, no decision yet
-  //  - red (error)      → request failed (network, 500, CORS, …)
-  // The query is cheap (HEAD-equivalent) and intentionally has a tight
-  // 5s timeout in fetchHealth so a hanging backend looks red within 5s.
   const healthQuery = useQuery({
     queryKey: ["backend-health"],
     queryFn: fetchHealth,
@@ -55,14 +70,22 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
     healthState === "ok"
       ? "bg-emerald-500"
       : healthState === "error"
-        ? "bg-red-500"
+        ? "bg-rose-500"
         : "bg-amber-400 animate-pulse";
+  const healthLabel =
+    healthState === "ok" ? "API ready" : healthState === "error" ? "API offline" : "API check";
+  const healthTint =
+    healthState === "ok"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      : healthState === "error"
+        ? "border-rose-200 bg-rose-50 text-rose-800"
+        : "border-amber-200 bg-amber-50 text-amber-800";
   const healthTooltip =
     healthState === "ok"
-      ? `Backend OK · ${healthQuery.data?.device_detail ?? healthQuery.data?.device ?? "device unknown"}`
+      ? `Backend OK / ${healthQuery.data?.device_detail ?? healthQuery.data?.device ?? "device unknown"}`
       : healthState === "error"
-        ? "Backend unreachable. Check the API URL and CORS configuration."
-        : "Probing backend liveness…";
+        ? "Backend unreachable. Check API URL and CORS."
+        : "Checking backend liveness...";
 
   const handleExport = () => {
     if (!latestJobId) return;
@@ -72,77 +95,100 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
   const handleWarmup = async () => {
     if (warmupState === "running") return;
     setWarmupState("running");
-    setWarmupDetail("Provoking GPU container cold-start (30-60s)…");
+    setWarmupDetail("Preparing the GPU worker...");
     try {
       const r = await warmupModal();
       setWarmupState("ready");
       setWarmupDetail(
-        `Modal ready · ${r.modal.device} · ${r.modal.elapsed_ms}ms heartbeat`,
+        `Modal ready / ${r.modal.device} / ${r.modal.elapsed_ms}ms heartbeat`,
       );
     } catch (exc) {
       setWarmupState("error");
-      const msg = exc instanceof Error ? exc.message : String(exc);
-      setWarmupDetail(msg);
+      setWarmupDetail(exc instanceof Error ? exc.message : String(exc));
     }
   };
 
   const warmupTint =
     warmupState === "ready"
-      ? "text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+      ? "border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
       : warmupState === "error"
-        ? "text-red-700 border-red-300 hover:bg-red-50"
+        ? "border-rose-200 bg-white text-rose-700 hover:bg-rose-50"
         : warmupState === "running"
-          ? "text-orange-600 border-orange-200 animate-pulse"
-          : "text-gray-700 border-gray-300 hover:bg-gray-50";
+          ? "border-amber-200 bg-white text-amber-700"
+          : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50";
 
   return (
-    <nav className="h-14 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0 z-50">
-      <span className="font-bold text-[16px] text-gray-900 tracking-[-0.3px]">GlycoQuant</span>
-      <span
-        className={`ml-2 h-1.5 w-1.5 rounded-full flex-shrink-0 ${healthDotTint}`}
-        title={healthTooltip}
-        aria-label={`Backend ${healthState}`}
-      />
-      <div className="flex gap-8 ml-12">
-        <NavTab label="Analysis" active={activeView === "analysis"} onClick={() => onChangeView("analysis")} tooltip={TAB_TOOLTIPS.analysis} />
-        <NavTab label="Ranking" active={activeView === "ranking"} onClick={() => onChangeView("ranking")} tooltip={TAB_TOOLTIPS.ranking} />
-        <NavTab label="Methods" active={activeView === "methods"} onClick={() => onChangeView("methods")} tooltip={TAB_TOOLTIPS.methods} />
+    <nav className="z-50 flex h-16 flex-shrink-0 items-center border-b border-gray-200 bg-white/95 px-4 backdrop-blur">
+      <div className="flex min-w-[184px] items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-sm">
+          <img
+            src="/glyco.png"
+            alt=""
+            className="h-7 w-7 object-contain"
+            draggable={false}
+          />
+        </span>
+        <span className="text-[17px] font-semibold text-gray-950">GlycoQuant</span>
       </div>
+
+      <div className="ml-5 inline-flex h-10 items-center rounded-lg bg-gray-100 p-1">
+        {NAV_ITEMS.map((item) => (
+          <NavTab
+            key={item.id}
+            label={item.label}
+            Icon={item.Icon}
+            active={activeView === item.id}
+            onClick={() => onChangeView(item.id)}
+            tooltip={item.tooltip}
+          />
+        ))}
+      </div>
+
       <div className="flex-1" />
+
+      <div
+        className={`mr-2 hidden h-8 items-center gap-2 rounded-md border px-2.5 text-[11px] font-medium sm:flex ${healthTint}`}
+        title={healthTooltip}
+        aria-label={healthLabel}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${healthDotTint}`} />
+        <span>{healthLabel}</span>
+      </div>
+
       <button
         onClick={handleWarmup}
         disabled={warmupState === "running"}
-        title={
-          warmupDetail ||
-          "Pre-warm the Modal GPU container so the first analysis call lands on a warm container instead of paying a 30-60s cold-start. Call once before a live demo."
-        }
-        className={`flex items-center gap-1.5 text-xs font-medium border rounded-md px-3 py-1.5 mr-2 transition-colors ${warmupTint}`}
+        title={warmupDetail || "Pre-warm the Modal GPU worker before a live run."}
+        className={`mr-2 flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors disabled:cursor-wait ${warmupTint}`}
       >
-        <Flame size={14} strokeWidth={1.5} />
-        {warmupState === "running"
-          ? "Warming GPU…"
-          : warmupState === "ready"
-            ? "GPU warm"
-            : warmupState === "error"
-              ? "Warm-up failed"
-              : "Warm up GPU"}
+        <Flame size={13} strokeWidth={1.7} />
+        <span className="hidden md:inline">
+          {warmupState === "running"
+            ? "Warming"
+            : warmupState === "ready"
+              ? "GPU ready"
+              : warmupState === "error"
+                ? "GPU failed"
+                : "Warm GPU"}
+        </span>
       </button>
+
       <button
         onClick={handleExport}
         disabled={!canExport}
         title={
           canExport
-            ? "Download per-cell features, results summary, and provenance bundle as a zip"
-            : "Run an analysis first — the export bundle needs a completed job"
+            ? "Download per-cell features, summary, and provenance bundle"
+            : "Run an analysis before exporting"
         }
-        className={`flex items-center gap-1.5 text-xs font-medium border rounded-md px-3 py-1.5 transition-colors ${
+        className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors ${
           canExport
-            ? "text-gray-700 border-gray-300 hover:bg-gray-50"
-            : "text-gray-400 border-gray-200 cursor-not-allowed"
+            ? "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+            : "cursor-not-allowed border-gray-200 bg-white text-gray-400"
         }`}
       >
-        <Download size={14} strokeWidth={1.5} />
-        Export
+        <Download size={13} strokeWidth={1.7} />
+        <span className="hidden md:inline">Export</span>
       </button>
     </nav>
   );
@@ -150,11 +196,13 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
 
 function NavTab({
   label,
+  Icon,
   active,
   onClick,
   tooltip,
 }: {
   label: string;
+  Icon: ComponentType<LucideProps>;
   active: boolean;
   onClick: () => void;
   tooltip?: string;
@@ -163,13 +211,14 @@ function NavTab({
     <button
       onClick={onClick}
       title={tooltip}
-      className={`bg-transparent border-none font-medium text-[13px] cursor-pointer py-[17px] border-b-2 transition-colors ${
+      className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors ${
         active
-          ? "text-gray-900 border-b-blue-600"
-          : "text-gray-400 border-b-transparent hover:text-gray-600"
+          ? "bg-white text-gray-950 shadow-sm ring-1 ring-gray-200"
+          : "text-gray-500 hover:bg-white/60 hover:text-gray-800"
       }`}
     >
-      {label}
+      <Icon size={14} strokeWidth={1.7} />
+      <span>{label}</span>
     </button>
   );
 }

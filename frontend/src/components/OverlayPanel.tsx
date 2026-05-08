@@ -1,6 +1,6 @@
 const CHANNELS = [
   { name: "dapi", label: "DAPI", color: "#2166ac" },
-  { name: "glycocalyx", label: "Glyco", color: "#1b7837" },
+  { name: "glycocalyx", label: "WGA", color: "#1b7837" },
   { name: "yap", label: "YAP", color: "#762a83" },
   { name: "paxillin", label: "Paxillin", color: "#b35806" },
   { name: "actin", label: "Actin", color: "#4d4d4d" },
@@ -21,7 +21,7 @@ export function OverlayPanel({ showSegmentation, onToggleSegmentation, activeOve
       <SectionLabel>Overlays</SectionLabel>
       <div className="space-y-1 mb-1">
         <Toggle label="Segmentation" active={showSegmentation} onClick={onToggleSegmentation} kind="checkbox" />
-        <Toggle label="Glycocalyx" active={activeOverlay === "glyco"} onClick={() => onSetOverlay(activeOverlay === "glyco" ? null : "glyco")} kind="radio" />
+        <Toggle label="WGA signal" active={activeOverlay === "glyco"} onClick={() => onSetOverlay(activeOverlay === "glyco" ? null : "glyco")} kind="radio" />
         <Toggle label="Mechano score" active={activeOverlay === "mechano"} onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")} kind="radio" />
       </div>
 

@@ -245,7 +245,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     if (cid != null) {
       const cell = cellMap.get(cid);
       const lines = cell ? [
-        { l: "glyco ratio", v: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
+        { l: "WGA peri.", v: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
         { l: "YAP N/C", v: fmt(cell.yap_nc_ratio_size_corrected as number | null) },
         { l: "mechano", v: fmtSigned(cell.mechano_score as number | null) },
         { l: "FA mature", v: cell.fa_mature_fraction != null && Number.isFinite(cell.fa_mature_fraction as number) ? ((cell.fa_mature_fraction as number) * 100).toFixed(0) + "%" : "\u2014" },

@@ -33,7 +33,7 @@ export function OverviewContent({ result, cells }: Props) {
             activeTab === "overview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          Overview
+          Summary
         </button>
         <button
           onClick={() => setActiveTab("ml")}
@@ -41,7 +41,7 @@ export function OverviewContent({ result, cells }: Props) {
             activeTab === "ml" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          ML Analysis
+          Exploratory ML
         </button>
       </div>
 
@@ -84,6 +84,9 @@ function OverviewTab({ result, cells }: Props) {
       )}
 
       <Card>
+        <div className="mb-3 text-[11px] font-semibold uppercase text-gray-400">
+          Field-level readout
+        </div>
         <HeroMetrics metrics={[
           { value: String(result.cell_count), label: "Cells analysed" },
           { value: fmtSigned(m.mean_mechano_score), label: "Mean mechano score" },
@@ -105,7 +108,7 @@ function OverviewTab({ result, cells }: Props) {
               ? `Weak-to-moderate association: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} shows ${glycoMechR > 0 ? "positive" : "negative"} correlation with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
               : `Weak coupling in this field: strongest association is |r| = ${fmt(glycoMechR)} between ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} and ${summary.top_correlation_pair[1].replace("_", " ")}.`
             }
-            {" "}Mechano score {(m.mean_mechano_score ?? 0) < 0 ? "below" : "above"} population mean.
+            {" "}This is an image-level association, not a replicate-level biological effect size.
           </div>
         )}
         {summary?.yap_size_correction_applied !== null && summary?.yap_size_correction_applied !== undefined && (

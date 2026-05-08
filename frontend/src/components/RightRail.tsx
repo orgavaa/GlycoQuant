@@ -24,7 +24,7 @@ export function RightRail({ result, cells, onClose }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 flex-shrink-0">
         <h2 className="text-[14px] font-semibold text-gray-900">
-          {selectedCell ? `Cell #${selectedCell.cell_id}` : "Analysis results"}
+          {selectedCell ? `Cell #${selectedCell.cell_id}` : "Field summary"}
         </h2>
         <button
           onClick={onClose}

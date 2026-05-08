@@ -19,7 +19,7 @@ const MAX_CHANNELS = 6;
 
 const ROLE_OPTIONS = [
   { value: "dapi", label: "DAPI (nuclei)" },
-  { value: "glycocalyx", label: "WGA-lectin (glycocalyx)" },
+  { value: "glycocalyx", label: "WGA lectin (pericellular glycans)" },
   { value: "yap", label: "YAP antibody" },
   { value: "paxillin", label: "Paxillin (focal adhesions)" },
   { value: "actin", label: "Phalloidin (actin)" },

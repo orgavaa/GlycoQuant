@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { RadarChart, RADAR_AXES } from "./RadarChart";
 import { FeatureGroup } from "./FeatureGroup";
 import { Card } from "./Card";
 import { useJobStore } from "@/lib/jobStore";
@@ -8,12 +7,33 @@ import { type CellFeatures, computePopStats } from "@/lib/canvas/extract";
 import { fmt, fmtSigned } from "@/lib/utils";
 
 const GROUPS = [
-  { name: "Glycocalyx", prefix: "glycocalyx_" },
+  { name: "WGA / Pericellular Glycans", prefix: "glycocalyx_" },
   { name: "YAP", prefix: "yap_" },
   { name: "Focal Adhesions", prefix: "fa_" },
   { name: "Actin", prefix: "actin_" },
   { name: "Morphology", prefix: "cell_|nuclear_|nc_" },
 ];
+
+const SUMMARY_AXES = [
+  { key: "glycocalyx_pericellular_ratio", label: "WGA peri." },
+  { key: "yap_nc_ratio_size_corrected", label: "YAP N/C" },
+  { key: "fa_mature_fraction", label: "FA mature" },
+  { key: "actin_stress_fiber_coherence", label: "Actin coher." },
+  { key: "cell_area", label: "Spread area" },
+  { key: "mechano_score", label: "Mechano" },
+];
+
+function prettyFeature(raw: string): string {
+  return raw
+    .replace(/^glycocalyx_/, "WGA ")
+    .replace(/^yap_/, "YAP ")
+    .replace(/^fa_/, "FA ")
+    .replace(/^actin_/, "actin ")
+    .replace(/^cell_/, "cell ")
+    .replace(/^nuclear_/, "nuclear ")
+    .replace(/^nc_/, "N/C ")
+    .replace(/_/g, " ");
+}
 
 interface Props {
   cell: CellFeatures;
@@ -32,33 +52,26 @@ export function CellContent({ cell, cells }: Props) {
 
   const mColor = (key: string) => {
     const zv = z(key);
-    return zv > 1 ? "text-emerald-600" : zv < -1 ? "text-red-600" : "text-gray-900";
+    return zv > 1 ? "text-red-700" : zv < -1 ? "text-blue-700" : "text-gray-900";
   };
-
-  const radarValues = RADAR_AXES.map(a => {
-    const s = pop[a.key]; const v = cell[a.key];
-    if (!s || typeof v !== "number") return 0.5;
-    const range = s.max - s.min;
-    return range === 0 ? 0.5 : (v - s.min) / range;
-  });
 
   const summary = useMemo(() => {
     const parts: string[] = [];
-    const g = cell.glycocalyx_pericellular_ratio;
-    if (typeof g === "number" && pop.glycocalyx_pericellular_ratio) {
-      if (g > pop.glycocalyx_pericellular_ratio.mean * 1.3) parts.push("thick glycocalyx");
-      else if (g < pop.glycocalyx_pericellular_ratio.mean * 0.7) parts.push("thin glycocalyx");
+    const gz = z("glycocalyx_pericellular_ratio");
+    if (Number.isFinite(gz)) {
+      if (gz > 1) parts.push("WGA-high pericellular signal");
+      else if (gz < -1) parts.push("WGA-low pericellular signal");
     }
     const y = cell.yap_nc_ratio_size_corrected;
     if (typeof y === "number") {
-      if (y > 1.3) parts.push("nuclear YAP");
-      else if (y < 0.8) parts.push("cytoplasmic YAP");
+      if (y > 1.3) parts.push("YAP nuclear-enriched");
+      else if (y < 0.8) parts.push("YAP cytoplasmic-enriched");
     }
     const f = cell.fa_mature_fraction;
-    if (typeof f === "number") parts.push(f > 0.5 ? "mature adhesions" : "nascent adhesions");
+    if (typeof f === "number") parts.push(f > 0.5 ? "FA-mature" : "FA-nascent");
     const a = cell.actin_stress_fiber_coherence;
     if (typeof a === "number" && a > 0.6) parts.push("aligned stress fibers");
-    return parts.length > 0 ? parts.join(", ") : "unremarkable phenotype";
+    return parts.length > 0 ? parts.join(" / ") : "near-field-average profile";
   }, [cell, pop]);
 
   const featureGroups = useMemo(() => {
@@ -75,11 +88,33 @@ export function CellContent({ cell, cells }: Props) {
   }, [cell, pop]);
 
   const metricItems = [
-    { label: "GLYCO RATIO", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
+    { label: "WGA PERI.", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
     { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: (v: number | null | undefined) => fmt(v) },
     { label: "MECHANO", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
     { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
   ];
+
+  const axisItems = SUMMARY_AXES.map(axis => ({
+    ...axis,
+    value: cell[axis.key] as number | null | undefined,
+    zScore: z(axis.key),
+  }));
+
+  const topDeviations = useMemo(() => {
+    return Object.keys(cell)
+      .filter(k => k !== "cell_id" && !k.startsWith("deep_"))
+      .map(k => {
+        const value = cell[k];
+        return {
+          name: k,
+          value: typeof value === "number" ? value : null,
+          zScore: z(k),
+        };
+      })
+      .filter(item => item.value != null && Number.isFinite(item.zScore))
+      .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore))
+      .slice(0, 6);
+  }, [cell, pop]);
 
   // Cell navigation: next / previous in the cells array
   const sortedIds = useMemo(
@@ -132,18 +167,58 @@ export function CellContent({ cell, cells }: Props) {
       <div className="grid grid-cols-2 gap-2.5">
         {metricItems.map(mi => (
           <Card key={mi.key} className="!p-3">
-            <div className={`text-[20px] font-bold ${mColor(mi.key)}`} style={{ fontFeatureSettings: "'tnum'" }}>
-              {mi.format(cell[mi.key] as number | null | undefined)}
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className={`text-[20px] font-bold leading-none ${mColor(mi.key)}`} style={{ fontFeatureSettings: "'tnum'" }}>
+                  {mi.format(cell[mi.key] as number | null | undefined)}
+                </div>
+                <div className="text-[9px] font-semibold text-gray-400 uppercase mt-1">{mi.label}</div>
+              </div>
+              <span className="text-[10px] text-gray-400" style={{ fontFeatureSettings: "'tnum'" }}>
+                z {fmtSigned(z(mi.key))}
+              </span>
             </div>
-            <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-[1px] mt-1">{mi.label}</div>
+            <DeviationBar zScore={z(mi.key)} />
           </Card>
         ))}
       </div>
 
-      {/* Radar chart */}
-      <Card className="flex justify-center">
-        <RadarChart values={radarValues} size={220} />
+      <Card>
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-[11px] font-semibold uppercase text-gray-400">
+            Axis deviations vs field
+          </div>
+          <div className="text-[10px] text-gray-400">z-score</div>
+        </div>
+        <div className="space-y-2.5">
+          {axisItems.map(item => (
+            <AxisRow key={item.key} label={item.label} zScore={item.zScore} />
+          ))}
+        </div>
       </Card>
+
+      {topDeviations.length > 0 && (
+        <Card>
+          <div className="mb-3 text-[11px] font-semibold uppercase text-gray-400">
+            Largest feature deviations
+          </div>
+          <div className="space-y-2">
+            {topDeviations.map(item => (
+              <div key={item.name} className="grid grid-cols-[1fr,70px,54px] items-center gap-2 text-[11px]">
+                <span className="truncate text-gray-600" title={item.name}>
+                  {prettyFeature(item.name)}
+                </span>
+                <span className="text-right font-medium text-gray-800" style={{ fontFeatureSettings: "'tnum'" }}>
+                  {item.value != null ? item.value.toFixed(3) : "\u2014"}
+                </span>
+                <span className={`text-right font-medium ${item.zScore >= 0 ? "text-red-700" : "text-blue-700"}`} style={{ fontFeatureSettings: "'tnum'" }}>
+                  {fmtSigned(item.zScore)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Feature groups */}
       <Card>
@@ -151,6 +226,36 @@ export function CellContent({ cell, cells }: Props) {
           <FeatureGroup key={g.name} name={g.name} features={g.features} defaultOpen={i === 0} />
         ))}
       </Card>
+    </div>
+  );
+}
+
+function DeviationBar({ zScore }: { zScore: number }) {
+  const abs = Math.min(1, Math.abs(zScore) / 3);
+  const width = `${abs * 50}%`;
+  return (
+    <div className="relative mt-2 h-1.5 rounded-full bg-gray-100">
+      <div className="absolute left-1/2 top-[-2px] h-[10px] w-px bg-gray-300" />
+      {zScore >= 0 ? (
+        <div className="absolute bottom-0 left-1/2 top-0 rounded-r-full bg-red-500" style={{ width }} />
+      ) : (
+        <div className="absolute bottom-0 right-1/2 top-0 rounded-l-full bg-blue-600" style={{ width }} />
+      )}
+    </div>
+  );
+}
+
+function AxisRow({ label, zScore }: { label: string; zScore: number }) {
+  return (
+    <div className="grid grid-cols-[88px,1fr,48px] items-center gap-2 text-[11px]">
+      <div className="truncate text-gray-600">{label}</div>
+      <DeviationBar zScore={zScore} />
+      <div
+        className={`text-right font-medium ${zScore >= 0 ? "text-red-700" : "text-blue-700"}`}
+        style={{ fontFeatureSettings: "'tnum'" }}
+      >
+        {fmtSigned(zScore)}
+      </div>
     </div>
   );
 }
