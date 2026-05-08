@@ -88,10 +88,10 @@ export function CellContent({ cell, cells }: Props) {
   }, [cell, pop]);
 
   const metricItems = [
-    { label: "WGA PERI.", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
+    { label: "WGA pericellular", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
     { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: (v: number | null | undefined) => fmt(v) },
-    { label: "MECHANO", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
-    { label: "FA MATURE", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
+    { label: "Mechano z", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
+    { label: "FA mature", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
   ];
 
   const axisItems = SUMMARY_AXES.map(axis => ({
@@ -131,7 +131,7 @@ export function CellContent({ cell, cells }: Props) {
       <div className="flex items-center gap-2 text-[12px]">
         <a
           onClick={() => setSelectedCellId(null)}
-          className="inline-flex items-center gap-1 font-medium text-blue-600 cursor-pointer hover:underline"
+          className="inline-flex cursor-pointer items-center gap-1 font-medium text-gray-600 hover:text-gray-950"
         >
           <ChevronLeft size={14} strokeWidth={1.5} />
           Overview
@@ -172,7 +172,7 @@ export function CellContent({ cell, cells }: Props) {
                 <div className={`text-[20px] font-bold leading-none ${mColor(mi.key)}`} style={{ fontFeatureSettings: "'tnum'" }}>
                   {mi.format(cell[mi.key] as number | null | undefined)}
                 </div>
-                <div className="text-[9px] font-semibold text-gray-400 uppercase mt-1">{mi.label}</div>
+                <div className="mt-1 text-[9px] font-semibold uppercase text-gray-500">{mi.label}</div>
               </div>
               <span className="text-[10px] text-gray-400" style={{ fontFeatureSettings: "'tnum'" }}>
                 z {fmtSigned(z(mi.key))}
@@ -185,7 +185,7 @@ export function CellContent({ cell, cells }: Props) {
 
       <Card>
         <div className="mb-3 flex items-center justify-between">
-          <div className="text-[11px] font-semibold uppercase text-gray-400">
+          <div className="text-[11px] font-semibold uppercase text-gray-500">
             Axis deviations vs field
           </div>
           <div className="text-[10px] text-gray-400">z-score</div>
@@ -199,7 +199,7 @@ export function CellContent({ cell, cells }: Props) {
 
       {topDeviations.length > 0 && (
         <Card>
-          <div className="mb-3 text-[11px] font-semibold uppercase text-gray-400">
+          <div className="mb-3 text-[11px] font-semibold uppercase text-gray-500">
             Largest feature deviations
           </div>
           <div className="space-y-2">
@@ -237,9 +237,9 @@ function DeviationBar({ zScore }: { zScore: number }) {
     <div className="relative mt-2 h-1.5 rounded-full bg-gray-100">
       <div className="absolute left-1/2 top-[-2px] h-[10px] w-px bg-gray-300" />
       {zScore >= 0 ? (
-        <div className="absolute bottom-0 left-1/2 top-0 rounded-r-full bg-red-500" style={{ width }} />
+        <div className="absolute bottom-0 left-1/2 top-0 rounded-r-full bg-red-500/85" style={{ width }} />
       ) : (
-        <div className="absolute bottom-0 right-1/2 top-0 rounded-l-full bg-blue-600" style={{ width }} />
+        <div className="absolute bottom-0 right-1/2 top-0 rounded-l-full bg-blue-600/85" style={{ width }} />
       )}
     </div>
   );

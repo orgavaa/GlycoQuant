@@ -53,7 +53,7 @@ export function FeatureGroup({ name, features, defaultOpen = false, searchable =
   return (
     <div className="mb-2.5">
       <div onClick={() => setOpen(v => !v)} className="flex items-center justify-between cursor-pointer py-2">
-        <span className="text-[11px] font-semibold text-gray-400 tracking-[1.5px] uppercase">
+        <span className="text-[11px] font-semibold uppercase text-gray-500">
           {name} ({features.length})
         </span>
         <span className="text-[12px] text-gray-300">{open ? "\u25BE" : "\u25B8"}</span>
@@ -70,7 +70,7 @@ export function FeatureGroup({ name, features, defaultOpen = false, searchable =
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder={`Search ${features.length} features`}
-                  className="w-full pl-7 pr-6 py-1 text-[11px] bg-gray-50 border border-gray-200 rounded focus:outline-none focus:border-blue-400 focus:bg-white transition-colors"
+                  className="w-full rounded border border-gray-200 bg-gray-50 py-1 pl-7 pr-6 text-[11px] transition-colors focus:border-gray-500 focus:bg-white focus:outline-none"
                   aria-label={`Search ${name} features`}
                 />
                 {query && (

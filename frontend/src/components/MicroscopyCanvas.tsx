@@ -298,27 +298,27 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
 
         {/* Cell count indicator (truthful state) — pinned to the viewport, not transformed. */}
         {polygons.length > 0 ? (
-          <div className="absolute bottom-10 right-3 z-[5] bg-black/50 text-white/80 text-[10px] px-2 py-1 rounded">
+          <div className="absolute bottom-12 right-4 z-[5] rounded-md border border-gray-200 bg-white/95 px-2 py-1 text-[10px] text-gray-700 shadow-lg backdrop-blur">
             {polygons.length} cells &middot; click to inspect
           </div>
         ) : result.cell_count > 0 && result.cell_overlay?.fallback_reason ? (
-          <div className="absolute bottom-10 right-3 z-[5] bg-amber-600/80 text-white text-[10px] px-2 py-1.5 rounded max-w-[280px]">
+          <div className="absolute bottom-12 right-4 z-[5] max-w-[280px] rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-[10px] text-amber-800 shadow-lg">
             {result.cell_count} cells quantified &middot; vector outlines unavailable
           </div>
         ) : null}
 
         {/* Zoom controls — pinned to the viewport. */}
-        <div className="absolute bottom-10 left-3 z-[5] flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-md p-1">
+        <div className="absolute bottom-12 left-4 z-[5] flex items-center gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 text-gray-700 shadow-lg backdrop-blur">
           <button
             type="button"
             onClick={panZoom.zoomOut}
-            className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-100 hover:text-gray-950"
             title="Zoom out"
           >
             <ZoomOut size={14} strokeWidth={1.8} />
           </button>
           <div
-            className="px-2 text-[10px] font-mono text-white/80 min-w-[38px] text-center"
+            className="min-w-[38px] px-2 text-center font-mono text-[10px] text-gray-600"
             style={{ fontFeatureSettings: "'tnum'" }}
           >
             {(zoom * 100).toFixed(0)}%
@@ -326,7 +326,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
           <button
             type="button"
             onClick={panZoom.zoomIn}
-            className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-100 hover:text-gray-950"
             title="Zoom in"
           >
             <ZoomIn size={14} strokeWidth={1.8} />
@@ -335,7 +335,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
             type="button"
             onClick={panZoom.reset}
             disabled={panZoom.isAtDefault}
-            className="w-7 h-7 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-100 hover:text-gray-950 disabled:cursor-not-allowed disabled:opacity-35"
             title="Reset view"
           >
             <RotateCcw size={14} strokeWidth={1.8} />

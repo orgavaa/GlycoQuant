@@ -42,10 +42,10 @@ export function TopCells({ cells, onClick }: Props) {
 
   return (
     <div>
-      <div className="flex items-center gap-2 border-b border-gray-100 pb-2 mb-1 text-[9px] font-medium uppercase">
-        <span className="text-blue-700">below mean</span>
-        <div className="h-[3px] flex-1 rounded-full bg-gradient-to-r from-blue-500 via-gray-200 to-red-500" />
-        <span className="text-red-700">above mean</span>
+      <div className="mb-1 flex items-center gap-2 border-b border-gray-100 pb-2 text-[9px] font-medium uppercase">
+        <span className="text-gray-500">below mean</span>
+        <div className="h-px flex-1 bg-gradient-to-r from-blue-500 via-gray-200 to-red-500" />
+        <span className="text-gray-500">above mean</span>
       </div>
       {cells.map((cell, i) => {
         const ms = (cell.mechano_score as number) ?? 0;
@@ -67,7 +67,7 @@ export function TopCells({ cells, onClick }: Props) {
             <div className="min-w-0">
               <div className="mb-1.5 flex items-baseline gap-2">
                 <span
-                  className={`text-[13px] font-semibold ${isPos ? "text-red-700" : "text-blue-700"}`}
+                  className={`text-[13px] font-semibold ${isPos ? "text-red-600" : "text-blue-600"}`}
                   style={{ fontFeatureSettings: "'tnum'" }}
                 >
                   {fmtSigned(ms)}
@@ -83,12 +83,12 @@ export function TopCells({ cells, onClick }: Props) {
                 <div className="absolute bottom-0 top-0 left-1/2 w-px bg-gray-300" aria-hidden />
                 {isPos ? (
                   <div
-                    className="absolute bottom-0 top-0 rounded-r-full bg-red-500"
+                    className="absolute bottom-0 top-0 rounded-r-full bg-red-500/85"
                     style={{ left: "50%", width: `${halfPct}%` }}
                   />
                 ) : (
                   <div
-                    className="absolute bottom-0 top-0 rounded-l-full bg-blue-600"
+                    className="absolute bottom-0 top-0 rounded-l-full bg-blue-600/85"
                     style={{ right: "50%", width: `${halfPct}%` }}
                   />
                 )}

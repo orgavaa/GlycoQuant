@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Brain } from "lucide-react";
 import Plotly from "plotly.js-dist-min";
 import { HeroMetrics } from "./HeroMetrics";
 import { PlotlyCard } from "./PlotlyCard";
@@ -26,21 +26,23 @@ export function OverviewContent({ result, cells }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {/* Tab strip */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
         <button
           onClick={() => setActiveTab("overview")}
-          className={`flex-1 py-2 px-3 rounded-md text-[12px] font-medium transition-colors ${
-            activeTab === "overview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors ${
+            activeTab === "overview" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/60 hover:text-gray-950"
           }`}
         >
+          <BarChart3 size={13} strokeWidth={1.8} />
           Summary
         </button>
         <button
           onClick={() => setActiveTab("ml")}
-          className={`flex-1 py-2 px-3 rounded-md text-[12px] font-medium transition-colors ${
-            activeTab === "ml" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors ${
+            activeTab === "ml" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/60 hover:text-gray-950"
           }`}
         >
+          <Brain size={13} strokeWidth={1.8} />
           Exploratory ML
         </button>
       </div>
@@ -73,42 +75,40 @@ function OverviewTab({ result, cells }: Props) {
     <div className="flex flex-col gap-5">
       {/* Substitute channel warning */}
       {subs.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <div className="text-[12px] font-medium text-amber-800 mb-1">Channel substitutions active</div>
-          <div className="text-[11px] text-amber-700 leading-relaxed">
-            Features for {subs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ")} were
-            not computed — those channels contained synthetic or substitute stains.
-            Values shown as — are placeholders. Assign real channels in the analysis panel to enable these features.
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div className="mb-1 text-[12px] font-medium text-amber-900">Substitute channel detected</div>
+          <div className="text-[11px] leading-relaxed text-amber-800">
+            {subs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ")} features were skipped because the assigned stain is synthetic or substituted.
           </div>
         </div>
       )}
 
       <Card>
-        <div className="mb-3 text-[11px] font-semibold uppercase text-gray-400">
-          Field-level readout
+        <div className="mb-3 text-[11px] font-semibold uppercase text-gray-500">
+          Field statistics
         </div>
         <HeroMetrics metrics={[
-          { value: String(result.cell_count), label: "Cells analysed" },
-          { value: fmtSigned(m.mean_mechano_score), label: "Mean mechano score" },
-          { value: glycoMechR != null ? fmt(glycoMechR) : "\u2014", label: "Strongest |r|" },
+          { value: String(result.cell_count), label: "Cells" },
+          { value: fmtSigned(m.mean_mechano_score), label: "Mean mechano" },
+          { value: glycoMechR != null ? fmt(glycoMechR) : "\u2014", label: "Top |rho|" },
           {
             value:
               summary?.n_significant_pairs_fdr != null
                 ? String(summary.n_significant_pairs_fdr)
                 : "\u2014",
-            label: "Sig. pairs (FDR<0.05)",
+            label: "FDR pairs",
           },
         ]} />
         {/* One-sentence scientific interpretation */}
         {glycoMechR != null && summary?.top_correlation_pair && (
-          <div className="mt-3 pt-3 border-t border-gray-100 text-[11px] text-gray-500 leading-relaxed">
+          <div className="mt-3 border-t border-gray-100 pt-3 text-[11px] leading-relaxed text-gray-600">
             {Math.abs(glycoMechR) > 0.5
               ? `Moderate-to-strong coupling detected: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} is ${glycoMechR > 0 ? "positively" : "negatively"} associated with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
               : Math.abs(glycoMechR) > 0.3
               ? `Weak-to-moderate association: ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} shows ${glycoMechR > 0 ? "positive" : "negative"} correlation with ${summary.top_correlation_pair[1].replace("_", " ")} (|r| = ${fmt(glycoMechR)}).`
               : `Weak coupling in this field: strongest association is |r| = ${fmt(glycoMechR)} between ${summary.top_correlation_pair[0].replace("glycocalyx_", "WGA peri. ")} and ${summary.top_correlation_pair[1].replace("_", " ")}.`
             }
-            {" "}This is an image-level association, not a replicate-level biological effect size.
+            {" "}Image-local association; not a replicate-level effect size.
           </div>
         )}
         {summary?.yap_size_correction_applied !== null && summary?.yap_size_correction_applied !== undefined && (
@@ -130,7 +130,7 @@ function OverviewTab({ result, cells }: Props) {
 
       {topCells.length > 0 && (
         <Card>
-          <div className="text-[11px] font-semibold text-gray-400 tracking-[1px] uppercase mb-3">
+          <div className="mb-3 text-[11px] font-semibold uppercase text-gray-500">
             Top deviating cells
           </div>
           <TopCells cells={topCells} onClick={id => setSelectedCellId(id)} />
@@ -150,7 +150,7 @@ function CorrelationAudit({ figureJson, result }: { figureJson: string; result: 
   return (
     <Card>
       <div onClick={() => setOpen(v => !v)} className="flex items-center justify-between cursor-pointer">
-        <span className="text-[11px] font-semibold text-gray-400 tracking-[1px] uppercase">Methods &amp; provenance</span>
+        <span className="text-[11px] font-semibold uppercase text-gray-500">Methods &amp; provenance</span>
         <span className="text-[14px] text-gray-300">{open ? "\u25BE" : "\u25B8"}</span>
       </div>
       {open && (
@@ -274,15 +274,15 @@ function CorrelationCard({ result }: { result: JobResult }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
+        <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
           <button
             type="button"
             onClick={() => handleFlip("parametric")}
             disabled={!latestJobId || recompute.isPending}
-            className={`text-[11px] font-medium px-2.5 py-1 rounded transition-colors ${
+            className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
               nullMode === "parametric"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-800"
+                ? "bg-gray-950 text-white shadow-sm"
+                : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
             } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
             title="Parametric Spearman p-value from scipy. Fast; assumes asymptotic sampling distribution."
           >
@@ -292,10 +292,10 @@ function CorrelationCard({ result }: { result: JobResult }) {
             type="button"
             onClick={() => handleFlip("permutation")}
             disabled={!latestJobId || recompute.isPending}
-            className={`text-[11px] font-medium px-2.5 py-1 rounded transition-colors ${
+            className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
               nullMode === "permutation"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-800"
+                ? "bg-gray-950 text-white shadow-sm"
+                : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
             } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
             title={`Empirical null from ${PERMUTATION_N} shuffles of the mechano column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
           >

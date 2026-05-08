@@ -39,22 +39,22 @@ function Module({
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-start gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+        className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-gray-50"
       >
         <span className="text-gray-400 flex-shrink-0 mt-0.5">
           {open ? <ChevronDown size={14} strokeWidth={1.5} /> : <ChevronRight size={14} strokeWidth={1.5} />}
         </span>
         <span className="text-gray-500 flex-shrink-0 mt-0.5">{icon}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-[14px] font-semibold text-gray-900">{title}</div>
-          <div className="text-[12px] text-gray-700 leading-relaxed mt-1">{question}</div>
-          <div className="text-[11px] text-gray-500 leading-relaxed mt-1">
-            <span className="text-gray-400 uppercase tracking-wider mr-1.5">how</span>
+          <div className="text-[14px] font-semibold text-gray-950">{title}</div>
+          <div className="mt-1 text-[12px] leading-relaxed text-gray-700">{question}</div>
+          <div className="mt-1 text-[11px] leading-relaxed text-gray-500">
+            <span className="mr-1.5 font-semibold uppercase text-gray-400">method</span>
             {method}
           </div>
         </div>
       </button>
-      {open && <div className="px-5 pb-5 pt-2 border-t border-gray-100">{children}</div>}
+      {open && <div className="border-t border-gray-100 px-4 pb-4 pt-3">{children}</div>}
     </Card>
   );
 }
@@ -77,7 +77,7 @@ function RunButton({
     <button
       onClick={onClick}
       disabled={loading || disabled}
-      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-[12px] font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+      className="inline-flex items-center gap-2 rounded-md bg-gray-950 px-4 py-2 text-[12px] font-medium text-white shadow-sm transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-45"
     >
       {loading ? (
         <>
@@ -99,40 +99,36 @@ export function MLFeaturesPanel({ result }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Card className="!bg-gray-50/60 !border-gray-200">
-        <h3 className="text-[13px] font-semibold text-gray-900 mb-1">Exploratory models</h3>
-        <p className="text-[12px] text-gray-600 leading-relaxed">
-          The per-cell features above are the primary scientific output. The three modules
-          below are <strong>optional</strong> models that look for additional patterns in your
-          data — they run only when you click <em>Run</em>, never automatically. Each module
-          reports descriptive statistics on this image alone and does not draw biological
-          conclusions for you.
+      <Card className="!border-gray-200 !bg-gray-50">
+        <h3 className="mb-1 text-[13px] font-semibold text-gray-950">Exploratory ML</h3>
+        <p className="text-[12px] leading-relaxed text-gray-600">
+          Optional image-local models. Outputs are descriptive and do not establish biological causality.
         </p>
       </Card>
 
       <Module
         icon={<Layers size={14} strokeWidth={1.5} />}
-        title="Cell groups by visual similarity"
-        question={"Do my cells fall into a few distinct visual subpopulations, or do they look like a single continuum?"}
-        method={"Cell-DINO ViT-L/16 embeddings (5120 dims per cell) → UMAP projection to 2D → Leiden community detection. Reports the number of clusters and each cluster's mean feature values. Cluster IDs are arbitrary — any biological interpretation is for you to make."}
+        title="Embedding landscape"
+        question={"Cell-DINO embeddings projected into a two-dimensional cell-state map."}
+        method={"5120-d Cell-DINO ViT-L/16 features; UMAP projection; Leiden community detection. Cluster labels are arbitrary."}
       >
         <PhenotypeSection result={result} jobId={jobId} />
       </Module>
 
       <Module
         icon={<Network size={14} strokeWidth={1.5} />}
-        title="Is mechanical state spatially organised?"
-        question={"Can a cell's mechano score be predicted from its neighbours' features alone? If yes, mechanical state forms spatial domains; if no, each cell behaves independently of its neighbourhood."}
-        method={"Cells become nodes in a Delaunay graph (each cell connected to its geometric neighbours). A 2-layer Graph Convolutional Network predicts each cell's mechano score from its neighbours, and the held-out R² is reported. R² is descriptive of this image only."}
+        title="Spatial graph"
+        question={"Neighbourhood prediction of per-cell mechano score on the field graph."}
+        method={"Delaunay neighbours; 2-layer GCN; held-out R² reported with spatial-block CV when possible."}
       >
         <SpatialSection jobId={jobId} />
       </Module>
 
       <Module
         icon={<ArrowLeftRight size={14} strokeWidth={1.5} />}
-        title="How tightly coupled are glycocalyx and mechano features?"
-        question={"How well can a small neural network predict each mechano feature from glycocalyx features alone (or vice-versa)? High R² means the two readouts share variance — it does not prove that one causes the other."}
-        method={"Multi-layer perceptron (3 hidden layers) trained per-target with 5-fold cross-validation on this image's feature matrix. Reports out-of-fold R² for every target feature and the input features that most influenced the prediction (gradient magnitude)."}
+        title="Cross-modal regression"
+        question={"Cross-validated prediction between WGA/glycan and mechanotransduction feature sets."}
+        method={"Per-target MLP with 5-fold CV; reports held-out R² and gradient-magnitude feature influence."}
       >
         <CrossModalSection jobId={jobId} />
       </Module>
@@ -179,7 +175,7 @@ function PhenotypeSection({ result, jobId }: { result: JobResult; jobId: string 
         <RunButton
           loading={loading}
           onClick={handleRun}
-          idleLabel="Run cluster discovery"
+          idleLabel="Run model"
           loadingLabel="Computing UMAP + Leiden…"
         />
         <span className="text-[11px] text-gray-500">~10–30 s on typical fields.</span>
@@ -197,12 +193,12 @@ function PhenotypeResults({ data }: { data: PhenotypeResponse }) {
       <div className="flex items-center gap-6 pb-3 border-b border-gray-100">
         <div>
           <div className="text-[18px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{data.n_clusters}</div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">clusters</div>
+          <div className="mt-0.5 text-[9px] font-semibold uppercase text-gray-500">clusters</div>
         </div>
         {Object.entries(data.cluster_sizes).slice(0, 5).map(([cid, size]) => (
           <div key={cid}>
             <div className="text-[14px] font-semibold text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>{size}</div>
-            <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">c{cid}</div>
+            <div className="mt-0.5 text-[9px] font-semibold uppercase text-gray-500">c{cid}</div>
           </div>
         ))}
       </div>
@@ -266,7 +262,7 @@ function SpatialSection({ jobId }: { jobId: string | null }) {
           loading={loading}
           disabled={!jobId}
           onClick={handleRun}
-          idleLabel="Run spatial model"
+          idleLabel="Run graph"
           loadingLabel="Training GCN…"
         />
         <span className="text-[11px] text-gray-500">Trains a 2-layer GCN on this image (~5–15 s).</span>
@@ -308,10 +304,10 @@ function SpatialResults({ data }: { data: SpatialGNNResponse }) {
               </span>
             )}
           </div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+          <div className="mt-0.5 flex items-center gap-1.5 text-[9px] font-semibold uppercase text-gray-500">
             {r2Label}
             <span
-              className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-medium normal-case tracking-normal ${strategyTint}`}
+              className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[9px] font-medium normal-case ${strategyTint}`}
               title={
                 cvStrategy === "spatial"
                   ? "Spatial block cross-validation via k-means on cell centroids. Stricter than a random split because the train/test boundary respects graph autocorrelation (Roberts 2017)."
@@ -324,11 +320,11 @@ function SpatialResults({ data }: { data: SpatialGNNResponse }) {
         </div>
         <div>
           <div className="text-[14px] font-semibold text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>{data.n_edges}</div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">edges</div>
+          <div className="mt-0.5 text-[9px] font-semibold uppercase text-gray-500">edges</div>
         </div>
         <div>
           <div className="text-[14px] font-semibold text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>{data.mean_neighbors.toFixed(1)}</div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">mean degree</div>
+          <div className="mt-0.5 text-[9px] font-semibold uppercase text-gray-500">mean degree</div>
         </div>
       </div>
 
@@ -387,22 +383,22 @@ function CrossModalSection({ jobId }: { jobId: string | null }) {
     return (
       <div className="space-y-3">
         <div>
-          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase text-gray-500">
             Prediction direction
           </div>
-          <div className="inline-flex items-center gap-1 bg-gray-100 rounded p-0.5">
+          <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
             <button
               onClick={() => setDirection("glyco_to_mechano")}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
-                direction === "glyco_to_mechano" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                direction === "glyco_to_mechano" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
               }`}
             >
               glyco {"\u2192"} mechano
             </button>
             <button
               onClick={() => setDirection("mechano_to_glyco")}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
-                direction === "mechano_to_glyco" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                direction === "mechano_to_glyco" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
               }`}
             >
               mechano {"\u2192"} glyco
@@ -437,11 +433,11 @@ function CrossModalResults({ data }: { data: CrossModalResponse }) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-6 pb-3 border-b border-gray-100">
         <div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{label}</div>
+          <div className="text-[9px] font-semibold uppercase text-gray-500">{label}</div>
           <div className="text-[18px] font-semibold text-gray-900 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>
             {data.overall_r2.toFixed(3)}
           </div>
-          <div className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">
+          <div className="mt-0.5 text-[9px] font-semibold uppercase text-gray-500">
             mean R² · {data.target_features.length} targets
           </div>
         </div>

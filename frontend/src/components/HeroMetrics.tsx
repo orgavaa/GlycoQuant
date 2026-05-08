@@ -5,16 +5,16 @@ interface Metric {
 
 export function HeroMetrics({ metrics }: { metrics: Metric[] }) {
   return (
-    <div className="flex items-center">
-      {metrics.map((m, i) => (
-        <div key={m.label} className={`flex-1 text-center ${i < metrics.length - 1 ? "border-r border-gray-100" : ""}`}>
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+      {metrics.map((m) => (
+        <div key={m.label} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
           <div
-            className={`text-[26px] font-bold leading-none ${m.value === "\u2014" ? "text-gray-300" : "text-gray-900"}`}
+            className={`text-[22px] font-semibold leading-none ${m.value === "\u2014" ? "text-gray-300" : "text-gray-950"}`}
             style={{ fontFeatureSettings: "'tnum'" }}
           >
             {m.value}
           </div>
-          <div className="text-[9px] font-semibold text-gray-400 tracking-[0.8px] uppercase mt-2">
+          <div className="mt-1.5 text-[9px] font-semibold uppercase text-gray-500">
             {m.label}
           </div>
         </div>

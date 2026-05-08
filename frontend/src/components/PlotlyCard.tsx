@@ -32,10 +32,10 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 300 }: Plo
       height: maxHeight,
       autosize: true,
       paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "#ffffff",
       font: { family: "IBM Plex Sans, sans-serif", color: "#6b7280", size: 11 },
       colorway: ["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3"],
-      margin: { l: 52, r: 20, t: 6, b: 48, pad: 2 },
+      margin: { l: 48, r: 18, t: 4, b: 42, pad: 2 },
       xaxis: {
         ...backendXaxis,
         gridcolor: "#f3f4f6",
@@ -120,8 +120,8 @@ export function PlotlyCard({ title, subtitle, figureJson, maxHeight = 300 }: Plo
 
   return (
     <Card>
-      {title && <h3 className="text-[14px] font-semibold text-gray-900 mb-0.5 flex items-center gap-2">{title}</h3>}
-      {subtitle && <p className="text-[11px] text-gray-400 mb-3 leading-snug">{subtitle}</p>}
+      {title && <h3 className="mb-0.5 flex items-center gap-2 text-[14px] font-semibold text-gray-950">{title}</h3>}
+      {subtitle && <p className="mb-2 text-[11px] leading-snug text-gray-500">{subtitle}</p>}
       <div ref={containerRef} className="w-full overflow-hidden">
         <div ref={ref} className="w-full" />
       </div>
