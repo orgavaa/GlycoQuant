@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -12,6 +12,10 @@ import {
   Info,
 } from "lucide-react";
 import { Card } from "@/components/Card";
+import { MethodsExportButton, ValidationControlsPanel } from "@/components/ScientificPanels";
+import { extractFeatures } from "@/lib/canvas/extract";
+import { useJobStore } from "@/lib/jobStore";
+import { computeQcReport, datasetContextFromResult, datasetContextFromUpload } from "@/lib/scientificGuards";
 
 // Biologist-facing feature rows. "plain" describes what the measurement means in
 // cell-biology language; "technical" adds a precise one-liner for the quantitative
@@ -42,10 +46,10 @@ interface GroupSpec {
 const GROUPS: GroupSpec[] = [
   {
     id: "glycocalyx",
-    title: "WGA pericellular organisation",
+    title: "WGA proxy pericellular organisation",
     channel: "WGA-lectin (sialic acid + GlcNAc)",
     intent:
-      "Wheat-germ agglutinin (WGA) binds sialic-acid and N-acetylglucosamine residues on cell-surface glycoproteins and gangliosides. The measured channel is a lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal in the pericellular fluorescence shell. WGA is not a complete glycocalyx composition or thickness measurement, does not resolve heparan-sulfate glycosaminoglycan chains, and does not resolve 50–500 nm glycopolymer ultrastructure. The descriptors below quantify WGA pericellular density, continuity, radial profile, and spatial texture. For the heparan-sulfate axis, the platform exposes a separate hs_* feature group when an anti-HS antibody channel (10E4 / F58-10E4) is supplied.",
+      "Wheat-germ agglutinin (WGA) binds sialic-acid and N-acetylglucosamine residues on cell-surface glycoproteins and gangliosides. The measured channel is a lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal in the pericellular fluorescence shell. WGA is not a complete glycocalyx composition or thickness measurement, does not resolve heparan-sulfate glycosaminoglycan chains, and does not resolve 50–500 nm glycopolymer ultrastructure. The descriptors below quantify WGA proxy pericellular density, continuity, radial profile, and spatial texture. For the heparan-sulfate axis, the platform exposes a separate hs_* feature group when an anti-HS antibody channel (10E4 / F58-10E4) is supplied.",
     icon: <Sparkles size={16} strokeWidth={1.8} />,
     tint: "text-blue-600",
     tile: "bg-blue-50 ring-1 ring-blue-100",
@@ -67,7 +71,7 @@ const GROUPS: GroupSpec[] = [
   },
   {
     id: "yap",
-    title: "YAP nuclear localisation",
+    title: "YAP/TAZ nuclear localisation module",
     channel: "YAP / TAZ antibody",
     intent:
       "YAP and its paralogue TAZ are Hippo-pathway transcriptional co-activators whose subcellular partitioning is regulated by substrate stiffness, cytoskeletal tension, and cell geometry (Dupont et al., Nature 2011; Elosegui-Artola et al., Cell 2017). Nuclear-to-cytoplasmic partitioning is reported here as a mechanotransduction-associated imaging feature, not as a standalone pathway validation.",
@@ -166,8 +170,8 @@ const GROUPS: GroupSpec[] = [
     badgeBg: "bg-blue-50",
     badgeText: "text-blue-700",
     rows: [
-      { name: "mechano_score", plain: "Display label: Mechanophenotype score. Composite imaging score from YAP N/C, focal adhesion, actin, and morphology features; requires perturbation calibration before interpretation as mechanotransduction. Zero-centred within the current image; magnitudes are relative to this field, not absolute biological values across experiments.", technical: "First principal component of the z-scored sub-scores after sign alignment against the YAP nc_ratio axis; rescaled to unit variance. The exported feature identifier remains mechano_score for compatibility." },
-      { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "Display label: WGA pericellular ratio. Lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal re-exposed as one axis of the WGA/glycan ↔ mechanophenotype plots on the Overview tab. Not an additional feature.", technical: "Alias of the pericellular_ratio feature surfaced for downstream plotting. WGA is not a complete glycocalyx composition or thickness measurement." },
+      { name: "mechano_score", plain: "Display label: Mechanophenotype prototype score. Composite imaging score from morphology, actin organization, WGA proxy signal, and optional real YAP/FA marker features; requires perturbation calibration before interpretation as mechanotransduction. Zero-centred within the current image; magnitudes are relative to this field, not absolute biological values across experiments.", technical: "First principal component of the z-scored sub-scores after sign alignment when real mechanotransduction markers are present; rescaled to unit variance. The exported feature identifier remains mechano_score for compatibility." },
+      { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "Display label: WGA proxy pericellular ratio. Lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal re-exposed as one axis of the WGA/glycan ↔ mechanophenotype plots on the Overview tab. Not an additional feature.", technical: "Alias of the pericellular_ratio feature surfaced for downstream plotting. WGA is not a complete glycocalyx composition or thickness measurement." },
       { name: "deep_*", plain: "Optional 5 120-dimensional Cell-DINO ViT-L/16 embedding per cell, serving as a channel-adaptive visual fingerprint. Not surfaced in the tabular views; consumed by the embedding-based cluster-discovery module.", technical: "Cell-DINO ViT-L/16 (Bourriez et al. 2025) per-cell embedding computed on per-cell crops, enabled per-job by opt-in at submit time." },
     ],
   },
@@ -244,15 +248,36 @@ function GroupCard({ group, defaultOpen }: { group: GroupSpec; defaultOpen?: boo
 }
 
 export function MethodsTab() {
+  const latestResult = useJobStore((s) => s.latestJobResult);
+  const latestLabel = useJobStore((s) => s.latestDatasetLabel);
+  const storedContext = useJobStore((s) => s.latestDatasetContext);
+  const cells = useMemo(
+    () => latestResult ? extractFeatures(latestResult.features_df_json) : [],
+    [latestResult],
+  );
+  const context = useMemo(
+    () => latestResult
+      ? datasetContextFromResult(latestResult, latestLabel, storedContext)
+      : (storedContext ?? datasetContextFromUpload("No active analysis", {})),
+    [latestResult, latestLabel, storedContext],
+  );
+  const qc = useMemo(
+    () => latestResult ? computeQcReport(cells, latestResult) : null,
+    [cells, latestResult],
+  );
+
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Methods & feature reference</h1>
-        <p className="text-[13px] text-gray-500 mt-1 max-w-3xl leading-relaxed">
-          Formal definitions, biological rationale, and quantitative specification of every
-          per-cell feature GlycoQuant reports. Feature identifiers below are byte-identical to
-          the column names in the per-cell feature table and the CSV export.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Methods & feature reference</h1>
+          <p className="text-[13px] text-gray-500 mt-1 max-w-3xl leading-relaxed">
+            Formal definitions, biological rationale, and quantitative specification of every
+            per-cell feature GlycoQuant reports. Feature identifiers below are byte-identical to
+            the column names in the per-cell feature table and the CSV export.
+          </p>
+        </div>
+        <MethodsExportButton context={context} result={latestResult} qc={qc} />
       </header>
 
       <Card>
@@ -286,7 +311,7 @@ export function MethodsTab() {
           <li>
             <span className="font-medium text-gray-900">Composite scores.</span> The exported column
             <code className="mx-1 px-1 bg-gray-100 rounded text-[11px] font-mono">mechano_score</code>
-            displays as <span className="font-medium text-gray-900">Mechanophenotype score</span>.
+            displays as <span className="font-medium text-gray-900">Mechanophenotype prototype score</span>.
             It is z-scored within the current image and requires perturbation calibration before
             interpretation as mechanotransduction.
           </li>
@@ -297,9 +322,8 @@ export function MethodsTab() {
           </li>
         </ol>
         <p className="text-[11px] text-gray-500 leading-relaxed mt-4 pt-4 border-t border-gray-100">
-          All features are computed per cell with no cell-type-specific priors. The pipeline has been
-          tested on U2OS, HUVEC, and fibroblast-like cells — any adherent cell type stained with the
-          supported channel panel will produce valid measurements.
+          All features are computed per cell with no cell-type-specific priors. Cross-cell-type use requires
+          segmentation QC, marker metadata, and control experiments before any biological interpretation.
         </p>
       </Card>
 
@@ -308,6 +332,8 @@ export function MethodsTab() {
           <GroupCard key={g.id} group={g} defaultOpen={i === 0} />
         ))}
       </div>
+
+      <ValidationControlsPanel context={context} />
 
       <Card className="!bg-gray-50/60 !border-gray-200">
         <div className="flex items-start gap-3">

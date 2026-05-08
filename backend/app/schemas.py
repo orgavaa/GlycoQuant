@@ -59,7 +59,7 @@ class CellFeature(BaseModel):
 
 
 class MechanoScoreSummary(BaseModel):
-    """Diagnostics for the composite mechanophenotype score.
+    """Diagnostics for the composite mechanophenotype prototype score.
 
     Surfaced next to the score-distribution histogram on Tab 1 so the
     user can see how the score was computed (PCA vs. weighted-sum
@@ -87,12 +87,12 @@ class MechanoScoreSummary(BaseModel):
     )
     top_correlation_pair: tuple[str, str] | None = Field(
         default=None,
-        description="(WGA/glycan feature, mechanophenotype-associated feature) for the top correlation.",
+        description="(WGA/glycan feature, mechanophenotype-prototype-associated feature) for the top correlation.",
     )
     n_significant_pairs_fdr: int | None = Field(
         default=None,
         description=(
-            "Number of WGA/glycan × mechanophenotype correlation tiles surviving "
+            "Number of WGA/glycan × mechanophenotype prototype correlation tiles surviving "
             "Benjamini–Hochberg FDR adjustment at α=0.05 (out of the "
             "rectangular matrix of finite p-values). Reported so the "
             "user can judge at a glance whether the coupling is sparse "
@@ -162,7 +162,7 @@ class JobResult(BaseModel):
         default=None,
         description=(
             "Plotly figure JSON for the per-cell composite "
-            "mechanophenotype score distribution (histogram + "
+            "mechanophenotype prototype score distribution (histogram + "
             "mean line)."
         ),
     )

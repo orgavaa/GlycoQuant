@@ -8,9 +8,9 @@ import plotly.graph_objects as go
 def _display_feature_name(name: str) -> str:
     return (
         name
-        .replace("glycocalyx_pericellular_ratio", "WGA pericellular ratio")
-        .replace("glycocalyx_", "WGA ")
-        .replace("mechano_score", "mechanophenotype score")
+        .replace("glycocalyx_pericellular_ratio", "WGA proxy pericellular ratio")
+        .replace("glycocalyx_", "WGA proxy ")
+        .replace("mechano_score", "mechanophenotype prototype score")
         .replace("mechano_", "mechanophenotype ")
         .replace("yap_", "YAP ")
         .replace("fa_", "FA ")
@@ -26,9 +26,9 @@ def plot_spatial_graph(
     edge_index: list[list[int]],
     node_values: list[float],
     cell_ids: list[int],
-    value_label: str = "Mechanophenotype (spatial)",
+    value_label: str = "Mechanophenotype prototype (spatial)",
 ) -> go.Figure:
-    """Delaunay graph with nodes colored by predicted mechanophenotype score."""
+    """Delaunay graph with nodes colored by predicted mechanophenotype prototype score."""
     pts = np.array(centroids)
     vals = np.array(node_values)
     ids = np.array(cell_ids)

@@ -1,0 +1,105 @@
+{
+  "name": "target_phd_assay",
+  "datasetType": "project_specific_experimental",
+  "isProjectSpecific": true,
+  "biologicalInterpretationAllowed": false,
+  "description": "Ideal project-specific channel and metadata configuration for glycocalyx-associated mechanophenotype imaging.",
+  "channels": {
+    "nuclear": {
+      "label": "DAPI/Hoechst",
+      "required": true,
+      "realMarkerRequired": true,
+      "markerClass": "nucleus"
+    },
+    "wga_proxy": {
+      "label": "WGA or lectin panel",
+      "required": true,
+      "realMarkerRequired": true,
+      "markerClass": "lectin_proxy",
+      "interpretation": "Lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal; not complete glycocalyx composition or thickness."
+    },
+    "yap": {
+      "label": "YAP/TAZ",
+      "required": true,
+      "realMarkerRequired": true,
+      "markerClass": "mechanotransduction_tf"
+    },
+    "focal_adhesion": {
+      "label": "paxillin, vinculin, or pFAK",
+      "required": true,
+      "realMarkerRequired": true,
+      "markerClass": "focal_adhesion"
+    },
+    "actin": {
+      "label": "actin/phalloidin",
+      "required": true,
+      "realMarkerRequired": true,
+      "markerClass": "cytoskeleton"
+    },
+    "fibrosis": {
+      "label": "alpha-SMA, collagen I, or fibronectin",
+      "required": false,
+      "realMarkerRequired": true,
+      "markerClass": "fibrosis_marker"
+    }
+  },
+  "conditionMetadataSchema": {
+    "condition": true,
+    "perturbation": true,
+    "substrateStiffness": true,
+    "mechanicalStimulation": true,
+    "timepoint": true,
+    "cellType": true,
+    "well": true,
+    "plate": true,
+    "field": true,
+    "biologicalReplicate": true,
+    "technicalReplicate": true
+  },
+  "qcThresholds": {
+    "edgeMarginPx": 2,
+    "minimumCellAreaPx": 40,
+    "minimumNuclearAreaPx": 12,
+    "maximumNuclearToCellAreaRatio": 0.75,
+    "minimumNuclearToCellAreaRatio": 0.03,
+    "minimumCellSolidity": 0.72,
+    "saturationFractionThreshold": 0.01,
+    "excludedCellFractionWarning": 0.15
+  },
+  "scoreWeights": {
+    "morphology": 0.25,
+    "actin_coherence": 0.2,
+    "wga_proxy": 0.2,
+    "yap_nc_ratio": 0.2,
+    "focal_adhesion_maturity": 0.15
+  },
+  "placeholderModules": {
+    "includeByDefault": false,
+    "warning": "Placeholder modules must not contribute to biological interpretation."
+  },
+  "requiredControls": {
+    "positive": [
+      "stiff substrate",
+      "TGF-beta stimulation",
+      "LPA or contractility stimulus when appropriate"
+    ],
+    "negative": [
+      "soft substrate",
+      "ROCK inhibitor",
+      "FAK inhibitor",
+      "actin polymerization disruption control when appropriate"
+    ],
+    "glycocalyxPerturbation": [
+      "neuraminidase",
+      "heparinase",
+      "hyaluronidase",
+      "genetic perturbation of glycosylation or proteoglycan pathways",
+      "rescue condition"
+    ]
+  },
+  "interpretationGate": {
+    "markerQuantification": "real markers present",
+    "phenotypeComparison": "condition metadata and replicate metadata present",
+    "validatedBiologicalInference": "marker data, conditions, replicates, replicate-level statistics, and validation controls present"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "demo_bbbc022_proxy",
+  "datasetType": "technical_demo",
+  "isProjectSpecific": false,
+  "biologicalInterpretationAllowed": false,
+  "description": "Public Cell Painting-style high-content microscopy image used to prototype segmentation, feature extraction, and single-cell analysis. This is not a glycocalyx-mechanotransduction experiment.",
+  "realMarkers": {
+    "nuclear": true,
+    "wga_proxy": true,
+    "actin_proxy": true,
+    "yap": false,
+    "focal_adhesion": false,
+    "fibrosis": false
+  },
+  "channelMapping": {
+    "nuclear": {
+      "label": "DAPI/Hoechst-like nuclear channel",
+      "sourceChannel": "demo dapi slot",
+      "placeholder": false
+    },
+    "wga_proxy": {
+      "label": "WGA / Cell Painting membrane-glycan proxy",
+      "sourceChannel": "demo glycocalyx slot",
+      "placeholder": false,
+      "warning": "WGA reports lectin-accessible GlcNAc/sialic-acid-rich glycoconjugates, not full glycocalyx composition or thickness."
+    },
+    "actin": {
+      "label": "Actin / Cell Painting cytoskeleton proxy",
+      "sourceChannel": "demo actin slot",
+      "placeholder": true
+    },
+    "yap": {
+      "label": "YAP/TAZ module placeholder",
+      "sourceChannel": null,
+      "placeholder": true,
+      "warning": "Not computed from real YAP/TAZ staining."
+    },
+    "focal_adhesion": {
+      "label": "Focal adhesion module placeholder",
+      "sourceChannel": null,
+      "placeholder": true,
+      "warning": "Not computed from real paxillin, vinculin, or pFAK staining."
+    }
+  },
+  "metadataAvailable": {
+    "condition": false,
+    "perturbation": false,
+    "substrateStiffness": false,
+    "mechanicalStimulation": false,
+    "timepoint": false,
+    "well": true,
+    "plate": false,
+    "field": true,
+    "biologicalReplicate": false,
+    "technicalReplicate": false
+  },
+  "scoreWeights": {
+    "morphology": 0.25,
+    "actin_coherence": 0.2,
+    "wga_proxy": 0.2,
+    "yap_nc_ratio": 0,
+    "focal_adhesion_maturity": 0
+  },
+  "placeholderModules": {
+    "includeByDefault": false,
+    "warning": "YAP/TAZ and focal adhesion outputs are module previews only."
+  },
+  "requiredWarning": "Technical demo only. Do not interpret as glycocalyx-mechanotransduction biology."
+}

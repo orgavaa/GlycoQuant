@@ -58,7 +58,7 @@ _STAR_TIERS: tuple[tuple[float, str], ...] = (
     (0.05, "*"),
 )
 
-# WGA pericellular feature columns this figure considers (any subset that
+# WGA proxy pericellular feature columns this figure considers (any subset that
 # the input DataFrame actually contains is plotted; missing columns
 # are silently dropped). Order matches the conceptual progression:
 # bulk intensity → distribution shape → texture → spatial autocorr.
@@ -136,7 +136,7 @@ class GlycoMechanoCorrelation:
     # the sample correlation, valid under the normality-of-ranks
     # approximation); ``"permutation"`` replaces it with an empirical
     # null from :func:`compute_glyco_mechano_correlation`'s
-    # ``n_permutations`` shuffles of the mechanophenotype score column — makes no
+    # ``n_permutations`` shuffles of the mechanophenotype prototype score column — makes no
     # distributional assumption and is preferred for heavy-tailed
     # fluorescence data.
     null_method: str = "parametric"
@@ -164,7 +164,7 @@ def compute_glyco_mechano_correlation(
     n_permutations : int
         When ``> 0`` the parametric p-value from
         :func:`scipy.stats.spearmanr` is replaced with an empirical
-        p-value from ``n_permutations`` shuffles of the mechanophenotype score column.
+        p-value from ``n_permutations`` shuffles of the mechanophenotype prototype score column.
         The permutation null is preferred for fluorescence intensity
         data whose marginal distributions violate the normality-of-
         ranks assumption behind the analytical Spearman null. The
@@ -364,7 +364,7 @@ def plot_glyco_mechano_correlation(
     # Cramming numbers into tiny heatmap cells is unreadable at
     # the 320px rail width. Clean heatmap + hover is the pro pattern.
 
-    # "WGA pericellular" rather than a broad glycocalyx label is the scientifically
+    # "WGA proxy pericellular" rather than a broad glycocalyx label is the scientifically
     # honest label — wheat-germ agglutinin binds sialic acid and
     # N-acetylglucosamine on the confocal-accessible outer coat but
     # does NOT bind heparan sulfate (the syndecan / glypican / EXT
@@ -372,7 +372,7 @@ def plot_glyco_mechano_correlation(
     # the pericellular shell but not the 50–500 nm glycopolymer
     # ultrastructure (Möckl 2019). Internally these stay called
     # "glycocalyx_*" columns for backward-compat with committed CSVs.
-    title_parts = ["WGA pericellular ↔ mechanotransduction-associated features"]
+    title_parts = ["WGA proxy pericellular ↔ mechanotransduction-associated features"]
     total_tested = int(np.sum(np.isfinite(result.r_matrix)))
     if result.top_pair is not None:
         g, m = result.top_pair
@@ -413,7 +413,7 @@ def plot_glyco_mechano_correlation(
             .replace("yap_nc_ratio_size_corrected", "YAP N/C corr")
             .replace("yap_nuclear_intensity", "YAP nuc")
             .replace("fa_density_per_um2", "FA density")
-            .replace("fa_mature_fraction", "FA mature")
+            .replace("fa_mature_fraction", "FA maturity")
             .replace("fa_total_area_um2", "FA area")
             .replace("fa_mean_orientation_alignment", "FA align")
             .replace("actin_stress_fiber_coherence", "actin coher")
@@ -421,7 +421,7 @@ def plot_glyco_mechano_correlation(
             .replace("nuclear_aspect_ratio", "nuc AR")
             .replace("nuclear_solidity", "nuc solid")
             .replace("nuclear_to_cell_area_ratio", "nuc/cell")
-            .replace("mechano_score", "mechanophen.")
+            .replace("mechano_score", "prototype")
             .replace("_", " ")
         )
 
@@ -520,7 +520,7 @@ def plot_mechano_score_distribution(
     df: pd.DataFrame,
     column: str = "mechano_score",
 ) -> go.Figure:
-    """Histogram of the per-cell composite mechanophenotype score.
+    """Histogram of the per-cell composite mechanophenotype prototype score.
 
     Drawn as a 30-bin histogram with a vertical mean line. Returns
     an empty figure if the column is missing or all-NaN — the
@@ -542,7 +542,7 @@ def plot_mechano_score_distribution(
                 "line": {"color": "#1a21ff", "width": 0.5},
                 "opacity": 0.8,
             },
-            hovertemplate="mechanophenotype=%{x:.2f}<br>cells=%{y}<extra></extra>",
+            hovertemplate="prototype score=%{x:.2f}<br>cells=%{y}<extra></extra>",
         )
     )
     mean = float(finite.mean())
@@ -559,7 +559,7 @@ def plot_mechano_score_distribution(
         title=None,
         xaxis={
             "title": {
-                "text": "Mechanophenotype score",
+                "text": "Mechanophenotype prototype score",
                 "font": {"size": 10, "color": "#566164", "family": "Inter"},
             },
             "tickfont": {"size": 10, "color": "#566164", "family": "Inter"},

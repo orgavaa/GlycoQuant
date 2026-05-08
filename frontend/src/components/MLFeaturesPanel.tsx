@@ -12,6 +12,7 @@ import {
   type CrossModalResponse,
 } from "@/lib/api";
 import type { JobResult } from "@/lib/api";
+import { getInterpretationLevel, interpretationMessage } from "@/lib/scientificGuards";
 
 interface Props {
   result: JobResult;
@@ -19,9 +20,9 @@ interface Props {
 
 function displayFeatureName(name: string): string {
   return name
-    .replace(/^glycocalyx_pericellular_ratio$/, "WGA pericellular ratio")
-    .replace(/^glycocalyx_/, "WGA ")
-    .replace(/^mechano_score$/, "mechanophenotype score")
+    .replace(/^glycocalyx_pericellular_ratio$/, "WGA proxy pericellular ratio")
+    .replace(/^glycocalyx_/, "WGA proxy ")
+    .replace(/^mechano_score$/, "mechanophenotype prototype score")
     .replace(/^mechano_/, "mechanophenotype ")
     .replace(/^yap_/, "YAP ")
     .replace(/^fa_/, "FA ")
@@ -110,6 +111,7 @@ function RunButton({
 
 export function MLFeaturesPanel({ result }: Props) {
   const jobId = useJobStore(s => s.latestJobId);
+  const datasetContext = useJobStore(s => s.latestDatasetContext);
 
   return (
     <div className="flex flex-col gap-3">
@@ -118,6 +120,11 @@ export function MLFeaturesPanel({ result }: Props) {
         <p className="text-[12px] leading-relaxed text-gray-600">
           Optional image-local models. Outputs are descriptive and do not establish biological causality.
         </p>
+        {datasetContext && getInterpretationLevel(datasetContext) === "technical_demo" && (
+          <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-800">
+            {interpretationMessage("technical_demo")} Placeholder YAP/FA modules must not be interpreted biologically.
+          </p>
+        )}
       </Card>
 
       <Module
@@ -132,7 +139,7 @@ export function MLFeaturesPanel({ result }: Props) {
       <Module
         icon={<Network size={14} strokeWidth={1.5} />}
         title="Spatial graph"
-        question={"Neighbourhood prediction of per-cell mechanophenotype score on the field graph."}
+        question={"Neighbourhood prediction of per-cell mechanophenotype prototype score on the field graph."}
         method={"Delaunay neighbours; 2-layer GCN; held-out R² reported with spatial-block CV when possible."}
       >
         <SpatialSection jobId={jobId} />
@@ -141,7 +148,7 @@ export function MLFeaturesPanel({ result }: Props) {
       <Module
         icon={<ArrowLeftRight size={14} strokeWidth={1.5} />}
         title="Cross-modal regression"
-        question={"Cross-validated prediction between WGA/glycan and mechanotransduction-associated imaging feature sets."}
+        question={"Cross-validated shared variance between WGA/glycan and mechanotransduction-associated imaging feature sets."}
         method={"Per-target MLP with 5-fold CV; reports held-out R² and gradient-magnitude feature influence."}
       >
         <CrossModalSection jobId={jobId} />
@@ -343,7 +350,7 @@ function SpatialResults({ data }: { data: SpatialGNNResponse }) {
       </div>
 
       <div className="text-[11px] text-gray-500 leading-relaxed">
-        R² is the held-out variance of mechanophenotype score explained by neighbourhood features on
+        R² is the held-out variance of the mechanophenotype prototype score explained by neighbourhood features on
         this image. Higher values indicate more spatial structure; low values do not exclude
         cell-autonomous regulation.
         {cvStrategy === "spatial" && data.fold_r2_scores && data.fold_r2_scores.length > 1 && (
@@ -362,7 +369,7 @@ function SpatialResults({ data }: { data: SpatialGNNResponse }) {
       </div>
 
       <div>
-        <div className="text-[11px] text-gray-400 mb-2">Delaunay graph, nodes coloured by predicted mechanophenotype score.</div>
+        <div className="text-[11px] text-gray-400 mb-2">Delaunay graph, nodes coloured by predicted mechanophenotype prototype score.</div>
         <PlotlyFigure figureJson={data.graph_figure_json} height={360} />
       </div>
 
@@ -407,7 +414,7 @@ function CrossModalSection({ jobId }: { jobId: string | null }) {
                 direction === "glyco_to_mechano" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
               }`}
             >
-              WGA/glycan {"\u2192"} mechanophenotype
+              WGA/glycan {"\u2192"} mechanophenotype prototype
             </button>
             <button
               onClick={() => setDirection("mechano_to_glyco")}
@@ -415,7 +422,7 @@ function CrossModalSection({ jobId }: { jobId: string | null }) {
                 direction === "mechano_to_glyco" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
               }`}
             >
-              mechanophenotype {"\u2192"} WGA/glycan
+              mechanophenotype prototype {"\u2192"} WGA/glycan
             </button>
           </div>
         </div>
@@ -440,8 +447,8 @@ function CrossModalSection({ jobId }: { jobId: string | null }) {
 function CrossModalResults({ data }: { data: CrossModalResponse }) {
   const arrow = "\u2192";
   const label = data.direction === "glyco_to_mechano"
-    ? `WGA/glycan ${arrow} mechanophenotype`
-    : `mechanophenotype ${arrow} WGA/glycan`;
+    ? `WGA/glycan ${arrow} mechanophenotype prototype`
+    : `mechanophenotype prototype ${arrow} WGA/glycan`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -459,7 +466,7 @@ function CrossModalResults({ data }: { data: CrossModalResponse }) {
 
       <div className="text-[11px] text-gray-500 leading-relaxed">
         Cross-validated R² of an MLP fit on this image's feature matrix. The score describes
-        shared variance between WGA/glycan and mechanophenotype feature sets — it does not adjudicate direction of
+        shared variance between WGA/glycan and mechanophenotype prototype feature sets — it does not adjudicate direction of
         causality or underlying mechanism.
       </div>
 

@@ -1,32 +1,26 @@
 import { useMemo } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { FeatureGroup } from "./FeatureGroup";
 import { Card } from "./Card";
+import { ScoreFormulaPanel } from "./ScientificPanels";
 import { useJobStore } from "@/lib/jobStore";
 import { type CellFeatures, computePopStats } from "@/lib/canvas/extract";
+import { isRealMarker, type DatasetContext, type QcReport } from "@/lib/scientificGuards";
 import { fmt, fmtSigned } from "@/lib/utils";
 
-const GROUPS = [
-  { name: "WGA / Pericellular Glycans", prefix: "glycocalyx_" },
-  { name: "YAP", prefix: "yap_" },
-  { name: "Focal Adhesions", prefix: "fa_" },
-  { name: "Actin", prefix: "actin_" },
-  { name: "Morphology", prefix: "cell_|nuclear_|nc_" },
-];
-
 const SUMMARY_AXES = [
-  { key: "glycocalyx_pericellular_ratio", label: "WGA peri." },
-  { key: "yap_nc_ratio_size_corrected", label: "YAP N/C" },
-  { key: "fa_mature_fraction", label: "FA mature" },
+  { key: "glycocalyx_pericellular_ratio", label: "WGA proxy" },
+  { key: "yap_nc_ratio_size_corrected", label: "YAP module" },
+  { key: "fa_mature_fraction", label: "FA module" },
   { key: "actin_stress_fiber_coherence", label: "Actin coher." },
   { key: "cell_area", label: "Spread area" },
-  { key: "mechano_score", label: "Mechanophen." },
+  { key: "mechano_score", label: "Prototype z" },
 ];
 
 function prettyFeature(raw: string): string {
   return raw
-    .replace(/^glycocalyx_/, "WGA ")
-    .replace(/^mechano_score$/, "mechanophenotype score")
+    .replace(/^glycocalyx_/, "WGA proxy ")
+    .replace(/^mechano_score$/, "mechanophenotype prototype score")
     .replace(/^mechano_/, "mechanophenotype ")
     .replace(/^yap_/, "YAP ")
     .replace(/^fa_/, "FA ")
@@ -40,11 +34,17 @@ function prettyFeature(raw: string): string {
 interface Props {
   cell: CellFeatures;
   cells: CellFeatures[];
+  datasetContext: DatasetContext;
+  qcReport: QcReport;
 }
 
-export function CellContent({ cell, cells }: Props) {
+export function CellContent({ cell, cells, datasetContext, qcReport }: Props) {
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const pop = useMemo(() => computePopStats(cells), [cells]);
+  const yapReal = isRealMarker(datasetContext, "yap");
+  const faReal = isRealMarker(datasetContext, "focal_adhesion");
+  const cellId = Number(cell.cell_id);
+  const qcStatus = qcReport.byCellId.get(cellId);
 
   const z = (key: string) => {
     const s = pop[key]; const v = cell[key];
@@ -61,24 +61,34 @@ export function CellContent({ cell, cells }: Props) {
     const parts: string[] = [];
     const gz = z("glycocalyx_pericellular_ratio");
     if (Number.isFinite(gz)) {
-      if (gz > 1) parts.push("WGA-high pericellular signal");
-      else if (gz < -1) parts.push("WGA-low pericellular signal");
+      if (gz > 1) parts.push("WGA proxy high");
+      else if (gz < -1) parts.push("WGA proxy low");
     }
     const y = cell.yap_nc_ratio_size_corrected;
-    if (typeof y === "number") {
+    if (yapReal && typeof y === "number") {
       if (y > 1.3) parts.push("YAP nuclear-enriched");
       else if (y < 0.8) parts.push("YAP cytoplasmic-enriched");
+    } else if (!yapReal && typeof y === "number") {
+      parts.push("YAP/TAZ placeholder output");
     }
     const f = cell.fa_mature_fraction;
-    if (typeof f === "number") parts.push(f > 0.5 ? "FA-mature" : "FA-nascent");
+    if (faReal && typeof f === "number") parts.push(f > 0.5 ? "FA-mature" : "FA-nascent");
+    else if (!faReal && typeof f === "number") parts.push("FA placeholder output");
     const a = cell.actin_stress_fiber_coherence;
     if (typeof a === "number" && a > 0.6) parts.push("aligned stress fibers");
-    return parts.length > 0 ? parts.join(" / ") : "near-field-average profile";
-  }, [cell, pop]);
+    return parts.length > 0 ? parts.join(" / ") : "Prototype mechanophenotype profile";
+  }, [cell, pop, yapReal, faReal]);
 
   const featureGroups = useMemo(() => {
+    const groups = [
+      { name: "WGA / lectin-accessible signal", prefix: "glycocalyx_" },
+      { name: yapReal ? "YAP/TAZ" : "YAP/TAZ placeholder module", prefix: "yap_" },
+      { name: faReal ? "Focal adhesions" : "Focal adhesion placeholder module", prefix: "fa_" },
+      { name: "Actin", prefix: "actin_" },
+      { name: "Morphology", prefix: "cell_|nuclear_|nc_" },
+    ];
     const allKeys = Object.keys(cell).filter(k => k !== "cell_id" && !k.startsWith("deep_"));
-    return GROUPS.map(g => {
+    return groups.map(g => {
       const prefixes = g.prefix.split("|");
       const features = allKeys
         .filter(k => prefixes.some(p => k.startsWith(p)))
@@ -87,13 +97,13 @@ export function CellContent({ cell, cells }: Props) {
         .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore));
       return { ...g, features };
     }).filter(g => g.features.length > 0);
-  }, [cell, pop]);
+  }, [cell, pop, yapReal, faReal]);
 
   const metricItems = [
-    { label: "WGA pericellular", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
-    { label: "YAP N/C", key: "yap_nc_ratio_size_corrected", format: (v: number | null | undefined) => fmt(v) },
-    { label: "Mechanophenotype z", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
-    { label: "FA mature", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
+    { label: "WGA proxy", key: "glycocalyx_pericellular_ratio", format: (v: number | null | undefined) => fmt(v) },
+    { label: yapReal ? "YAP N/C" : "YAP placeholder", key: "yap_nc_ratio_size_corrected", format: (v: number | null | undefined) => fmt(v) },
+    { label: "Prototype z", key: "mechano_score", format: (v: number | null | undefined) => fmtSigned(v) },
+    { label: faReal ? "FA maturity" : "FA placeholder", key: "fa_mature_fraction", format: (v: number | null | undefined) => v != null && Number.isFinite(v) ? ((v as number) * 100).toFixed(0) + "%" : "\u2014" },
   ];
 
   const axisItems = SUMMARY_AXES.map(axis => ({
@@ -165,6 +175,42 @@ export function CellContent({ cell, cells }: Props) {
         <div className="text-[12px] text-gray-500 leading-relaxed">{summary}</div>
       </div>
 
+      <Card className={qcStatus?.analysisReady ? "!bg-white" : "!border-amber-200 !bg-amber-50"}>
+        <div className="flex items-start gap-2">
+          {!qcStatus?.analysisReady && (
+            <AlertTriangle size={14} strokeWidth={1.7} className="mt-0.5 flex-shrink-0 text-amber-700" />
+          )}
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold uppercase text-gray-500">
+              {qcStatus?.analysisReady ? "QC passed" : "QC flagged"}
+            </div>
+            <div className={`mt-1 text-[11px] leading-relaxed ${qcStatus?.analysisReady ? "text-gray-500" : "text-amber-900"}`}>
+              {qcStatus?.analysisReady
+                ? "Cell is included in the current analysis-ready set after mask and signal proxy checks."
+                : "Interpret placeholder/module outputs cautiously; this cell is excluded or flagged by QC before biological interpretation."}
+            </div>
+            {qcStatus?.flags?.length ? (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {qcStatus.flags.map((flag) => (
+                  <span key={flag} className="rounded border border-amber-200 bg-white/70 px-1.5 py-0.5 text-[9px] font-medium text-amber-800">
+                    {flag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </Card>
+
+      {(!yapReal || !faReal) && (
+        <Card className="!border-amber-200 !bg-amber-50">
+          <div className="text-[11px] leading-relaxed text-amber-900">
+            {!yapReal && "YAP/TAZ placeholder module - not computed from real YAP/TAZ staining. "}
+            {!faReal && "Focal adhesion placeholder module - not computed from real adhesion staining."}
+          </div>
+        </Card>
+      )}
+
       {/* 2x2 metric cards */}
       <div className="grid grid-cols-2 gap-2.5">
         {metricItems.map(mi => (
@@ -184,6 +230,8 @@ export function CellContent({ cell, cells }: Props) {
           </Card>
         ))}
       </div>
+
+      <ScoreFormulaPanel context={datasetContext} cell={cell} />
 
       <Card>
         <div className="mb-3 flex items-center justify-between">

@@ -30,6 +30,12 @@ import {
   type DemoCondition,
 } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
+import {
+  datasetContextFromDemo,
+  datasetContextFromUpload,
+  isRealMarker,
+  type DatasetContext,
+} from "@/lib/scientificGuards";
 
 type PendingSource =
   | { kind: "demo"; dataset: DemoCondition }
@@ -241,6 +247,7 @@ function compareFields(sortMode: SortMode, a: FieldCardItem, b: FieldCardItem): 
 export function LoaderView() {
   const job = useAnalysisJob();
   const setLatestRawPreviewUrl = useJobStore((s) => s.setLatestRawPreviewUrl);
+  const setLatestDatasetContext = useJobStore((s) => s.setLatestDatasetContext);
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingSource | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -327,6 +334,7 @@ export function LoaderView() {
 
   const selectDemo = (dataset: DemoCondition) => {
     setPending({ kind: "demo", dataset });
+    setLatestDatasetContext(datasetContextFromDemo(dataset));
     if (dataset.pixel_size_um) setPixelSizeUm(dataset.pixel_size_um);
     setChannelAssignments(defaultAssignmentsFromManifest(dataset.slot_sources));
     job.reset();
@@ -336,11 +344,17 @@ export function LoaderView() {
     setUploadedFile(file);
     setPending({ kind: "upload", file });
     setChannelAssignments(defaultPositionalAssignments());
+    setLatestDatasetContext(datasetContextFromUpload(file.name, defaultPositionalAssignments()));
     job.reset();
   };
 
   const handleRun = () => {
     if (!pending) return;
+    setLatestDatasetContext(
+      pending.kind === "demo"
+        ? datasetContextFromDemo(pending.dataset)
+        : datasetContextFromUpload(pending.file.name, channelAssignments),
+    );
     job.submit.mutate({
       ...(pending.kind === "demo"
         ? { demoCondition: pending.dataset.name }
@@ -556,6 +570,16 @@ export function LoaderView() {
             <PreviewBlock pending={pending} previewSrc={previewSrc} loading={pending?.kind === "upload" && uploadPreviewMut.isPending} />
 
             <MetadataBlock pending={pending} pixelSizeUm={pixelSizeUm} channelAssignments={channelAssignments} />
+
+            <TargetAssayModeBlock
+              context={
+                pending?.kind === "demo"
+                  ? datasetContextFromDemo(pending.dataset)
+                  : pending?.kind === "upload"
+                    ? datasetContextFromUpload(pending.file.name, channelAssignments)
+                    : null
+              }
+            />
 
             <SectionHeader icon={<Settings size={13} strokeWidth={1.6} />} label="Acquisition" />
             <div className="grid grid-cols-2 gap-3">
@@ -899,6 +923,55 @@ function MetadataBlock({
           <AssayBadge key={badge} label={badge} />
         ))}
       </div>
+      {pending.kind === "demo" && hasSubstituteChannel(pending.dataset) && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-800">
+          Demo proxy data. YAP/TAZ and focal adhesion modules are placeholders unless the manifest declares real marker channels.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TargetAssayModeBlock({ context }: { context: DatasetContext | null }) {
+  const rows = [
+    ["Nuclear channel available", Boolean(context && isRealMarker(context, "nuclear"))],
+    ["WGA/lectin channel available", Boolean(context && isRealMarker(context, "wga_proxy"))],
+    ["YAP/TAZ channel available", Boolean(context && isRealMarker(context, "yap"))],
+    ["FA marker channel available", Boolean(context && isRealMarker(context, "focal_adhesion"))],
+    ["Actin channel available", Boolean(context && isRealMarker(context, "actin"))],
+    ["Condition metadata available", Boolean(context?.conditionMetadata.condition)],
+    ["Replicate metadata available", Boolean(context?.conditionMetadata.biologicalReplicate && context?.conditionMetadata.technicalReplicate)],
+    ["Perturbation metadata available", Boolean(context?.conditionMetadata.perturbation)],
+  ] as const;
+  const readyForInterpretation =
+    rows[0][1] && rows[1][1] && rows[2][1] && rows[3][1] && rows[4][1] && rows[5][1] && rows[6][1] && rows[7][1];
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <SectionHeader icon={<Check size={13} strokeWidth={1.6} />} label="Target PhD assay mode" />
+        <span className={`rounded border px-1.5 py-0.5 text-[9px] font-medium ${
+          readyForInterpretation ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"
+        }`}>
+          {readyForInterpretation ? "interpretation enabled" : "incomplete"}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-1.5">
+        {rows.map(([label, ok]) => (
+          <div key={label} className="flex items-center gap-2 text-[11px] text-gray-700">
+            <span className={`flex h-3.5 w-3.5 items-center justify-center rounded border ${
+              ok ? "border-gray-950 bg-gray-950 text-white" : "border-gray-300 bg-white text-transparent"
+            }`}>
+              <Check size={10} strokeWidth={2} />
+            </span>
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+      {!readyForInterpretation && (
+        <div className="mt-2 text-[10px] leading-relaxed text-gray-500">
+          Full biological interpretation requires real marker channels, condition metadata, replicate metadata, perturbation metadata, and validation controls.
+        </div>
+      )}
     </div>
   );
 }

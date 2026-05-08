@@ -5,14 +5,17 @@ import { CellContent } from "./CellContent";
 import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 import type { CellFeatures } from "@/lib/canvas/extract";
+import type { DatasetContext, QcReport } from "@/lib/scientificGuards";
 
 interface Props {
   result: JobResult;
   cells: CellFeatures[];
   onClose: () => void;
+  datasetContext: DatasetContext;
+  qcReport: QcReport;
 }
 
-export function RightRail({ result, cells, onClose }: Props) {
+export function RightRail({ result, cells, onClose, datasetContext, qcReport }: Props) {
   const selectedCellId = useJobStore(s => s.selectedCellId);
   const selectedCell = useMemo(
     () => selectedCellId != null ? cells.find(c => Number(c.cell_id) === selectedCellId) ?? null : null,
@@ -46,8 +49,8 @@ export function RightRail({ result, cells, onClose }: Props) {
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto p-4">
         {selectedCell
-          ? <CellContent cell={selectedCell} cells={cells} />
-          : <OverviewContent result={result} cells={cells} />
+          ? <CellContent cell={selectedCell} cells={cells} datasetContext={datasetContext} qcReport={qcReport} />
+          : <OverviewContent result={result} cells={cells} datasetContext={datasetContext} qcReport={qcReport} />
         }
       </div>
     </div>

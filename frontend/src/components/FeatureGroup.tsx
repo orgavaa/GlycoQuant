@@ -20,9 +20,9 @@ type SortMode = "deviation" | "alphabetical";
 // Pretty-print feature names: strip group prefix, replace underscores, keep radial profile indices padded.
 function prettifyName(raw: string): string {
   return raw
-    .replace(/^glycocalyx_pericellular_ratio$/, "WGA pericellular ratio")
-    .replace(/^glycocalyx_/, "WGA ")
-    .replace(/^mechano_score$/, "mechanophenotype score")
+    .replace(/^glycocalyx_pericellular_ratio$/, "WGA proxy pericellular ratio")
+    .replace(/^glycocalyx_/, "WGA proxy ")
+    .replace(/^mechano_score$/, "mechanophenotype prototype score")
     .replace(/^mechano_/, "mechanophenotype ")
     .replace(/^yap_/, "")
     .replace(/^fa_/, "")

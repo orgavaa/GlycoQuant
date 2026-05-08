@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { exportUrl, fetchHealth, warmupModal } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
+import { contextBadge } from "@/lib/scientificGuards";
 
 export type ViewId = "analysis" | "ranking" | "methods";
 
@@ -48,6 +49,7 @@ const NAV_ITEMS: ReadonlyArray<{
 
 export function TopBar({ activeView, onChangeView }: TopBarProps) {
   const latestJobId = useJobStore((s) => s.latestJobId);
+  const latestDatasetContext = useJobStore((s) => s.latestDatasetContext);
   const canExport = !!latestJobId;
   const [warmupState, setWarmupState] = useState<WarmupState>("idle");
   const [warmupDetail, setWarmupDetail] = useState("");
@@ -73,7 +75,7 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         ? "bg-rose-500"
         : "bg-amber-400 animate-pulse";
   const healthLabel =
-    healthState === "ok" ? "API ready" : healthState === "error" ? "API offline" : "API check";
+    healthState === "ok" ? "API prototype ready" : healthState === "error" ? "API offline" : "API check";
   const healthTint =
     healthState === "ok"
       ? "border-emerald-200 bg-emerald-50 text-emerald-800"
@@ -145,6 +147,21 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
       </div>
 
       <div className="flex-1" />
+
+      {latestDatasetContext && (
+        <div
+          className={`mr-2 hidden h-8 items-center rounded-md border px-2.5 text-[11px] font-medium sm:flex ${
+            contextBadge(latestDatasetContext).tone === "amber"
+              ? "border-amber-200 bg-amber-50 text-amber-800"
+              : contextBadge(latestDatasetContext).tone === "emerald"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border-gray-200 bg-gray-50 text-gray-700"
+          }`}
+          title={latestDatasetContext.warnings[0] ?? latestDatasetContext.datasetType}
+        >
+          {contextBadge(latestDatasetContext).label}
+        </div>
+      )}
 
       <div
         className={`mr-2 hidden h-8 items-center gap-2 rounded-md border px-2.5 text-[11px] font-medium sm:flex ${healthTint}`}

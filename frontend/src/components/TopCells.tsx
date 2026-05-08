@@ -18,14 +18,14 @@ function phenotypeTag(cell: CellFeatures): { text: string; color: string; bg: st
     const highMech = mechano > 1.0;
     const lowMech = mechano < -1.0;
 
-    if (highGlyco && highMech) return { text: "WGA-high / high mechanophenotype", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" };
-    if (highGlyco && lowMech) return { text: "WGA-high / low mechanophenotype", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
-    if (lowGlyco && highMech) return { text: "WGA-low / high mechanophenotype", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" };
-    if (lowGlyco && lowMech) return { text: "WGA-low / low mechanophenotype", color: "text-rose-700", bg: "bg-rose-50 border-rose-200" };
-    if (highMech) return { text: "high mechanophenotype", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" };
-    if (lowMech) return { text: "low mechanophenotype", color: "text-rose-700", bg: "bg-rose-50 border-rose-200" };
-    if (highGlyco) return { text: "WGA-high", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" };
-    if (lowGlyco) return { text: "WGA-low", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
+    if (highGlyco && highMech) return { text: "WGA proxy high / prototype high", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" };
+    if (highGlyco && lowMech) return { text: "WGA proxy high / prototype low", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
+    if (lowGlyco && highMech) return { text: "WGA proxy low / prototype high", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" };
+    if (lowGlyco && lowMech) return { text: "WGA proxy low / prototype low", color: "text-rose-700", bg: "bg-rose-50 border-rose-200" };
+    if (highMech) return { text: "prototype high", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" };
+    if (lowMech) return { text: "prototype low", color: "text-rose-700", bg: "bg-rose-50 border-rose-200" };
+    if (highGlyco) return { text: "WGA proxy high", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" };
+    if (lowGlyco) return { text: "WGA proxy low", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
   }
   return { text: "", color: "", bg: "" };
 }
@@ -72,10 +72,10 @@ export function TopCells({ cells, onClick }: Props) {
                 >
                   {fmtSigned(ms)}
                 </span>
-                <span className="text-[10px] uppercase text-gray-400">mechanophenotype z</span>
+                <span className="text-[10px] uppercase text-gray-400">prototype z</span>
                 <span className="text-[10px] text-gray-300">/</span>
                 <span className="text-[11px] text-gray-500" style={{ fontFeatureSettings: "'tnum'" }}>
-                  WGA {fmt(cell.glycocalyx_pericellular_ratio as number | null)}
+                  WGA proxy {fmt(cell.glycocalyx_pericellular_ratio as number | null)}
                 </span>
               </div>
 
@@ -110,7 +110,7 @@ export function TopCells({ cells, onClick }: Props) {
         );
       })}
       <div className="mt-3 text-[10px] leading-relaxed text-gray-400">
-        Mechanophenotype z-score is computed within this image. The bar diverges from the image mean.
+        Mechanophenotype prototype z-score is computed within this image. The bar diverges from the image mean.
       </div>
     </div>
   );

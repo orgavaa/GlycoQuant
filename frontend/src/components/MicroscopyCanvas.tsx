@@ -6,6 +6,7 @@ import { viridisRgba, rdbuRgba } from "@/lib/canvas/colormap";
 import { useJobStore } from "@/lib/jobStore";
 import { usePanZoom } from "@/lib/usePanZoom";
 import type { JobResult } from "@/lib/api";
+import { isRealMarker, type DatasetContext } from "@/lib/scientificGuards";
 import { fmt, fmtSigned } from "@/lib/utils";
 
 interface Props {
@@ -15,9 +16,10 @@ interface Props {
   cells: CellFeatures[];
   channelVisibility: Record<string, boolean>;
   visibleCellIds?: Set<number> | null;
+  datasetContext: DatasetContext;
 }
 
-export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells, channelVisibility, visibleCellIds }: Props) {
+export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cells, channelVisibility, visibleCellIds, datasetContext }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const selectedCellId = useJobStore(s => s.selectedCellId);
@@ -245,16 +247,16 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
     if (cid != null) {
       const cell = cellMap.get(cid);
       const lines = cell ? [
-        { l: "WGA peri.", v: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
-        { l: "YAP N/C", v: fmt(cell.yap_nc_ratio_size_corrected as number | null) },
-        { l: "mechanophenotype", v: fmtSigned(cell.mechano_score as number | null) },
-        { l: "FA mature", v: cell.fa_mature_fraction != null && Number.isFinite(cell.fa_mature_fraction as number) ? ((cell.fa_mature_fraction as number) * 100).toFixed(0) + "%" : "\u2014" },
+        { l: "WGA proxy", v: fmt(cell.glycocalyx_pericellular_ratio as number | null) },
+        { l: isRealMarker(datasetContext, "yap") ? "YAP N/C" : "YAP placeholder", v: fmt(cell.yap_nc_ratio_size_corrected as number | null) },
+        { l: "prototype score", v: fmtSigned(cell.mechano_score as number | null) },
+        { l: isRealMarker(datasetContext, "focal_adhesion") ? "FA maturity" : "FA placeholder", v: cell.fa_mature_fraction != null && Number.isFinite(cell.fa_mature_fraction as number) ? ((cell.fa_mature_fraction as number) * 100).toFixed(0) + "%" : "\u2014" },
       ] : [];
       setTooltip({ x: e.clientX, y: e.clientY, cellId: cid, lines });
     } else {
       setTooltip(null);
     }
-  }, [polygons, cellMap, panZoom, imgDims, size, visibleCellIds]);
+  }, [polygons, cellMap, panZoom, imgDims, size, visibleCellIds, datasetContext]);
 
   const { zoom, panX, panY } = panZoom.state;
 

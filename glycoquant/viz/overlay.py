@@ -128,7 +128,7 @@ def focal_adhesion_polygons(
 
 
 # ---------------------------------------------------------------------------
-# WGA pericellular ring polygons
+# WGA proxy pericellular ring polygons
 # ---------------------------------------------------------------------------
 
 

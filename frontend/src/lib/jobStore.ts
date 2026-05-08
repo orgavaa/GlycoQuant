@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import type { JobResult, PhenotypeResponse, SpatialGNNResponse, CrossModalResponse } from "@/lib/api";
+import type { DatasetContext } from "@/lib/scientificGuards";
 
 interface JobStoreState {
   latestJobResult: JobResult | null;
   latestDatasetLabel: string | null;
+  latestDatasetContext: DatasetContext | null;
   latestJobId: string | null;
   // URL of the originally-selected/-uploaded image (demo preview URL or upload blob URL).
   // Surfaced on Analysis view's "Raw image" toggle so the user can return to the
@@ -17,6 +19,7 @@ interface JobStoreState {
   crossModalResult: CrossModalResponse | null;
   // Actions
   setLatestJobId: (jobId: string) => void;
+  setLatestDatasetContext: (context: DatasetContext | null) => void;
   setLatestJobResult: (result: JobResult, datasetLabel?: string | null, jobId?: string | null) => void;
   /** Replace the current result in place without touching completedJobs
    * or resetting ML panels — used by the recompute-correlation toggle. */
@@ -32,6 +35,7 @@ interface JobStoreState {
 export const useJobStore = create<JobStoreState>((set) => ({
   latestJobResult: null,
   latestDatasetLabel: null,
+  latestDatasetContext: null,
   latestJobId: null,
   latestRawPreviewUrl: null,
   selectedCellId: null,
@@ -40,6 +44,7 @@ export const useJobStore = create<JobStoreState>((set) => ({
   spatialGNNResult: null,
   crossModalResult: null,
   setLatestJobId: (jobId) => set({ latestJobId: jobId }),
+  setLatestDatasetContext: (context) => set({ latestDatasetContext: context }),
   setLatestRawPreviewUrl: (url) => set({ latestRawPreviewUrl: url }),
   setLatestJobResult: (result, datasetLabel = null, jobId = null) =>
     set((state) => ({
@@ -62,6 +67,7 @@ export const useJobStore = create<JobStoreState>((set) => ({
     set({
       latestJobResult: null,
       latestDatasetLabel: null,
+      latestDatasetContext: null,
       latestJobId: null,
       latestRawPreviewUrl: null,
       selectedCellId: null,

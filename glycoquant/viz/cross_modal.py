@@ -8,9 +8,9 @@ import plotly.graph_objects as go
 def _display_feature_name(name: str) -> str:
     return (
         name
-        .replace("glycocalyx_pericellular_ratio", "WGA pericellular ratio")
-        .replace("glycocalyx_", "WGA ")
-        .replace("mechano_score", "mechanophenotype score")
+        .replace("glycocalyx_pericellular_ratio", "WGA proxy pericellular ratio")
+        .replace("glycocalyx_", "WGA proxy ")
+        .replace("mechano_score", "mechanophenotype prototype score")
         .replace("mechano_", "mechanophenotype ")
         .replace("yap_", "YAP ")
         .replace("fa_", "FA ")
@@ -41,7 +41,7 @@ def plot_cross_modal_r2(
     ))
 
     arrow = "\u2192"
-    label = f"WGA/glycan {arrow} mechanophenotype" if "glyco_to" in direction else f"mechanophenotype {arrow} WGA/glycan"
+    label = f"WGA/glycan {arrow} mechanophenotype prototype" if "glyco_to" in direction else f"mechanophenotype prototype {arrow} WGA/glycan"
 
     fig.update_layout(
         title=dict(text=label, font=dict(size=12)),

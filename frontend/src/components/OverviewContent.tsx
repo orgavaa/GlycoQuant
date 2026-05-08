@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeftRight, BarChart3, Brain } from "lucide-react";
+import { ArrowLeftRight, BarChart3, Brain, GitCompare } from "lucide-react";
 import Plotly from "plotly.js-dist-min";
 import { HeroMetrics } from "./HeroMetrics";
 import { PlotlyCard } from "./PlotlyCard";
@@ -11,20 +11,32 @@ import { useJobStore } from "@/lib/jobStore";
 import type { JobResult } from "@/lib/api";
 import { recomputeCorrelation } from "@/lib/api";
 import type { CellFeatures } from "@/lib/canvas/extract";
+import {
+  AssayReadinessCard,
+  ConditionComparisonPanel,
+  DatasetProvenancePanel,
+  NormalizationWarningCard,
+  QcSummaryCard,
+  ScoreFormulaPanel,
+  ValidationControlsPanel,
+} from "./ScientificPanels";
+import type { DatasetContext, QcReport } from "@/lib/scientificGuards";
 import { fmt, fmtSigned } from "@/lib/utils";
 
 interface Props {
   result: JobResult;
   cells: CellFeatures[];
+  datasetContext: DatasetContext;
+  qcReport: QcReport;
 }
 
-type ViewTab = "overview" | "ml";
+type ViewTab = "overview" | "condition" | "ml";
 
 function displayFeatureName(name: string): string {
   return name
-    .replace(/^glycocalyx_pericellular_ratio$/, "WGA pericellular ratio")
-    .replace(/^glycocalyx_/, "WGA ")
-    .replace(/^mechano_score$/, "mechanophenotype score")
+    .replace(/^glycocalyx_pericellular_ratio$/, "WGA proxy pericellular ratio")
+    .replace(/^glycocalyx_/, "WGA proxy ")
+    .replace(/^mechano_score$/, "mechanophenotype prototype score")
     .replace(/^mechano_/, "mechanophenotype ")
     .replace(/^yap_/, "YAP ")
     .replace(/^fa_/, "FA ")
@@ -34,13 +46,13 @@ function displayFeatureName(name: string): string {
     .replace(/_/g, " ");
 }
 
-export function OverviewContent({ result, cells }: Props) {
+export function OverviewContent({ result, cells, datasetContext, qcReport }: Props) {
   const [activeTab, setActiveTab] = useState<ViewTab>("overview");
 
   return (
     <div className="flex flex-col gap-4">
       {/* Tab strip */}
-      <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
+      <div className="grid grid-cols-3 gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1">
         <button
           onClick={() => setActiveTab("overview")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors ${
@@ -49,6 +61,15 @@ export function OverviewContent({ result, cells }: Props) {
         >
           <BarChart3 size={13} strokeWidth={1.8} />
           Summary
+        </button>
+        <button
+          onClick={() => setActiveTab("condition")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors ${
+            activeTab === "condition" ? "bg-gray-950 text-white shadow-sm" : "text-gray-500 hover:bg-white/60 hover:text-gray-950"
+          }`}
+        >
+          <GitCompare size={13} strokeWidth={1.8} />
+          Conditions
         </button>
         <button
           onClick={() => setActiveTab("ml")}
@@ -62,14 +83,16 @@ export function OverviewContent({ result, cells }: Props) {
       </div>
 
       {activeTab === "overview"
-        ? <OverviewTab result={result} cells={cells} />
-        : <MLFeaturesPanel result={result} />
+        ? <OverviewTab result={result} cells={cells} datasetContext={datasetContext} qcReport={qcReport} />
+        : activeTab === "condition"
+          ? <ConditionComparisonPanel context={datasetContext} cells={cells} qc={qcReport} />
+          : <MLFeaturesPanel result={result} />
       }
     </div>
   );
 }
 
-function OverviewTab({ result, cells }: Props) {
+function OverviewTab({ result, cells, datasetContext, qcReport }: Props) {
   const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const summary = result.mechano_score_summary;
   const m = result.hero_metrics;
@@ -87,6 +110,11 @@ function OverviewTab({ result, cells }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
+      <DatasetProvenancePanel context={datasetContext} />
+      <AssayReadinessCard context={datasetContext} />
+      <QcSummaryCard qc={qcReport} />
+      <NormalizationWarningCard />
+      <ScoreFormulaPanel context={datasetContext} />
       {/* Substitute channel warning */}
       {subs.length > 0 && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
@@ -103,7 +131,7 @@ function OverviewTab({ result, cells }: Props) {
         </div>
         <HeroMetrics metrics={[
           { value: String(result.cell_count), label: "Cells" },
-          { value: fmtSigned(m.mean_mechano_score), label: "Mean mechanophenotype" },
+          { value: fmtSigned(m.mean_mechano_score), label: "Mean prototype score" },
           { value: glycoMechR != null ? fmt(glycoMechR) : "\u2014", label: "Top |rho|" },
           {
             value:
@@ -152,6 +180,7 @@ function OverviewTab({ result, cells }: Props) {
       )}
 
       <CorrelationAudit figureJson={result.correlation_figure_json} result={result} />
+      <ValidationControlsPanel context={datasetContext} />
     </div>
   );
 }
@@ -176,11 +205,11 @@ function CorrelationAudit({ figureJson, result }: { figureJson: string; result: 
               <span className="text-gray-700">Cellpose-SAM (cpsam)</span>
             </div>
             <div className="flex justify-between">
-              <span>Mechanophenotype score</span>
+              <span>Mechanophenotype prototype score</span>
               <span className="text-gray-700">{summary?.mode === "pca" ? "PCA mode 1" : "Weighted sum"} ({summary?.n_features_used ?? "?"} features)</span>
             </div>
             <div className="rounded-md bg-gray-50 px-2 py-1.5 text-gray-600">
-              Composite imaging score from YAP N/C, focal adhesion, actin, and morphology features; requires perturbation calibration before interpretation as mechanotransduction.
+              Composite imaging score from morphology, actin, WGA proxy, and optional real YAP/FA marker features; requires perturbation calibration before interpretation as mechanotransduction.
             </div>
             {summary?.pc1_variance_explained != null && summary.pc1_variance_explained > 0 && (
               <div className="flex justify-between">
@@ -314,7 +343,7 @@ function CorrelationCard({ result }: { result: JobResult }) {
                 ? "bg-gray-950 text-white shadow-sm"
                 : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
             } ${!latestJobId || recompute.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
-            title={`Empirical null from ${PERMUTATION_N} shuffles of the mechanophenotype score column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
+            title={`Empirical null from ${PERMUTATION_N} shuffles of the mechanophenotype prototype score column. Distribution-free; preferred for heavy-tailed fluorescence data. Slower.`}
           >
             Empirical null (slower)
           </button>
@@ -334,7 +363,7 @@ function CorrelationCard({ result }: { result: JobResult }) {
         title={
           <>
             <span title="WGA lectin binds sialic acid + GlcNAc on the confocal-accessible outer coat. WGA is not a complete glycocalyx composition or thickness measurement. Heparan sulfate requires a separate anti-HS antibody channel.">
-              WGA pericellular
+              WGA proxy pericellular
             </span>
             <ArrowLeftRight size={14} strokeWidth={1.5} className="text-gray-400" />
             <span>Mechanotransduction-associated features</span>

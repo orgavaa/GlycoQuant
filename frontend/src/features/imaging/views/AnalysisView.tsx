@@ -3,9 +3,11 @@ import { PanelRightOpen, PanelRightClose, Image as ImageIcon, SlidersHorizontal,
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
+import { DatasetProvenancePanel } from "@/components/ScientificPanels";
 import type { JobResult } from "@/lib/api";
 import { extractFeatures } from "@/lib/canvas/extract";
 import { useJobStore } from "@/lib/jobStore";
+import { computeQcReport, datasetContextFromResult } from "@/lib/scientificGuards";
 import { usePanZoom } from "@/lib/usePanZoom";
 
 const RAIL_MIN_PX = 380;
@@ -35,9 +37,17 @@ export function AnalysisView({ result }: Props) {
     dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
   });
   const datasetLabel = useJobStore(s => s.latestDatasetLabel);
+  const storedContext = useJobStore(s => s.latestDatasetContext);
   const selectedCellId = useJobStore(s => s.selectedCellId);
   const rawPreviewUrl = useJobStore(s => s.latestRawPreviewUrl);
   const cells = useMemo(() => extractFeatures(result.features_df_json), [result.features_df_json]);
+  const datasetContext = useMemo(
+    () => datasetContextFromResult(result, datasetLabel, storedContext),
+    [result, datasetLabel, storedContext],
+  );
+  const qcReport = useMemo(() => computeQcReport(cells, result), [cells, result]);
+  const [excludeEdgeCells, setExcludeEdgeCells] = useState(false);
+  const [excludeSaturationArtifacts, setExcludeSaturationArtifacts] = useState(false);
 
   // Auto-open rail when the user selects a cell on the image.
   useEffect(() => {
@@ -88,9 +98,19 @@ export function AnalysisView({ result }: Props) {
   };
 
   // Compute visible cell IDs based on filter (truthful: explain what's shown)
-  const { visibleCellIds, nRaw, nReady, statusText } = useMemo(() => {
+  const { visibleCellIds, nRaw, nReady, nQc, statusText } = useMemo(() => {
     const totalDetected = result.cell_overlay?.n_cells ?? result.cell_count;
-    const readyIds = new Set(cells.map(c => Number(c.cell_id)));
+    const readyIds = new Set(qcReport.analysisReadyIds);
+    if (excludeEdgeCells) {
+      for (const [id, status] of qcReport.byCellId) {
+        if (status.flags.includes("edge-truncated cell")) readyIds.delete(id);
+      }
+    }
+    if (excludeSaturationArtifacts) {
+      for (const [id, status] of qcReport.byCellId) {
+        if (status.flags.some((flag) => flag.includes("saturated"))) readyIds.delete(id);
+      }
+    }
     let visible: Set<number> | null = null;
     let status = "";
     if (cellFilter === "all") {
@@ -102,11 +122,14 @@ export function AnalysisView({ result }: Props) {
         ? `${totalDetected} raw masks · ${readyIds.size} analysis-ready cells visible`
         : `${readyIds.size} analysis-ready cells`;
     } else {
-      visible = new Set([...Array.from({ length: totalDetected }, (_, i) => i + 1)].filter(id => !readyIds.has(id)));
-      status = `${visible.size} QC-failed cells (no valid features)`;
+      visible = new Set<number>();
+      for (const [id, qc] of qcReport.byCellId) {
+        if (!qc.analysisReady || qc.flags.length > 0) visible.add(id);
+      }
+      status = `${visible.size} QC-flagged cells`;
     }
-    return { visibleCellIds: visible, nRaw: totalDetected, nReady: readyIds.size, statusText: status };
-  }, [result, cells, cellFilter]);
+    return { visibleCellIds: visible, nRaw: totalDetected, nReady: readyIds.size, nQc: qcReport.field.qcFlaggedCells, statusText: status };
+  }, [result, cellFilter, qcReport, excludeEdgeCells, excludeSaturationArtifacts]);
 
   // Independent pan/zoom controller for the Raw image viewport.
   const rawPanZoom = usePanZoom();
@@ -175,8 +198,19 @@ export function AnalysisView({ result }: Props) {
             cells={cells}
             channelVisibility={channelVis}
             visibleCellIds={effectiveVisibleIds}
+            datasetContext={datasetContext}
           />
         )}
+      </div>
+
+      <div
+        className="absolute top-16 z-20 w-[320px] max-w-[calc(100vw-2rem)]"
+        style={{
+          right: railOpen ? railWidth + 64 : 64,
+          transition: dragging ? "none" : "right 300ms ease-in-out",
+        }}
+      >
+        <DatasetProvenancePanel context={datasetContext} compact />
       </div>
 
       {/* Top-centre view-mode toggle — Raw vs Analysis. Raw hides every analysis artefact. */}
@@ -229,6 +263,12 @@ export function AnalysisView({ result }: Props) {
           onSetCellFilter={setCellFilter}
           rawCellCount={nRaw}
           readyCellCount={nReady}
+          qcFlaggedCount={nQc}
+          excludeEdgeCells={excludeEdgeCells}
+          excludeSaturationArtifacts={excludeSaturationArtifacts}
+          onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
+          onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
+          datasetContext={datasetContext}
         />
       </div>
 
@@ -298,7 +338,13 @@ export function AnalysisView({ result }: Props) {
             </div>
           </div>
         )}
-        <RightRail result={result} cells={cells} onClose={() => setRailOpen(false)} />
+        <RightRail
+          result={result}
+          cells={cells}
+          onClose={() => setRailOpen(false)}
+          datasetContext={datasetContext}
+          qcReport={qcReport}
+        />
       </div>
 
       {/* Whole-viewport overlay during drag — keeps pointer captured. */}

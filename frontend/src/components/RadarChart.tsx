@@ -1,10 +1,10 @@
 export const RADAR_AXES = [
-  { key: "glycocalyx_pericellular_ratio", label: "WGA peri." },
-  { key: "yap_nc_ratio_size_corrected", label: "YAP" },
-  { key: "fa_mature_fraction", label: "Adhesions" },
+  { key: "glycocalyx_pericellular_ratio", label: "WGA proxy" },
+  { key: "yap_nc_ratio_size_corrected", label: "YAP module" },
+  { key: "fa_mature_fraction", label: "FA module" },
   { key: "actin_stress_fiber_coherence", label: "Actin" },
   { key: "cell_area", label: "Spread area" },
-  { key: "mechano_score", label: "Mechanophen." },
+  { key: "mechano_score", label: "Prototype" },
 ];
 
 interface RadarChartProps {

@@ -9,7 +9,7 @@ import { fetchDrillDown } from "@/lib/api";
 const INTERVENTION_EFFECTS: Record<string, { glyco: string; mechano: string }> = {
   CD44: {
     glyco: "Reduced hyaluronan anchoring, thinner pericellular coat, decreased glycocalyx heterogeneity.",
-    mechano: "Decreased integrin clustering, reduced YAP nuclear translocation, lower mechanophenotype score.",
+    mechano: "Decreased integrin clustering, reduced YAP nuclear translocation, lower mechanophenotype prototype score.",
   },
   SDC1: {
     glyco: "Loss of heparan-sulfate chains, reduced pericellular matrix density, altered growth factor sequestration.",

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Eye, Layers, Radio, ScanLine, Users } from "lucide-react";
+import { isRealMarker, type DatasetContext } from "@/lib/scientificGuards";
 
 const CHANNELS = [
   { name: "dapi", label: "DAPI", color: "#2166ac" },
@@ -22,6 +23,12 @@ interface Props {
   onSetCellFilter: (v: CellFilter) => void;
   rawCellCount: number;
   readyCellCount: number;
+  qcFlaggedCount: number;
+  excludeEdgeCells: boolean;
+  excludeSaturationArtifacts: boolean;
+  onToggleExcludeEdge: () => void;
+  onToggleExcludeSaturation: () => void;
+  datasetContext: DatasetContext;
 }
 
 export function OverlayPanel({
@@ -35,8 +42,21 @@ export function OverlayPanel({
   onSetCellFilter,
   rawCellCount,
   readyCellCount,
+  qcFlaggedCount,
+  excludeEdgeCells,
+  excludeSaturationArtifacts,
+  onToggleExcludeEdge,
+  onToggleExcludeSaturation,
+  datasetContext,
 }: Props) {
-  const qcFailed = Math.max(0, rawCellCount - readyCellCount);
+  const qcFailed = qcFlaggedCount;
+  const channelLabels = {
+    dapi: "DAPI",
+    glycocalyx: "WGA proxy",
+    yap: isRealMarker(datasetContext, "yap") ? "YAP/TAZ" : "YAP placeholder",
+    paxillin: isRealMarker(datasetContext, "focal_adhesion") ? "FA marker" : "FA placeholder",
+    actin: isRealMarker(datasetContext, "actin") ? "Actin" : "Actin proxy",
+  };
 
   return (
     <div className="absolute left-4 top-4 z-10 w-[236px] rounded-lg border border-gray-200 bg-white/95 p-3 text-gray-900 shadow-lg backdrop-blur">
@@ -58,13 +78,13 @@ export function OverlayPanel({
           kind="checkbox"
         />
         <ToggleRow
-          label="WGA signal"
+          label="WGA proxy signal"
           active={activeOverlay === "glyco"}
           onClick={() => onSetOverlay(activeOverlay === "glyco" ? null : "glyco")}
           kind="radio"
         />
         <ToggleRow
-          label="Mechanophenotype"
+          label="Prototype score"
           active={activeOverlay === "mechano"}
           onClick={() => onSetOverlay(activeOverlay === "mechano" ? null : "mechano")}
           kind="radio"
@@ -85,16 +105,30 @@ export function OverlayPanel({
                     ? "border-gray-300 bg-gray-50 text-gray-950"
                     : "border-gray-200 bg-white text-gray-400 hover:bg-gray-50"
                 }`}
-                title={`${vis ? "Hide" : "Show"} ${ch.label}`}
+                  title={`${vis ? "Hide" : "Show"} ${channelLabels[ch.name as keyof typeof channelLabels] ?? ch.label}`}
               >
                 <span
                   className="h-2.5 w-2.5 flex-shrink-0 rounded-sm ring-1 ring-black/10"
                   style={{ background: ch.color, opacity: vis ? 1 : 0.25 }}
                 />
-                <span className="truncate">{ch.label}</span>
+                <span className="truncate">{channelLabels[ch.name as keyof typeof channelLabels] ?? ch.label}</span>
               </button>
             );
           })}
+        </div>
+        <div className="mt-2 space-y-1">
+          <ToggleRow
+            label="Exclude edge cells"
+            active={excludeEdgeCells}
+            onClick={onToggleExcludeEdge}
+            kind="checkbox"
+          />
+          <ToggleRow
+            label="Exclude saturation artifacts"
+            active={excludeSaturationArtifacts}
+            onClick={onToggleExcludeSaturation}
+            kind="checkbox"
+          />
         </div>
       </ControlSection>
 
