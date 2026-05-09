@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { BarChart3, CircleDot, Layers3, Network, PanelBottomClose, PanelBottomOpen } from "lucide-react";
+import { ChartScatter, ListTree, MapPinned, PanelBottomClose, PanelBottomOpen, Table2 } from "lucide-react";
 import type { JobResult } from "@/lib/api";
 import { extractPolygons, type CellFeatures, type CellPolygon } from "@/lib/canvas/extract";
 import type { QcReport } from "@/lib/scientificGuards";
@@ -217,7 +217,7 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
     <div className="pointer-events-auto isolate w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-950 shadow-[0_24px_80px_rgba(15,23,42,0.30)]">
       <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-3 py-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-gray-800">
-          <CircleDot size={14} strokeWidth={1.8} />
+          <Table2 size={14} strokeWidth={1.8} />
         </div>
         <div className="min-w-0">
           <div className="text-[12px] font-semibold text-gray-950">Spatial phenotyping</div>
@@ -225,10 +225,10 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
             Cell centroids as spots; feature maps are field-local and descriptive.
           </div>
         </div>
-        <div className="ml-auto flex rounded-md bg-gray-100 p-1 ring-1 ring-gray-200">
-          <TabButton label="Spatial" icon={<Network size={12} />} active={tab === "spatial"} onClick={() => setTab("spatial")} />
-          <TabButton label="Distribution" icon={<BarChart3 size={12} />} active={tab === "distribution"} onClick={() => setTab("distribution")} />
-          <TabButton label="Groups" icon={<Layers3 size={12} />} active={tab === "groups"} onClick={() => setTab("groups")} />
+        <div className="ml-auto flex gap-1.5 rounded-lg bg-gray-100 p-1.5 ring-1 ring-gray-200">
+          <TabButton label="Spatial" icon={<MapPinned size={12} />} active={tab === "spatial"} onClick={() => setTab("spatial")} />
+          <TabButton label="Distribution" icon={<ChartScatter size={12} />} active={tab === "distribution"} onClick={() => setTab("distribution")} />
+          <TabButton label="Groups" icon={<ListTree size={12} />} active={tab === "groups"} onClick={() => setTab("groups")} />
         </div>
         <button
           type="button"
@@ -241,7 +241,7 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
       </div>
 
       {tab === "spatial" && (
-        <div className="grid max-h-[340px] min-h-0 grid-cols-[minmax(0,1fr),210px] overflow-hidden bg-white">
+        <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),210px] overflow-hidden bg-white">
           <div className="min-h-0 overflow-auto">
             <table className="w-full text-left text-[11px]">
               <thead className="sticky top-0 z-10 border-b border-gray-200 bg-white text-[10px] uppercase text-gray-600">
@@ -278,7 +278,7 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
       )}
 
       {tab === "distribution" && (
-        <div className="grid max-h-[320px] min-h-0 grid-cols-[minmax(0,1fr),minmax(0,1fr)] gap-0 overflow-hidden">
+        <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),minmax(0,1fr)] gap-0 overflow-hidden">
           <DistributionPanel stats={selectedStats} feature={selectedFeature} />
           <ExtremesPanel stats={selectedStats} />
         </div>
@@ -296,7 +296,7 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: Reac
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition ${
+      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition ${
         active ? "bg-gray-950 text-white shadow-sm" : "text-gray-600 hover:bg-white hover:text-gray-950"
       }`}
     >
@@ -308,7 +308,7 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: Reac
 
 function SummaryPanel({ row, selectedFeature }: { row: SpatialFeatureRow | null; selectedFeature: string }) {
   return (
-    <div className="border-l border-gray-200 bg-white p-3">
+    <div className="min-h-0 overflow-y-auto border-l border-gray-200 bg-white p-3">
       <div className="text-[10px] font-semibold uppercase text-gray-500">Mapped feature</div>
       <div className="mt-1 text-[13px] font-semibold leading-snug text-gray-950">
         {displayFeatureName(selectedFeature)}
@@ -398,7 +398,7 @@ function GroupPanel({
   const mid = stats ? stats.rows.filter((row) => row.value > stats.q10 && row.value < stats.q90).length : 0;
   const high = stats ? stats.rows.filter((row) => row.value >= stats.q90).length : 0;
   return (
-    <div className="grid max-h-[320px] min-h-0 grid-cols-[260px,minmax(0,1fr)] overflow-hidden">
+    <div className="grid h-[230px] min-h-0 grid-cols-[260px,minmax(0,1fr)] overflow-hidden">
       <div className="border-r border-gray-200 bg-white p-3">
         <div className="text-[10px] font-semibold uppercase text-gray-500">Feature-stratified groups</div>
         <div className="mt-1 text-[13px] font-semibold text-gray-950">{displayFeatureName(feature)}</div>
