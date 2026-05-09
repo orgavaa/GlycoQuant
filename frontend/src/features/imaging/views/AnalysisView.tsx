@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Image as ImageIcon, PanelRightClose, PanelRightOpen, RotateCcw, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Image as ImageIcon, PanelLeftClose, PanelLeftOpen, PanelRightOpen, RotateCcw, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -13,7 +13,8 @@ import { usePanZoom } from "@/lib/usePanZoom";
 
 const RAIL_MIN_PX = 380;
 const RAIL_STORAGE_KEY = "glycoquant.rail.width";
-const LEFT_RAIL_W = 320;
+const LEFT_RAIL_OPEN_W = 320;
+const LEFT_RAIL_COLLAPSED_W = 56;
 
 function clampRailWidth(px: number): number {
   const maxPx = Math.round(window.innerWidth * 0.85);
@@ -34,7 +35,11 @@ export function AnalysisView({ result }: Props) {
   const [showSeg, setShowSeg] = useState(true);
   const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
   const [selectedSpatialFeature, setSelectedSpatialFeature] = useState("mechano_score");
+  const [spatialDockOpen, setSpatialDockOpen] = useState(true);
+  const [leftRailOpen, setLeftRailOpen] = useState(true);
   const [railOpen, setRailOpen] = useState(false);
+  const spatialDockOpenRef = useRef(spatialDockOpen);
+  const spatialDockWasOpenBeforeInspectorRef = useRef(true);
   const [cellFilter, setCellFilter] = useState<CellFilter>("analysis_ready");
   const [channelVis, setChannelVis] = useState<Record<string, boolean>>({
     dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
@@ -51,11 +56,47 @@ export function AnalysisView({ result }: Props) {
   const qcReport = useMemo(() => computeQcReport(cells, result), [cells, result]);
   const [excludeEdgeCells, setExcludeEdgeCells] = useState(false);
   const [excludeSaturationArtifacts, setExcludeSaturationArtifacts] = useState(false);
+  const leftRailWidth = leftRailOpen ? LEFT_RAIL_OPEN_W : LEFT_RAIL_COLLAPSED_W;
+
+  useEffect(() => {
+    spatialDockOpenRef.current = spatialDockOpen;
+  }, [spatialDockOpen]);
+
+  const openInspector = useCallback(() => {
+    setRailOpen((wasOpen) => {
+      if (!wasOpen) {
+        spatialDockWasOpenBeforeInspectorRef.current = spatialDockOpenRef.current;
+      }
+      return true;
+    });
+    spatialDockOpenRef.current = false;
+    setSpatialDockOpen(false);
+  }, []);
+
+  const closeInspector = useCallback(() => {
+    setRailOpen(false);
+    if (spatialDockWasOpenBeforeInspectorRef.current) {
+      spatialDockOpenRef.current = true;
+      setSpatialDockOpen(true);
+    }
+  }, []);
+
+  const openSpatialDock = useCallback(() => {
+    spatialDockWasOpenBeforeInspectorRef.current = true;
+    spatialDockOpenRef.current = true;
+    setSpatialDockOpen(true);
+  }, []);
+
+  const closeSpatialDock = useCallback(() => {
+    spatialDockWasOpenBeforeInspectorRef.current = false;
+    spatialDockOpenRef.current = false;
+    setSpatialDockOpen(false);
+  }, []);
 
   // Auto-open rail when the user selects a cell on the image.
   useEffect(() => {
-    if (selectedCellId != null) setRailOpen(true);
-  }, [selectedCellId]);
+    if (selectedCellId != null) openInspector();
+  }, [selectedCellId, openInspector]);
 
   // Resizable rail — width persisted across sessions.
   const [railWidth, setRailWidth] = useState<number>(() => {
@@ -150,7 +191,7 @@ export function AnalysisView({ result }: Props) {
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
       {/* Full-bleed image layer — analysis canvas or raw preview; both support pan/zoom. */}
-      <div className="absolute inset-y-0 right-0" style={{ left: LEFT_RAIL_W }}>
+      <div className="absolute inset-y-0 right-0" style={{ left: leftRailWidth }}>
         {isRaw ? (
           rawPreviewUrl ? (
             <div
@@ -211,92 +252,128 @@ export function AnalysisView({ result }: Props) {
       </div>
 
       <aside
-        className="absolute inset-y-0 left-0 z-20 flex w-[320px] flex-col border-r border-gray-200 bg-white text-gray-900 shadow-xl"
+        className="absolute inset-y-0 left-0 z-20 flex flex-col border-r border-gray-200 bg-white text-gray-900 shadow-xl transition-[width] duration-300"
+        style={{ width: leftRailWidth }}
         aria-label="Analysis controls"
       >
-        <div className="border-b border-gray-200 px-4 py-3">
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase text-gray-400">Projection</div>
-              <div className="mt-0.5 truncate text-[14px] font-semibold text-gray-950">Spatial field</div>
+        {leftRailOpen ? (
+          <>
+            <div className="border-b border-gray-200 px-4 py-3">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-semibold uppercase text-gray-400">Projection</div>
+                  <div className="mt-0.5 truncate text-[14px] font-semibold text-gray-950">Spatial field</div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-right">
+                    <div className="text-[11px] font-semibold tabular-nums text-gray-950">{nReady}</div>
+                    <div className="text-[9px] font-semibold uppercase text-gray-400">ready</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLeftRailOpen(false)}
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-950"
+                    title="Collapse projection controls"
+                  >
+                    <PanelLeftClose size={16} strokeWidth={1.8} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("analysis")}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    viewMode === "analysis"
+                      ? "bg-gray-950 text-white shadow-sm"
+                      : "text-gray-500 hover:bg-white hover:text-gray-950"
+                  }`}
+                  title="Show segmentation, overlays, and QC filter"
+                >
+                  <SlidersHorizontal size={12} strokeWidth={1.8} />
+                  Analysis
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("raw")}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    viewMode === "raw"
+                      ? "bg-gray-950 text-white shadow-sm"
+                      : "text-gray-500 hover:bg-white hover:text-gray-950"
+                  }`}
+                  title="Hide all overlays and show the original channels only"
+                >
+                  <ImageIcon size={12} strokeWidth={1.8} />
+                  Raw image
+                </button>
+              </div>
             </div>
-            <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-right">
+
+            <div className="flex-1 space-y-3 overflow-y-auto p-3">
+              <DatasetProvenancePanel context={datasetContext} compact />
+
+              <div
+                className={`transition-opacity duration-200 ${
+                  isRaw ? "opacity-45 pointer-events-none" : "opacity-100"
+                }`}
+                aria-hidden={isRaw}
+              >
+                <OverlayPanel
+                  showSegmentation={showSeg}
+                  onToggleSegmentation={() => setShowSeg(v => !v)}
+                  activeOverlay={activeOverlay}
+                  onSetOverlay={setActiveOverlay}
+                  channelVisibility={channelVis}
+                  onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
+                  cellFilter={cellFilter}
+                  onSetCellFilter={setCellFilter}
+                  rawCellCount={nRaw}
+                  readyCellCount={nReady}
+                  qcFlaggedCount={nQc}
+                  excludeEdgeCells={excludeEdgeCells}
+                  excludeSaturationArtifacts={excludeSaturationArtifacts}
+                  onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
+                  onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
+                  datasetContext={datasetContext}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex h-full flex-col items-center gap-3 py-3">
+            <button
+              type="button"
+              onClick={() => setLeftRailOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-gray-950"
+              title="Open projection controls"
+            >
+              <PanelLeftOpen size={17} strokeWidth={1.8} />
+            </button>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-700" title="Spatial field">
+              <SlidersHorizontal size={16} strokeWidth={1.8} />
+            </div>
+            <div className="mt-auto mb-2 rounded-lg border border-gray-200 bg-gray-50 px-1.5 py-2 text-center">
               <div className="text-[11px] font-semibold tabular-nums text-gray-950">{nReady}</div>
-              <div className="text-[9px] font-semibold uppercase text-gray-400">ready</div>
+              <div className="text-[8px] font-semibold uppercase text-gray-400">ready</div>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1">
-            <button
-              type="button"
-              onClick={() => setViewMode("analysis")}
-              className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                viewMode === "analysis"
-                  ? "bg-gray-950 text-white shadow-sm"
-                  : "text-gray-500 hover:bg-white hover:text-gray-950"
-              }`}
-              title="Show segmentation, overlays, and QC filter"
-            >
-              <SlidersHorizontal size={12} strokeWidth={1.8} />
-              Analysis
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("raw")}
-              className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                viewMode === "raw"
-                  ? "bg-gray-950 text-white shadow-sm"
-                  : "text-gray-500 hover:bg-white hover:text-gray-950"
-              }`}
-              title="Hide all overlays and show the original channels only"
-            >
-              <ImageIcon size={12} strokeWidth={1.8} />
-              Raw image
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 space-y-3 overflow-y-auto p-3">
-          <DatasetProvenancePanel context={datasetContext} compact />
-
-          <div
-            className={`transition-opacity duration-200 ${
-              isRaw ? "opacity-45 pointer-events-none" : "opacity-100"
-            }`}
-            aria-hidden={isRaw}
-          >
-            <OverlayPanel
-              showSegmentation={showSeg}
-              onToggleSegmentation={() => setShowSeg(v => !v)}
-              activeOverlay={activeOverlay}
-              onSetOverlay={setActiveOverlay}
-              channelVisibility={channelVis}
-              onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
-              cellFilter={cellFilter}
-              onSetCellFilter={setCellFilter}
-              rawCellCount={nRaw}
-              readyCellCount={nReady}
-              qcFlaggedCount={nQc}
-              excludeEdgeCells={excludeEdgeCells}
-              excludeSaturationArtifacts={excludeSaturationArtifacts}
-              onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
-              onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
-              datasetContext={datasetContext}
-            />
-          </div>
-        </div>
+        )}
       </aside>
 
       {!isRaw && (
         <div
-          className="absolute z-20 hidden md:block"
+          className="pointer-events-none absolute z-20 hidden md:block"
           style={{
-            left: LEFT_RAIL_W + 16,
+            left: leftRailWidth + 16,
             right: railOpen ? railWidth + 24 : 16,
             bottom: 48,
           }}
         >
           <SpatialPhenotypeDock
+            open={spatialDockOpen}
+            onOpen={openSpatialDock}
+            onClose={closeSpatialDock}
             result={result}
             cells={cells}
             qcReport={qcReport}
@@ -311,7 +388,7 @@ export function AnalysisView({ result }: Props) {
       {/* Caption bar (bottom) — truthful status */}
       <div
         className="pointer-events-none absolute bottom-0 z-10"
-        style={{ left: LEFT_RAIL_W, right: railOpen ? railWidth : 0 }}
+        style={{ left: leftRailWidth, right: railOpen ? railWidth : 0 }}
       >
         <div className="border-t border-white/10 bg-black/72 backdrop-blur-sm">
           <div className="flex min-w-0 items-center gap-2 px-4 py-2 text-[11px] text-gray-300">
@@ -339,17 +416,17 @@ export function AnalysisView({ result }: Props) {
       </div>
 
       {/* Rail toggle button — follows the rail's current width so it never sits under the panel. */}
-      <button
-        onClick={() => setRailOpen(v => !v)}
-        className="absolute top-4 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-lg transition hover:bg-gray-50 hover:text-gray-950"
-        style={{
-          right: railOpen ? railWidth + 12 : 16,
-          transition: dragging ? "none" : "right 300ms ease-in-out",
-        }}
-        title={railOpen ? "Close inspector" : "Open inspector"}
-      >
-        {railOpen ? <PanelRightClose size={18} strokeWidth={1.7} /> : <PanelRightOpen size={18} strokeWidth={1.7} />}
-      </button>
+      {!railOpen && (
+        <button
+          type="button"
+          onClick={openInspector}
+          className="absolute right-4 top-4 z-30 flex items-center gap-2 rounded-lg border border-white/35 bg-white/68 px-3 py-2 text-[11px] font-semibold text-gray-900 shadow-xl backdrop-blur-2xl transition hover:bg-white/82"
+          title="Open analysis inspector"
+        >
+          <PanelRightOpen size={16} strokeWidth={1.8} />
+          <span>Analysis inspector</span>
+        </button>
+      )}
 
       {/* Sliding results panel */}
       <div
@@ -380,7 +457,7 @@ export function AnalysisView({ result }: Props) {
         <RightRail
           result={result}
           cells={cells}
-          onClose={() => setRailOpen(false)}
+          onClose={closeInspector}
           datasetContext={datasetContext}
           qcReport={qcReport}
         />

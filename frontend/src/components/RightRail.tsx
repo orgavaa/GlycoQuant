@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Activity, X } from "lucide-react";
+import { Activity, PanelRightClose } from "lucide-react";
 import { OverviewContent } from "./OverviewContent";
 import { CellContent } from "./CellContent";
 import { useJobStore } from "@/lib/jobStore";
@@ -39,10 +39,10 @@ export function RightRail({ result, cells, onClose, datasetContext, qcReport }: 
         </div>
         <button
           onClick={onClose}
-          className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-950"
-          title="Close panel"
+          className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-950"
+          title="Close analysis inspector"
         >
-          <X size={16} strokeWidth={1.8} />
+          <PanelRightClose size={16} strokeWidth={1.8} />
         </button>
       </div>
 
