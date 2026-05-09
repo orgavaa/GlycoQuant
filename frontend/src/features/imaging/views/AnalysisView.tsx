@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Image as ImageIcon, PanelLeftClose, PanelLeftOpen, PanelRightOpen, RotateCcw, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
+import { Image as ImageIcon, RotateCcw, SlidersHorizontal, SquareChevronLeft, SquareChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -275,7 +275,7 @@ export function AnalysisView({ result }: Props) {
                     className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-950"
                     title="Collapse projection controls"
                   >
-                    <PanelLeftClose size={16} strokeWidth={1.8} />
+                    <SquareChevronLeft size={16} strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
@@ -348,7 +348,7 @@ export function AnalysisView({ result }: Props) {
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-gray-950"
               title="Open projection controls"
             >
-              <PanelLeftOpen size={17} strokeWidth={1.8} />
+              <SquareChevronRight size={17} strokeWidth={1.8} />
             </button>
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-700" title="Spatial field">
               <SlidersHorizontal size={16} strokeWidth={1.8} />
@@ -420,10 +420,10 @@ export function AnalysisView({ result }: Props) {
         <button
           type="button"
           onClick={openInspector}
-          className="absolute right-4 top-4 z-30 flex items-center gap-2 rounded-lg border border-white/35 bg-white/68 px-3 py-2 text-[11px] font-semibold text-gray-900 shadow-xl backdrop-blur-2xl transition hover:bg-white/82"
+          className="absolute right-4 top-4 z-30 flex items-center gap-2 rounded-lg border border-white/65 bg-white/88 px-3 py-2 text-[11px] font-semibold text-gray-950 shadow-xl backdrop-blur-2xl transition hover:bg-white/96"
           title="Open analysis inspector"
         >
-          <PanelRightOpen size={16} strokeWidth={1.8} />
+          <SquareChevronLeft size={16} strokeWidth={1.8} />
           <span>Analysis inspector</span>
         </button>
       )}
