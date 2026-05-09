@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsLeft, ChevronsRight, Image as ImageIcon, SlidersHorizontal, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Image as ImageIcon, PanelRightClose, PanelRightOpen, RotateCcw, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
 import { DatasetProvenancePanel } from "@/components/ScientificPanels";
+import { SpatialPhenotypeDock } from "@/components/SpatialPhenotypeDock";
 import type { JobResult } from "@/lib/api";
 import { extractFeatures } from "@/lib/canvas/extract";
 import { useJobStore } from "@/lib/jobStore";
@@ -12,6 +13,7 @@ import { usePanZoom } from "@/lib/usePanZoom";
 
 const RAIL_MIN_PX = 380;
 const RAIL_STORAGE_KEY = "glycoquant.rail.width";
+const LEFT_RAIL_W = 320;
 
 function clampRailWidth(px: number): number {
   const maxPx = Math.round(window.innerWidth * 0.85);
@@ -31,6 +33,7 @@ export function AnalysisView({ result }: Props) {
   const [viewMode, setViewMode] = useState<"analysis" | "raw">("analysis");
   const [showSeg, setShowSeg] = useState(true);
   const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
+  const [selectedSpatialFeature, setSelectedSpatialFeature] = useState("mechano_score");
   const [railOpen, setRailOpen] = useState(false);
   const [cellFilter, setCellFilter] = useState<CellFilter>("analysis_ready");
   const [channelVis, setChannelVis] = useState<Record<string, boolean>>({
@@ -139,11 +142,15 @@ export function AnalysisView({ result }: Props) {
   const effectiveShowSeg = isRaw ? false : showSeg;
   const effectiveOverlay = isRaw ? null : activeOverlay;
   const effectiveVisibleIds = isRaw ? null : visibleCellIds;
+  const mapSpatialFeature = (feature: string) => {
+    setSelectedSpatialFeature(feature);
+    setActiveOverlay(`feature:${feature}`);
+  };
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
       {/* Full-bleed image layer — analysis canvas or raw preview; both support pan/zoom. */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-y-0 right-0" style={{ left: LEFT_RAIL_W }}>
         {isRaw ? (
           rawPreviewUrl ? (
             <div
@@ -203,16 +210,30 @@ export function AnalysisView({ result }: Props) {
         )}
       </div>
 
-      <div className="absolute left-4 top-4 z-20 flex max-h-[calc(100vh-7rem)] w-[292px] max-w-[calc(100vw-2rem)] flex-col gap-2 overflow-y-auto pr-1">
-        <div className="rounded-lg border border-white/25 bg-white/78 p-1 shadow-lg backdrop-blur-xl">
-          <div className="grid grid-cols-2 gap-1">
+      <aside
+        className="absolute inset-y-0 left-0 z-20 flex w-[320px] flex-col border-r border-gray-200 bg-white text-gray-900 shadow-xl"
+        aria-label="Analysis controls"
+      >
+        <div className="border-b border-gray-200 px-4 py-3">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] font-semibold uppercase text-gray-400">Projection</div>
+              <div className="mt-0.5 truncate text-[14px] font-semibold text-gray-950">Spatial field</div>
+            </div>
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-right">
+              <div className="text-[11px] font-semibold tabular-nums text-gray-950">{nReady}</div>
+              <div className="text-[9px] font-semibold uppercase text-gray-400">ready</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1">
             <button
               type="button"
               onClick={() => setViewMode("analysis")}
               className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
                 viewMode === "analysis"
                   ? "bg-gray-950 text-white shadow-sm"
-                  : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
+                  : "text-gray-500 hover:bg-white hover:text-gray-950"
               }`}
               title="Show segmentation, overlays, and QC filter"
             >
@@ -225,7 +246,7 @@ export function AnalysisView({ result }: Props) {
               className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
                 viewMode === "raw"
                   ? "bg-gray-950 text-white shadow-sm"
-                  : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
+                  : "text-gray-500 hover:bg-white hover:text-gray-950"
               }`}
               title="Hide all overlays and show the original channels only"
             >
@@ -235,39 +256,63 @@ export function AnalysisView({ result }: Props) {
           </div>
         </div>
 
-        <DatasetProvenancePanel context={datasetContext} compact glass />
+        <div className="flex-1 space-y-3 overflow-y-auto p-3">
+          <DatasetProvenancePanel context={datasetContext} compact />
 
+          <div
+            className={`transition-opacity duration-200 ${
+              isRaw ? "opacity-45 pointer-events-none" : "opacity-100"
+            }`}
+            aria-hidden={isRaw}
+          >
+            <OverlayPanel
+              showSegmentation={showSeg}
+              onToggleSegmentation={() => setShowSeg(v => !v)}
+              activeOverlay={activeOverlay}
+              onSetOverlay={setActiveOverlay}
+              channelVisibility={channelVis}
+              onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
+              cellFilter={cellFilter}
+              onSetCellFilter={setCellFilter}
+              rawCellCount={nRaw}
+              readyCellCount={nReady}
+              qcFlaggedCount={nQc}
+              excludeEdgeCells={excludeEdgeCells}
+              excludeSaturationArtifacts={excludeSaturationArtifacts}
+              onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
+              onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
+              datasetContext={datasetContext}
+            />
+          </div>
+        </div>
+      </aside>
+
+      {!isRaw && (
         <div
-          className={`transition-opacity duration-200 ${
-            isRaw ? "opacity-40 pointer-events-none" : "opacity-100"
-          }`}
-          aria-hidden={isRaw}
+          className="absolute z-20 hidden md:block"
+          style={{
+            left: LEFT_RAIL_W + 16,
+            right: railOpen ? railWidth + 24 : 16,
+            bottom: 48,
+          }}
         >
-          <OverlayPanel
-            showSegmentation={showSeg}
-            onToggleSegmentation={() => setShowSeg(v => !v)}
-            activeOverlay={activeOverlay}
-            onSetOverlay={setActiveOverlay}
-            channelVisibility={channelVis}
-            onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
-            cellFilter={cellFilter}
-            onSetCellFilter={setCellFilter}
-            rawCellCount={nRaw}
-            readyCellCount={nReady}
-            qcFlaggedCount={nQc}
-            excludeEdgeCells={excludeEdgeCells}
-            excludeSaturationArtifacts={excludeSaturationArtifacts}
-            onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
-            onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
-            datasetContext={datasetContext}
+          <SpatialPhenotypeDock
+            result={result}
+            cells={cells}
+            qcReport={qcReport}
+            selectedFeature={selectedSpatialFeature}
+            onSelectFeature={mapSpatialFeature}
           />
         </div>
-      </div>
+      )}
 
       {/* Top-centre view-mode toggle — Raw vs Analysis. Raw hides every analysis artefact. */}
       {/* Overlay controls (top-left) — dimmed & disabled in Raw mode. */}
       {/* Caption bar (bottom) — truthful status */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10">
+      <div
+        className="pointer-events-none absolute bottom-0 z-10"
+        style={{ left: LEFT_RAIL_W, right: railOpen ? railWidth : 0 }}
+      >
         <div className="border-t border-white/10 bg-black/72 backdrop-blur-sm">
           <div className="flex min-w-0 items-center gap-2 px-4 py-2 text-[11px] text-gray-300">
             <span className="max-w-[34vw] flex-shrink-0 truncate font-medium text-white">{datasetLabel}</span>
@@ -296,14 +341,14 @@ export function AnalysisView({ result }: Props) {
       {/* Rail toggle button — follows the rail's current width so it never sits under the panel. */}
       <button
         onClick={() => setRailOpen(v => !v)}
-        className="absolute top-4 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-white/25 bg-white/78 text-gray-700 shadow-lg backdrop-blur-xl transition hover:bg-white/90 hover:text-gray-950"
+        className="absolute top-4 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-lg transition hover:bg-gray-50 hover:text-gray-950"
         style={{
           right: railOpen ? railWidth + 12 : 16,
           transition: dragging ? "none" : "right 300ms ease-in-out",
         }}
         title={railOpen ? "Close inspector" : "Open inspector"}
       >
-        {railOpen ? <ChevronsRight size={18} strokeWidth={1.7} /> : <ChevronsLeft size={18} strokeWidth={1.7} />}
+        {railOpen ? <PanelRightClose size={18} strokeWidth={1.7} /> : <PanelRightOpen size={18} strokeWidth={1.7} />}
       </button>
 
       {/* Sliding results panel */}

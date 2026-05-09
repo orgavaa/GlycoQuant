@@ -83,7 +83,14 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
   // Per-cell overlay values (normalized 0-1)
   const overlayValues = useMemo(() => {
     if (!activeOverlay) return null;
-    const key = activeOverlay === "glyco" ? "glycocalyx_pericellular_ratio" : "mechano_score";
+    const key =
+      activeOverlay === "glyco"
+        ? "glycocalyx_pericellular_ratio"
+        : activeOverlay === "mechano"
+          ? "mechano_score"
+          : activeOverlay.startsWith("feature:")
+            ? activeOverlay.slice("feature:".length)
+            : "mechano_score";
     const vals = cells.map(c => c[key]).filter((v): v is number => typeof v === "number" && Number.isFinite(v));
     if (vals.length === 0) return null;
     const mn = Math.min(...vals);
@@ -96,7 +103,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
         map.set(Number(c.cell_id), (v - mn) / range);
       }
     }
-    return { map, isSigned: activeOverlay === "mechano" };
+    return { map, isSigned: activeOverlay === "mechano" || mn < 0 };
   }, [activeOverlay, cells]);
 
   // Image dimensions: prefer the cell_overlay payload (canonical)

@@ -133,7 +133,9 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         <span className="text-[17px] font-semibold text-gray-950">GlycoQuant</span>
       </div>
 
-      <div className="ml-5 inline-flex h-10 items-center rounded-lg bg-gray-100 p-1">
+      <div className="flex-1" />
+
+      <div className="mr-3 hidden h-10 items-center rounded-lg bg-gray-100 p-1 sm:inline-flex">
         {NAV_ITEMS.map((item) => (
           <NavTab
             key={item.id}
@@ -145,8 +147,6 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
           />
         ))}
       </div>
-
-      <div className="flex-1" />
 
       {latestDatasetContext && (
         <div

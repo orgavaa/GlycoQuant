@@ -39,8 +39,8 @@ export function DatasetProvenancePanel({
         : "experimental assay";
   return (
     <div
-      className={`rounded-lg border shadow-lg backdrop-blur-xl ${
-        glass ? "border-white/25 bg-white/78" : "border-gray-200 bg-white/95"
+      className={`rounded-lg border shadow-sm backdrop-blur-xl ${
+        glass ? "border-gray-200/80 bg-white/92" : "border-gray-200 bg-white"
       } ${compact ? "p-3" : "p-4"}`}
     >
       <div className="mb-2 flex items-start justify-between gap-3">
