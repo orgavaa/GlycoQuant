@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { BarChart3, CircleDot, Layers3, Network, SquareChevronDown, SquareChevronUp } from "lucide-react";
+import { BarChart3, CircleDot, Layers3, Network, PanelBottomClose, PanelBottomOpen } from "lucide-react";
 import type { JobResult } from "@/lib/api";
 import { extractPolygons, type CellFeatures, type CellPolygon } from "@/lib/canvas/extract";
 import type { QcReport } from "@/lib/scientificGuards";
@@ -203,10 +203,10 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
       <button
         type="button"
         onClick={onOpen}
-        className="pointer-events-auto rounded-lg border border-white/60 bg-white/86 px-3 py-2 text-[11px] font-semibold text-gray-950 shadow-xl backdrop-blur-2xl transition hover:bg-white/95"
+        className="pointer-events-auto rounded-lg border border-gray-200 bg-white px-3 py-2 text-[11px] font-semibold text-gray-950 shadow-xl transition hover:bg-gray-50"
       >
         <span className="inline-flex items-center gap-1.5">
-          <SquareChevronUp size={14} strokeWidth={1.8} />
+          <PanelBottomOpen size={14} strokeWidth={1.8} />
           Spatial table
         </span>
       </button>
@@ -214,9 +214,9 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
   }
 
   return (
-    <div className="pointer-events-auto w-full overflow-hidden rounded-lg border border-white/60 bg-white/88 text-gray-950 shadow-2xl backdrop-blur-2xl">
-      <div className="flex items-center gap-2 border-b border-white/70 bg-white/78 px-3 py-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200/80 bg-white/90 text-gray-800">
+    <div className="pointer-events-auto isolate w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-950 shadow-[0_24px_80px_rgba(15,23,42,0.30)]">
+      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-3 py-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-gray-800">
           <CircleDot size={14} strokeWidth={1.8} />
         </div>
         <div className="min-w-0">
@@ -225,7 +225,7 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
             Cell centroids as spots; feature maps are field-local and descriptive.
           </div>
         </div>
-        <div className="ml-auto flex rounded-md bg-gray-100/85 p-1 ring-1 ring-gray-200/80">
+        <div className="ml-auto flex rounded-md bg-gray-100 p-1 ring-1 ring-gray-200">
           <TabButton label="Spatial" icon={<Network size={12} />} active={tab === "spatial"} onClick={() => setTab("spatial")} />
           <TabButton label="Distribution" icon={<BarChart3 size={12} />} active={tab === "distribution"} onClick={() => setTab("distribution")} />
           <TabButton label="Groups" icon={<Layers3 size={12} />} active={tab === "groups"} onClick={() => setTab("groups")} />
@@ -233,18 +233,18 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
         <button
           type="button"
           onClick={onClose}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-gray-600 transition hover:bg-white hover:text-gray-950"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-100 hover:text-gray-950"
           title="Collapse spatial table"
         >
-          <SquareChevronDown size={15} strokeWidth={1.8} />
+          <PanelBottomClose size={15} strokeWidth={1.8} />
         </button>
       </div>
 
       {tab === "spatial" && (
-        <div className="grid max-h-[320px] min-h-0 grid-cols-[minmax(0,1fr),210px] overflow-hidden">
+        <div className="grid max-h-[340px] min-h-0 grid-cols-[minmax(0,1fr),210px] overflow-hidden bg-white">
           <div className="min-h-0 overflow-auto">
             <table className="w-full text-left text-[11px]">
-              <thead className="sticky top-0 z-10 border-b border-gray-200/80 bg-white/95 text-[10px] uppercase text-gray-600 backdrop-blur-xl">
+              <thead className="sticky top-0 z-10 border-b border-gray-200 bg-white text-[10px] uppercase text-gray-600">
                 <tr>
                   <th className="px-3 py-2 font-semibold">Feature</th>
                   <th className="px-3 py-2 text-right font-semibold">Moran's I</th>
@@ -253,13 +253,13 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
                   <th className="px-3 py-2 text-right font-semibold">SD</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/70">
+              <tbody className="divide-y divide-gray-100">
                 {spatialRows.map((row) => (
                   <tr
                     key={row.feature}
                     onClick={() => onSelectFeature(row.feature)}
                     className={`cursor-pointer transition ${
-                      selectedFeature === row.feature ? "bg-white/88" : "bg-white/42 hover:bg-white/72"
+                      selectedFeature === row.feature ? "bg-gray-100" : "bg-white hover:bg-gray-50"
                     }`}
                     title="Click to map this feature on the cell masks"
                   >
@@ -308,7 +308,7 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: Reac
 
 function SummaryPanel({ row, selectedFeature }: { row: SpatialFeatureRow | null; selectedFeature: string }) {
   return (
-    <div className="border-l border-gray-200/70 bg-white/78 p-3 backdrop-blur-xl">
+    <div className="border-l border-gray-200 bg-white p-3">
       <div className="text-[10px] font-semibold uppercase text-gray-500">Mapped feature</div>
       <div className="mt-1 text-[13px] font-semibold leading-snug text-gray-950">
         {displayFeatureName(selectedFeature)}
@@ -319,7 +319,7 @@ function SummaryPanel({ row, selectedFeature }: { row: SpatialFeatureRow | null;
         <MiniMetric label="Mean" value={row ? fmt(row.mean) : "n/a"} />
         <MiniMetric label="SD" value={row ? fmt(row.sd) : "n/a"} />
       </div>
-      <div className="mt-3 rounded-md border border-amber-200 bg-amber-50/95 px-2.5 py-2 text-[10px] leading-relaxed text-amber-900">
+      <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[10px] leading-relaxed text-amber-900">
         Moran's I is computed from k-nearest cell centroids within this field. It is a spatial structure descriptor, not a treatment effect.
       </div>
     </div>
@@ -328,7 +328,7 @@ function SummaryPanel({ row, selectedFeature }: { row: SpatialFeatureRow | null;
 
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-gray-200/80 bg-white/86 px-2 py-1.5">
+    <div className="rounded-md border border-gray-200 bg-white px-2 py-1.5">
       <div className="text-[12px] font-semibold text-gray-950 tabular-nums">{value}</div>
       <div className="text-[9px] font-semibold uppercase text-gray-500">{label}</div>
     </div>
@@ -337,7 +337,7 @@ function MiniMetric({ label, value }: { label: string; value: string }) {
 
 function DistributionPanel({ stats, feature }: { stats: ReturnType<typeof selectedFeatureStats>; feature: string }) {
   return (
-    <div className="border-r border-gray-200/70 bg-white/52 p-3">
+    <div className="border-r border-gray-200 bg-white p-3">
       <div className="text-[10px] font-semibold uppercase text-gray-500">Feature distribution</div>
       <div className="mt-1 text-[13px] font-semibold text-gray-950">{displayFeatureName(feature)}</div>
       <div className="mt-4 grid grid-cols-4 gap-2">
@@ -369,11 +369,11 @@ function ExtremesPanel({ stats }: { stats: ReturnType<typeof selectedFeatureStat
 
 function ExtremeList({ title, rows }: { title: string; rows: Array<{ id: number; value: number }> }) {
   return (
-      <div className="border-r border-gray-200/60 bg-white/46 p-3 last:border-r-0">
+      <div className="border-r border-gray-100 bg-white p-3 last:border-r-0">
       <div className="mb-2 text-[10px] font-semibold uppercase text-gray-500">{title}</div>
       <div className="space-y-1">
         {rows.map((row) => (
-          <div key={`${title}-${row.id}`} className="flex items-center justify-between rounded-md bg-white/76 px-2 py-1.5 text-[11px]">
+          <div key={`${title}-${row.id}`} className="flex items-center justify-between rounded-md bg-gray-50 px-2 py-1.5 text-[11px]">
             <span className="font-medium text-gray-800">Cell {row.id}</span>
             <span className="tabular-nums text-gray-700">{fmt(row.value)}</span>
           </div>
@@ -399,7 +399,7 @@ function GroupPanel({
   const high = stats ? stats.rows.filter((row) => row.value >= stats.q90).length : 0;
   return (
     <div className="grid max-h-[320px] min-h-0 grid-cols-[260px,minmax(0,1fr)] overflow-hidden">
-      <div className="border-r border-gray-200/70 bg-white/52 p-3">
+      <div className="border-r border-gray-200 bg-white p-3">
         <div className="text-[10px] font-semibold uppercase text-gray-500">Feature-stratified groups</div>
         <div className="mt-1 text-[13px] font-semibold text-gray-950">{displayFeatureName(feature)}</div>
         <div className="mt-3 space-y-2">
@@ -411,7 +411,7 @@ function GroupPanel({
           These groups are thresholded from one selected feature. They are not unsupervised biological clusters.
         </div>
       </div>
-      <div className="min-h-0 overflow-auto bg-white/38 p-3">
+      <div className="min-h-0 overflow-auto bg-white p-3">
         <div className="mb-2 text-[10px] font-semibold uppercase text-gray-500">Map another spatial feature</div>
         <div className="grid grid-cols-2 gap-2">
           {rows.slice(0, 10).map((row) => (
@@ -420,7 +420,7 @@ function GroupPanel({
               type="button"
               onClick={() => onSelectFeature(row.feature)}
               className={`rounded-md border px-2.5 py-2 text-left transition ${
-                row.feature === feature ? "border-gray-950 bg-white/90" : "border-gray-200/70 bg-white/70 hover:bg-white/90"
+                row.feature === feature ? "border-gray-950 bg-gray-100" : "border-gray-200 bg-white hover:bg-gray-50"
               }`}
             >
               <div className="truncate text-[11px] font-medium text-gray-900">{displayFeatureName(row.feature)}</div>
@@ -435,7 +435,7 @@ function GroupPanel({
 
 function GroupRow({ label, count, tone }: { label: string; count: number; tone: string }) {
   return (
-    <div className="flex items-center justify-between rounded-md border border-gray-200/70 bg-white/76 px-2.5 py-2 text-[11px]">
+    <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-2.5 py-2 text-[11px]">
       <span className="inline-flex items-center gap-2 font-medium text-gray-800">
         <span className={`h-2.5 w-2.5 rounded-full ${tone}`} />
         {label}

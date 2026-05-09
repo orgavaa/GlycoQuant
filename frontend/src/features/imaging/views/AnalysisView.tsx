@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Image as ImageIcon, RotateCcw, SlidersHorizontal, SquareChevronLeft, SquareChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { Image as ImageIcon, PanelLeftClose, PanelLeftOpen, PanelRightOpen, RotateCcw, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -36,10 +36,11 @@ export function AnalysisView({ result }: Props) {
   const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
   const [selectedSpatialFeature, setSelectedSpatialFeature] = useState("mechano_score");
   const [spatialDockOpen, setSpatialDockOpen] = useState(true);
-  const [leftRailOpen, setLeftRailOpen] = useState(true);
+  const [leftRailOpen, setLeftRailOpen] = useState(false);
   const [railOpen, setRailOpen] = useState(false);
   const spatialDockOpenRef = useRef(spatialDockOpen);
   const spatialDockWasOpenBeforeInspectorRef = useRef(true);
+  const suppressCellAutoOpenRef = useRef(false);
   const [cellFilter, setCellFilter] = useState<CellFilter>("analysis_ready");
   const [channelVis, setChannelVis] = useState<Record<string, boolean>>({
     dapi: true, glycocalyx: true, yap: false, paxillin: false, actin: true,
@@ -47,6 +48,7 @@ export function AnalysisView({ result }: Props) {
   const datasetLabel = useJobStore(s => s.latestDatasetLabel);
   const storedContext = useJobStore(s => s.latestDatasetContext);
   const selectedCellId = useJobStore(s => s.selectedCellId);
+  const setSelectedCellId = useJobStore(s => s.setSelectedCellId);
   const rawPreviewUrl = useJobStore(s => s.latestRawPreviewUrl);
   const cells = useMemo(() => extractFeatures(result.features_df_json), [result.features_df_json]);
   const datasetContext = useMemo(
@@ -56,11 +58,20 @@ export function AnalysisView({ result }: Props) {
   const qcReport = useMemo(() => computeQcReport(cells, result), [cells, result]);
   const [excludeEdgeCells, setExcludeEdgeCells] = useState(false);
   const [excludeSaturationArtifacts, setExcludeSaturationArtifacts] = useState(false);
-  const leftRailWidth = leftRailOpen ? LEFT_RAIL_OPEN_W : LEFT_RAIL_COLLAPSED_W;
 
   useEffect(() => {
     spatialDockOpenRef.current = spatialDockOpen;
   }, [spatialDockOpen]);
+
+  useEffect(() => {
+    suppressCellAutoOpenRef.current = true;
+    setSelectedCellId(null);
+    setLeftRailOpen(false);
+    setRailOpen(false);
+    setSpatialDockOpen(true);
+    spatialDockOpenRef.current = true;
+    spatialDockWasOpenBeforeInspectorRef.current = true;
+  }, [result.image_hash, setSelectedCellId]);
 
   const openInspector = useCallback(() => {
     setRailOpen((wasOpen) => {
@@ -78,6 +89,7 @@ export function AnalysisView({ result }: Props) {
     if (spatialDockWasOpenBeforeInspectorRef.current) {
       spatialDockOpenRef.current = true;
       setSpatialDockOpen(true);
+      setLeftRailOpen(false);
     }
   }, []);
 
@@ -85,6 +97,8 @@ export function AnalysisView({ result }: Props) {
     spatialDockWasOpenBeforeInspectorRef.current = true;
     spatialDockOpenRef.current = true;
     setSpatialDockOpen(true);
+    setRailOpen(false);
+    setLeftRailOpen(false);
   }, []);
 
   const closeSpatialDock = useCallback(() => {
@@ -95,7 +109,15 @@ export function AnalysisView({ result }: Props) {
 
   // Auto-open rail when the user selects a cell on the image.
   useEffect(() => {
-    if (selectedCellId != null) openInspector();
+    if (selectedCellId != null) {
+      if (suppressCellAutoOpenRef.current) {
+        suppressCellAutoOpenRef.current = false;
+        return;
+      }
+      openInspector();
+      return;
+    }
+    suppressCellAutoOpenRef.current = false;
   }, [selectedCellId, openInspector]);
 
   // Resizable rail — width persisted across sessions.
@@ -180,6 +202,8 @@ export function AnalysisView({ result }: Props) {
 
   // Effective overlay state — forced off in Raw view.
   const isRaw = viewMode === "raw";
+  const spatialFocusMode = !isRaw && spatialDockOpen;
+  const leftRailWidth = spatialFocusMode ? 0 : leftRailOpen ? LEFT_RAIL_OPEN_W : LEFT_RAIL_COLLAPSED_W;
   const effectiveShowSeg = isRaw ? false : showSeg;
   const effectiveOverlay = isRaw ? null : activeOverlay;
   const effectiveVisibleIds = isRaw ? null : visibleCellIds;
@@ -252,8 +276,11 @@ export function AnalysisView({ result }: Props) {
       </div>
 
       <aside
-        className="absolute inset-y-0 left-0 z-20 flex flex-col border-r border-gray-200 bg-white text-gray-900 shadow-xl transition-[width] duration-300"
+        className={`absolute inset-y-0 left-0 z-20 flex flex-col overflow-hidden bg-white text-gray-900 transition-[width] duration-300 ${
+          spatialFocusMode ? "border-r-0 shadow-none" : "border-r border-gray-200 shadow-xl"
+        }`}
         style={{ width: leftRailWidth }}
+        aria-hidden={spatialFocusMode}
         aria-label="Analysis controls"
       >
         {leftRailOpen ? (
@@ -275,7 +302,7 @@ export function AnalysisView({ result }: Props) {
                     className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-950"
                     title="Collapse projection controls"
                   >
-                    <SquareChevronLeft size={16} strokeWidth={1.8} />
+                    <PanelLeftClose size={16} strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
@@ -348,7 +375,7 @@ export function AnalysisView({ result }: Props) {
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-gray-950"
               title="Open projection controls"
             >
-              <SquareChevronRight size={17} strokeWidth={1.8} />
+              <PanelLeftOpen size={17} strokeWidth={1.8} />
             </button>
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-700" title="Spatial field">
               <SlidersHorizontal size={16} strokeWidth={1.8} />
@@ -365,7 +392,7 @@ export function AnalysisView({ result }: Props) {
         <div
           className="pointer-events-none absolute z-20 hidden md:block"
           style={{
-            left: leftRailWidth + 16,
+            left: spatialFocusMode ? 16 : leftRailWidth + 16,
             right: railOpen ? railWidth + 24 : 16,
             bottom: 48,
           }}
@@ -415,15 +442,15 @@ export function AnalysisView({ result }: Props) {
         </div>
       </div>
 
-      {/* Rail toggle button — follows the rail's current width so it never sits under the panel. */}
-      {!railOpen && (
+      {/* Inspector tab stays hidden while the spatial results dock is in focus mode. */}
+      {!railOpen && !spatialFocusMode && (
         <button
           type="button"
           onClick={openInspector}
-          className="absolute right-4 top-4 z-30 flex items-center gap-2 rounded-lg border border-white/65 bg-white/88 px-3 py-2 text-[11px] font-semibold text-gray-950 shadow-xl backdrop-blur-2xl transition hover:bg-white/96"
+          className="absolute right-4 top-4 z-30 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[11px] font-semibold text-gray-950 shadow-xl transition hover:bg-gray-50"
           title="Open analysis inspector"
         >
-          <SquareChevronLeft size={16} strokeWidth={1.8} />
+          <PanelRightOpen size={16} strokeWidth={1.8} />
           <span>Analysis inspector</span>
         </button>
       )}
