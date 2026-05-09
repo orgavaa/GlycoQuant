@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Sparkles, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { Sparkles, CheckCircle } from "lucide-react";
 import { Card } from "@/components/Card";
 import {
   fetchGeneformerStatus,
@@ -81,8 +81,8 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
       </div>
 
       <p className="text-[13px] text-gray-600 leading-relaxed max-w-2xl mb-4">
-        The transcriptomic prior runs in-silico perturbation with Geneformer (Theodoris 2023, ~10&#x2074; M cells)
-        on a reference Tabula Sapiens fibroblast cohort. Expect roughly twenty to thirty minutes on the Modal L4 GPU.
+        The transcriptomic prior runs in-silico perturbation with Geneformer (Theodoris 2023) on a reference
+        fibroblast cohort. Expect roughly twenty to thirty minutes on the Modal L4 GPU.
       </p>
 
       {!jobId && !spawn.isError && (
@@ -90,7 +90,7 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
           type="button"
           onClick={() => spawn.mutate()}
           disabled={spawn.isPending}
-          className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-white bg-gray-950 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50"
         >
           {spawn.isPending ? (
             <>
@@ -113,7 +113,7 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
       {jobId && isRunning && !isFailed && (
         <div className="bg-gray-50 border border-gray-200 rounded-md p-5 mt-3 space-y-3">
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-950 rounded-full animate-spin" />
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-semibold text-gray-900">{status?.message ?? "Running on Modal GPU"}</div>
               <div className="text-[11px] text-gray-500 mt-0.5">In-silico perturbation of 22 glycocalyx genes &times; 15 mechanotransduction-signature targets</div>
@@ -121,7 +121,7 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
             <span className="text-[13px] font-bold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{pseudoPct}%</span>
           </div>
           <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${pseudoPct}%` }} />
+            <div className="h-full bg-gray-950 rounded-full transition-all" style={{ width: `${pseudoPct}%` }} />
           </div>
           <div className="flex items-center gap-2 text-[11px] text-gray-500">
             <span style={{ fontFeatureSettings: "'tnum'" }}>elapsed {formatDuration(elapsedSec)}</span>

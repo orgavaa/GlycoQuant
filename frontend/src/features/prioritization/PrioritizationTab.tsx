@@ -31,6 +31,16 @@ function SectionHeader({ icon, title, rightLabel }: SectionHeaderProps) {
   );
 }
 
+function geneClassLabel(gene: string): string | null {
+  if (gene === "CD44") return "HA receptor";
+  if (gene.startsWith("SDC") || gene.startsWith("GPC")) return "HSPG core protein";
+  if (gene.startsWith("HAS")) return "HA synthase";
+  if (gene === "HPSE") return "heparanase";
+  if (gene.startsWith("EXT") || gene.startsWith("NDST")) return "HS biosynthesis";
+  if (["GFPT1", "GFPT2", "OGT", "MGAT5", "B4GALT1"].includes(gene)) return "glycosylation pathway";
+  return null;
+}
+
 export function PrioritizationTab() {
   const queryClient = useQueryClient();
   const [selectedGene, setSelectedGene] = useState<string | null>(null);
@@ -84,7 +94,7 @@ export function PrioritizationTab() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex items-center gap-3 text-gray-400">
-          <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-950 rounded-full animate-spin" />
           <span className="text-[13px]">Loading ranking data...</span>
         </div>
       </div>
@@ -106,6 +116,8 @@ export function PrioritizationTab() {
 
   const top3 = priors.genes.slice(0, 3);
   const isDynamic = !!dynamicPriors;
+  const priorMode = priors.geneformer_available ? "STRING + transcriptomic prior" : "STRING pathway prior";
+  const evidenceMode = isDynamic ? `Image-context reweighting + ${priorMode}` : priorMode;
 
   const topWeights = isDynamic && priors.mechano_weights
     ? Object.entries(priors.mechano_weights).sort(([, a], [, b]) => b - a).slice(0, 3)
@@ -115,32 +127,34 @@ export function PrioritizationTab() {
     <div className="space-y-8">
       {/* Page title */}
       <div>
-        <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Perturbation Prioritization</h1>
+        <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Perturbation prior ranking</h1>
         <p className="text-[13px] text-gray-500 mt-1">
-          Twenty-two glycocalyx genes ranked against a 15-gene mechanotransduction signature.
+          Twenty-two glycocalyx-associated genes ranked against a fixed 15-gene mechanotransduction-associated signature.
         </p>
       </div>
 
       {/* Mode banner — compact */}
       {isDynamic ? (
-        <Card className="!bg-blue-50 !border-blue-200">
+        <Card className="!bg-white">
           <div className="flex items-center gap-2 mb-2">
-            <Zap size={14} strokeWidth={1.5} className="text-blue-600" />
-            <span className="text-[13px] font-semibold text-gray-900">Image-aware ranking active</span>
+            <Zap size={14} strokeWidth={1.5} className="text-gray-700" />
+            <span className="text-[13px] font-semibold text-gray-900">Image-context reweighting active</span>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-gray-50 border border-gray-200 text-gray-700">
+              {evidenceMode}
+            </span>
             {latestDatasetLabel && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-blue-200 text-blue-700">
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-gray-200 text-gray-700">
                 {latestDatasetLabel}
               </span>
             )}
             {latestJobResult && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-blue-200 text-blue-700" style={{ fontFeatureSettings: "'tnum'" }}>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-gray-200 text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>
                 {latestJobResult.cell_count} cells
               </span>
             )}
           </div>
           <p className="text-[11px] text-gray-600 leading-relaxed max-w-3xl">
-            Pathway prior re-aggregated using z-scored deviations of your observed per-cell features
-            against a reference cohort.
+            Pathway proximity is reweighted by field-relative imaging deviations. This is a descriptive prioritization layer, not treatment-level biological evidence.
           </p>
           {topWeights.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3">
@@ -181,35 +195,37 @@ export function PrioritizationTab() {
           <button
             type="button"
             onClick={() => setForceStatic(true)}
-            className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800"
+            className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-gray-700 hover:text-gray-950"
           >
             <ChevronLeft size={12} strokeWidth={1.5} />
-            Show static ranking
+            Show pathway prior only
           </button>
         </Card>
       ) : (
         <Card className="!bg-gray-50">
           <div className="flex items-center gap-2 mb-2">
             <Info size={14} strokeWidth={1.5} className="text-gray-400" />
-            <span className="text-[13px] font-semibold text-gray-900">How this ranking is produced</span>
+            <span className="text-[13px] font-semibold text-gray-900">{priorMode}</span>
           </div>
           <p className="text-[12px] text-gray-600 leading-relaxed max-w-3xl">
             Pre-computed pathway ranking of twenty-two glycocalyx-relevant genes against a fixed
-            15-gene mechanotransduction signature. Combines STRING v12 pathway proximity with
-            transcriptomic co-regulation from Geneformer (Theodoris 2023).
+            15-gene mechanotransduction-associated signature. STRING v12 proximity is always used.
+            {priors.geneformer_available
+              ? " A Geneformer transcriptomic prior is available and shown in the ranking table."
+              : " No Geneformer transcriptomic prior is currently active."}
           </p>
           {latestJobResult !== null && forceStatic && (
             <button
               type="button"
               onClick={() => setForceStatic(false)}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium text-white bg-gray-950 rounded hover:bg-gray-800"
             >
               <Zap size={12} strokeWidth={1.5} />
-              Contextualise with my analysis
+              Apply image context
             </button>
           )}
           {latestJobResult === null && (
-            <p className="mt-3 text-[10px] text-gray-400">Run an image analysis to enable contextualised ranking.</p>
+            <p className="mt-3 text-[10px] text-gray-400">Run image analysis to enable image-context reweighting.</p>
           )}
         </Card>
       )}
@@ -233,7 +249,7 @@ export function PrioritizationTab() {
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
         <Card className="!bg-amber-50 !border-amber-200">
-          <span className="text-[12px] font-semibold text-gray-900">Pathway-only mode</span>
+          <span className="text-[12px] font-semibold text-gray-900">STRING pathway prior only</span>
           <p className="text-[11px] text-gray-600 mt-0.5">
             Transcriptomic prior not yet committed and no Modal GPU provider available.
           </p>
@@ -259,16 +275,16 @@ export function PrioritizationTab() {
         <SectionHeader
           icon={<Layers size={14} strokeWidth={1.5} />}
           title="Top candidates"
-          rightLabel={isDynamic ? "image-aware reweighted" : "STRING v12 baseline"}
+          rightLabel={isDynamic ? "image-context reweighted" : priorMode}
         />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((g, i) => {
             const badges: string[] = [];
             if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High proximity");
             if (g.pathway_score !== null && g.pathway_score > 0.5) badges.push("Reachable targets");
-            if (isDynamic) badges.push("Phenotype-weighted");
-            if (["CD44", "SDC1", "SDC2", "SDC4"].includes(g.gene)) badges.push("Surface proteoglycan");
-            if (["GFPT1", "OGT", "MGAT5"].includes(g.gene)) badges.push("Metabolic target");
+            if (isDynamic) badges.push("Image-context weighted");
+            const classLabel = geneClassLabel(g.gene);
+            if (classLabel) badges.push(classLabel);
 
             const isFirst = i === 0;
             return (
@@ -277,7 +293,7 @@ export function PrioritizationTab() {
                 onClick={() => setSelectedGene(g.gene)}
                 className={`text-left p-3 rounded-md border transition-colors ${
                   isFirst
-                    ? "border-blue-300 bg-blue-50/50"
+                    ? "border-gray-950 bg-gray-50"
                     : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                 }`}
               >
@@ -286,7 +302,7 @@ export function PrioritizationTab() {
                     Rank {g.pathway_rank}
                   </span>
                   {isDynamic && (
-                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
                       reweighted
                     </span>
                   )}
@@ -303,7 +319,7 @@ export function PrioritizationTab() {
                   <div
                     className="text-[10px] mt-0.5 inline-flex items-center gap-0.5"
                     style={{ fontFeatureSettings: "'tnum'" }}
-                    title="Positive = close to over-activated axes (candidate KO to attenuate). Negative = close to under-activated axes (candidate KO to restore)."
+                    title="Positive = close to over-activated mechanophenotype-associated axes. Negative = close to under-activated axes."
                   >
                     {g.pathway_signed_score > 0 ? (
                       <ArrowUp size={9} strokeWidth={2} className="text-red-600" />
@@ -348,7 +364,7 @@ export function PrioritizationTab() {
             rightLabel="22 genes"
           />
           <p className="text-[11px] text-gray-500 mb-3">
-            Dot size encodes reachable mechanotransduction-signature targets; colour encodes pathway proximity (same Blues scale as the per-target heatmap).
+            Dot size encodes reachable mechanotransduction-associated signature targets; colour encodes STRING pathway proximity.
           </p>
           <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
         </Card>

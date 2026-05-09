@@ -10,12 +10,23 @@ import {
   Hexagon,
   Cpu,
   Info,
+  ListChecks,
 } from "lucide-react";
 import { Card } from "@/components/Card";
-import { MethodsExportButton, ValidationControlsPanel } from "@/components/ScientificPanels";
+import { DatasetProvenancePanel, MethodsExportButton, ValidationControlsPanel } from "@/components/ScientificPanels";
 import { extractFeatures } from "@/lib/canvas/extract";
 import { useJobStore } from "@/lib/jobStore";
-import { computeQcReport, datasetContextFromResult, datasetContextFromUpload } from "@/lib/scientificGuards";
+import {
+  computeQcReport,
+  contextBadge,
+  datasetContextFromResult,
+  datasetContextFromUpload,
+  getInterpretationLevel,
+  interpretationMessage,
+  isRealMarker,
+  type DatasetContext,
+  type MarkerName,
+} from "@/lib/scientificGuards";
 
 // Biologist-facing feature rows. "plain" describes what the measurement means in
 // cell-biology language; "technical" adds a precise one-liner for the quantitative
@@ -41,6 +52,7 @@ interface GroupSpec {
   badge: string;       // small label badge (e.g. "surface coat")
   badgeBg: string;
   badgeText: string;
+  marker?: MarkerName;
 }
 
 const GROUPS: GroupSpec[] = [
@@ -57,6 +69,7 @@ const GROUPS: GroupSpec[] = [
     badge: "surface coat",
     badgeBg: "bg-emerald-50",
     badgeText: "text-emerald-700",
+    marker: "wga_proxy",
     rows: [
       { name: "pericellular_ratio", plain: "Intensity contrast between the pericellular annulus and the intracellular compartment. Elevated values are consistent with a densely loaded, externally projecting brush; depressed values with a shallow or partially shed coat.", technical: "Mean pixel intensity in a 1–3 µm pericellular ring divided by the mean intensity inside the cell mask." },
       { name: "radial_decay_rate", plain: "Characteristic decay of lectin signal as a function of radial distance from the cell edge. Steep decay is consistent with a compact, tightly membrane-anchored coat; shallow decay with a diffuse, long-range brush.", technical: "Slope of a linear fit to the outward radial intensity profile." },
@@ -82,6 +95,7 @@ const GROUPS: GroupSpec[] = [
     badge: "mechano-transducer",
     badgeBg: "bg-violet-50",
     badgeText: "text-violet-700",
+    marker: "yap",
     rows: [
       { name: "nc_ratio", plain: "Nuclear-to-cytoplasmic intensity ratio — the canonical single-cell readout of YAP transcriptional activity.", technical: "Mean nuclear YAP intensity divided by mean cytoplasmic YAP intensity within the corresponding mask compartments." },
       { name: "nc_ratio_size_corrected", plain: "Residualised NC ratio orthogonalised against cell area, removing the well-documented geometric confound between footprint and nuclear YAP loading. Recommended whenever the field contains a broad distribution of cell sizes.", technical: "Residual of nc_ratio after linear regression on log(cell_area) computed within the image." },
@@ -103,6 +117,7 @@ const GROUPS: GroupSpec[] = [
     badge: "cell-substrate grip",
     badgeBg: "bg-amber-50",
     badgeText: "text-amber-700",
+    marker: "focal_adhesion",
     rows: [
       { name: "count", plain: "Per-cell inventory of segmented paxillin-positive adhesion patches.", technical: "Connected-component count of the binarised paxillin channel within the cell mask." },
       { name: "density_per_um2", plain: "Adhesion number density per unit cell footprint. Controls for cell-size variation when comparing adhesion recruitment across a population.", technical: "count ÷ cell_area (expressed in µm⁻²)." },
@@ -128,6 +143,7 @@ const GROUPS: GroupSpec[] = [
     badge: "contractile machinery",
     badgeBg: "bg-rose-50",
     badgeText: "text-rose-700",
+    marker: "actin",
     rows: [
       { name: "coherence", plain: "Structure-tensor coherence of the F-actin field. Elevated values indicate well-aligned stress fibres characteristic of tension-bearing, contractile cells; depressed values indicate an isotropic or dispersed actin architecture.", technical: "Coherence = (λ₁−λ₂)²/(λ₁+λ₂)² computed from the local 2×2 structure tensor of the phalloidin channel and averaged over the cell mask." },
       { name: "anisotropy", plain: "Normalised eigenvalue ratio of the structure tensor; a complementary descriptor of orientational asymmetry in the F-actin field.", technical: "(λ₁ − λ₂) / (λ₁ + λ₂), where λ₁ ≥ λ₂ are the structure-tensor eigenvalues." },
@@ -148,6 +164,7 @@ const GROUPS: GroupSpec[] = [
     badge: "size & shape",
     badgeBg: "bg-slate-100",
     badgeText: "text-slate-700",
+    marker: "nuclear",
     rows: [
       { name: "cell_area / cell_perimeter / cell_spread_area", plain: "Cellular footprint area, outline length, and spread area. Spread area resolves the flattening state of the cell on the substrate and is a sensitive indicator of adhesion maturation.", technical: "Standard region properties computed on the cell mask; area reported in pixel and µm² units." },
       { name: "cell_circularity / cell_aspect_ratio / cell_solidity", plain: "Shape regularity, elongation, and convex-hull filling of the cell. Useful for flagging spindle-morphology, blebbing, or mitotic cells.", technical: "Standard skimage regionprops shape descriptors." },
@@ -172,13 +189,43 @@ const GROUPS: GroupSpec[] = [
     rows: [
       { name: "mechano_score", plain: "Display label: Mechanophenotype prototype score. Composite imaging score from morphology, actin organization, WGA proxy signal, and optional real YAP/FA marker features; requires perturbation calibration before interpretation as mechanotransduction. Zero-centred within the current image; magnitudes are relative to this field, not absolute biological values across experiments.", technical: "First principal component of the z-scored sub-scores after sign alignment when real mechanotransduction markers are present; rescaled to unit variance. The exported feature identifier remains mechano_score for compatibility." },
       { name: "glycocalyx_pericellular_ratio (composite axis)", plain: "Display label: WGA proxy pericellular ratio. Lectin-accessible GlcNAc/sialic-acid-rich glycoconjugate signal re-exposed as one axis of the WGA/glycan ↔ mechanophenotype plots on the Overview tab. Not an additional feature.", technical: "Alias of the pericellular_ratio feature surfaced for downstream plotting. WGA is not a complete glycocalyx composition or thickness measurement." },
-      { name: "deep_*", plain: "Optional 5 120-dimensional Cell-DINO ViT-L/16 embedding per cell, serving as a channel-adaptive visual fingerprint. Not surfaced in the tabular views; consumed by the embedding-based cluster-discovery module.", technical: "Cell-DINO ViT-L/16 (Bourriez et al. 2025) per-cell embedding computed on per-cell crops, enabled per-job by opt-in at submit time." },
+      { name: "deep_*", plain: "Optional 5120-dimensional Cell-DINO ViT-L/16 embedding per cell, serving as a channel-adaptive visual fingerprint. Not surfaced in the tabular views; consumed by the embedding-based cluster-discovery module.", technical: "Cell-DINO ViT-L/16 (Bourriez et al. 2025) per-cell embedding computed on per-cell crops, enabled per-job by opt-in at submit time." },
     ],
   },
 ];
 
-function GroupCard({ group, defaultOpen }: { group: GroupSpec; defaultOpen?: boolean }) {
+function markerStatus(context: DatasetContext, group: GroupSpec): { label: string; className: string; note?: string } {
+  if (!group.marker) {
+    return { label: "Derived", className: "border-gray-200 bg-gray-50 text-gray-700" };
+  }
+  const cfg = context.channelConfig[group.marker];
+  if (isRealMarker(context, group.marker)) {
+    return { label: "Real marker", className: "border-emerald-200 bg-emerald-50 text-emerald-700", note: cfg?.note ?? cfg?.label };
+  }
+  if (cfg?.placeholder) {
+    return { label: "Placeholder", className: "border-amber-200 bg-amber-50 text-amber-700", note: cfg.note ?? cfg.label };
+  }
+  return { label: "Not supplied", className: "border-gray-200 bg-gray-50 text-gray-500", note: cfg?.note ?? cfg?.label };
+}
+
+function StatusMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-gray-100 bg-gray-50 px-2.5 py-2">
+      <div className="truncate text-[12px] font-semibold text-gray-950" title={value}>{value}</div>
+      <div className="mt-0.5 text-[9px] font-semibold uppercase text-gray-400">{label}</div>
+    </div>
+  );
+}
+
+function datasetTypeLabel(context: DatasetContext): string {
+  if (context.datasetType === "technical_demo") return "technical demo";
+  if (context.datasetType === "uploaded_candidate") return "uploaded candidate";
+  return "experimental assay";
+}
+
+function GroupCard({ group, context, defaultOpen }: { group: GroupSpec; context: DatasetContext; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen ?? false);
+  const status = markerStatus(context, group);
   return (
     <div className="border border-gray-200 bg-white rounded-lg overflow-hidden transition-shadow hover:shadow-sm">
       <button
@@ -198,6 +245,12 @@ function GroupCard({ group, defaultOpen }: { group: GroupSpec; defaultOpen?: boo
             <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider ${group.badgeBg} ${group.badgeText}`}>
               {group.badge}
             </span>
+            <span
+              className={`text-[9px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider ${status.className}`}
+              title={status.note}
+            >
+              {status.label}
+            </span>
           </div>
           <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
             <span className="text-gray-400 uppercase tracking-wider">Channel</span>
@@ -213,6 +266,11 @@ function GroupCard({ group, defaultOpen }: { group: GroupSpec; defaultOpen?: boo
 
       {open && (
         <div className={`bg-gradient-to-b ${group.accent} to-transparent border-t border-gray-100`}>
+          {status.label === "Placeholder" && (
+            <div className="mx-5 mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
+              Placeholder module. These definitions describe the intended assay readout, but the current dataset does not provide a real {group.channel} marker.
+            </div>
+          )}
           <p className="text-[12px] text-gray-700 leading-relaxed px-5 pt-4 pb-3 max-w-3xl">
             {group.intent}
           </p>
@@ -265,6 +323,8 @@ export function MethodsTab() {
     () => latestResult ? computeQcReport(cells, latestResult) : null,
     [cells, latestResult],
   );
+  const badge = contextBadge(context);
+  const level = getInterpretationLevel(context);
 
   return (
     <div className="space-y-8">
@@ -280,6 +340,30 @@ export function MethodsTab() {
         <MethodsExportButton context={context} result={latestResult} qc={qc} />
       </header>
 
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr),minmax(280px,0.8fr)]">
+        <DatasetProvenancePanel context={context} />
+        <Card>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 ring-1 ring-gray-200 text-gray-600">
+              <ListChecks size={16} strokeWidth={1.8} />
+            </span>
+            <div>
+              <div className="text-[12px] font-semibold text-gray-950">Interpretation gate</div>
+              <div className="text-[10px] text-gray-500">{badge.label}</div>
+            </div>
+          </div>
+          <p className="text-[12px] leading-relaxed text-gray-700">
+            {interpretationMessage(level)}
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
+            <StatusMetric label="Cells" value={latestResult ? String(latestResult.cell_count) : "n/a"} />
+            <StatusMetric label="QC flagged" value={qc ? String(qc.field.qcFlaggedCells) : "n/a"} />
+            <StatusMetric label="Dataset type" value={datasetTypeLabel(context)} />
+            <StatusMetric label="Controls" value={Object.values(context.validationControls).some((s) => s !== "not provided") ? "provided" : "not provided"} />
+          </div>
+        </Card>
+      </div>
+
       <Card>
         <div className="flex items-center gap-2 mb-3">
           <span className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 ring-1 ring-gray-200 text-gray-600">
@@ -287,7 +371,7 @@ export function MethodsTab() {
           </span>
           <div>
             <h3 className="text-[14px] font-semibold text-gray-900">Pipeline at a glance</h3>
-            <p className="text-[11px] text-gray-500">From raw image to per-cell feature table — the five steps your image passes through.</p>
+            <p className="text-[11px] text-gray-500">From raw image to per-cell feature table.</p>
           </div>
         </div>
         <ol className="text-[12px] text-gray-700 leading-relaxed space-y-2 list-decimal list-inside marker:text-gray-400 marker:font-semibold">
@@ -298,15 +382,14 @@ export function MethodsTab() {
           </li>
           <li>
             <span className="font-medium text-gray-900">Quality control.</span> Cells too small,
-            touching the image edge, or missing a credible DAPI signal are <em>kept as raw
-            masks</em> (you still see them) but are excluded from feature extraction, so you
-            never see a feature value computed on a nonsense cell.
+            touching the image edge, or missing a credible nuclear signal are <em>kept as raw
+            masks</em> for inspection but excluded from analysis-ready summaries.
           </li>
           <li>
             <span className="font-medium text-gray-900">Per-channel features.</span> Each channel
-            is only analysed when you've assigned it a biological role in the loader — if a
-            channel is marked "unknown" or "synthetic", those features are skipped rather than
-            computed on the wrong stain.
+            is analysed according to its assigned biological role. If a channel is marked
+            unknown, placeholder, or substitute, biological interpretation is blocked rather than
+            inferred from the wrong marker.
           </li>
           <li>
             <span className="font-medium text-gray-900">Composite scores.</span> The exported column
@@ -317,7 +400,7 @@ export function MethodsTab() {
           </li>
           <li>
             <span className="font-medium text-gray-900">Deep embeddings (optional).</span>
-            A 5 120-dim Cell-DINO vector per cell, computed only when you explicitly opt in at
+            A 5120-dimensional Cell-DINO vector per cell, computed only when you explicitly opt in at
             submit time. Used by the cluster-discovery module.
           </li>
         </ol>
@@ -329,7 +412,12 @@ export function MethodsTab() {
 
       <div className="space-y-4">
         {GROUPS.map((g, i) => (
-          <GroupCard key={g.id} group={g} defaultOpen={i === 0} />
+          <GroupCard
+            key={g.id}
+            group={g}
+            context={context}
+            defaultOpen={i === 0 || (g.marker ? isRealMarker(context, g.marker) && (g.id === "yap" || g.id === "fa") : false)}
+          />
         ))}
       </div>
 

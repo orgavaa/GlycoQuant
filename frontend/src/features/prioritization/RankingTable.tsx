@@ -34,7 +34,7 @@ export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelec
             {showSigned && (
               <th
                 className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
-                title="Directionally-aware score. Positive = close to over-activated mechano axes. Negative = close to under-activated axes."
+                title="Directionally-aware score. Positive = close to over-activated mechanophenotype-associated axes. Negative = close to under-activated axes."
               >
                 Signed
               </th>
@@ -60,7 +60,7 @@ export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelec
             return (
               <tr
                 key={g.gene}
-                className={`cursor-pointer transition-colors ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                className={`cursor-pointer transition-colors ${isSelected ? "bg-gray-100" : "hover:bg-gray-50"}`}
                 onClick={() => onSelectGene(g.gene)}
               >
                 <td className="px-4 py-3 font-semibold text-[13px] text-gray-900">{g.gene}</td>
@@ -125,7 +125,7 @@ function ScoreBar({ value }: { value: number | null }) {
   return (
     <div className="flex items-center gap-2">
       <div className="relative h-1.5 w-16 overflow-hidden bg-gray-100 rounded-full">
-        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct}%`, background: "#93c5fd" }} />
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct}%`, background: "#111827" }} />
       </div>
       <span className="text-[11px] text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>{value.toFixed(3)}</span>
     </div>

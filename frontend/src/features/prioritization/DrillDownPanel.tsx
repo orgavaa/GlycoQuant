@@ -5,40 +5,40 @@ import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { fetchDrillDown } from "@/lib/api";
 
-// Known intervention effects for key glycocalyx genes
+// Literature-linked hypotheses for key glycan/pericellular matrix genes.
 const INTERVENTION_EFFECTS: Record<string, { glyco: string; mechano: string }> = {
   CD44: {
-    glyco: "Reduced hyaluronan anchoring, thinner pericellular coat, decreased glycocalyx heterogeneity.",
-    mechano: "Decreased integrin clustering, reduced YAP nuclear translocation, lower mechanophenotype prototype score.",
+    glyco: "CD44 perturbation may alter hyaluronan retention and pericellular HA organization. Direction and magnitude are cell-state dependent.",
+    mechano: "May shift adhesion-, actin-, and YAP/TAZ-associated imaging readouts. Mechanophenotype score direction requires matched controls.",
   },
   SDC1: {
-    glyco: "Loss of heparan-sulfate chains, reduced pericellular matrix density, altered growth factor sequestration.",
-    mechano: "Disrupted focal adhesion maturation, reduced stress fiber coherence.",
+    glyco: "Perturbation may reduce heparan-sulfate-bearing proteoglycan signal and alter growth-factor sequestration at the cell surface.",
+    mechano: "Can plausibly affect adhesion maturation and stress-fiber organization through integrin and growth-factor coupling.",
   },
   SDC4: {
-    glyco: "Diminished syndecan-4 mediated cell spreading, reduced pericellular ratio.",
-    mechano: "Impaired PKC-alpha signalling, reduced Rho/ROCK activation, lower actin coherence.",
+    glyco: "Perturbation may alter syndecan-4-dependent spreading and pericellular proteoglycan organization.",
+    mechano: "Reported links to PKC-alpha and Rho/ROCK signalling make actin coherence and adhesion features relevant readouts.",
   },
   GFPT1: {
-    glyco: "Reduced UDP-GlcNAc flux, decreased N- and O-glycosylation of surface glycoproteins.",
-    mechano: "Reduced O-GlcNAcylation of YAP (Ser109), altered integrin glycosylation and clustering.",
+    glyco: "GFPT1 perturbation changes hexosamine-biosynthesis flux and can affect N-/O-glycosylation of surface glycoproteins.",
+    mechano: "Potentially alters integrin glycosylation and O-GlcNAc-sensitive mechanophenotype-associated readouts.",
   },
   OGT: {
-    glyco: "Reduced O-GlcNAc modification of nucleocytoplasmic glycoproteins.",
-    mechano: "Direct effect on YAP O-GlcNAcylation; altered transcriptional mechanoresponse.",
+    glyco: "OGT perturbation changes O-GlcNAc modification of nucleocytoplasmic proteins, not extracellular glycocalyx composition directly.",
+    mechano: "May affect YAP/TAZ-associated transcriptional regulation through O-GlcNAc cycling; direction requires matched perturbation data.",
   },
   MGAT5: {
-    glyco: "Reduced N-glycan branching on integrins and growth factor receptors.",
-    mechano: "Altered integrin clustering dynamics, modified galectin lattice formation.",
+    glyco: "MGAT5 perturbation can alter N-glycan branching on integrins and growth-factor receptors.",
+    mechano: "May shift integrin clustering dynamics and galectin-lattice-mediated receptor organization.",
   },
 };
 
-// Metabolic inhibitor links
+// Assay perturbation links; most are pathway-level and not gene-specific inhibitors.
 const INHIBITOR_LINKS: Record<string, string[]> = {
-  GFPT1: ["DON (hexosamine pathway inhibitor)"],
-  OGT: ["PUGNAc (O-GlcNAcase inhibitor, indirect)"],
-  MGAT5: ["tunicamycin (N-glycosylation inhibitor, indirect)"],
-  CD44: ["benzyl-GalNAc (O-glycosylation inhibitor, partial)"],
+  GFPT1: ["DON (hexosamine pathway inhibitor; pathway-level perturbation)"],
+  OGT: ["PUGNAc / Thiamet-G (OGA inhibition; increases O-GlcNAc and is opposite-direction to OGT inhibition)"],
+  MGAT5: ["tunicamycin (N-glycosylation inhibitor; broad and indirect)"],
+  CD44: ["hyaluronidase or HA-blocking perturbation (closer CD44/HA axis test than benzyl-GalNAc)"],
 };
 
 interface DrillDownPanelProps {
@@ -67,11 +67,11 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
     <div className="space-y-5">
       {/* Gene selector */}
       <div className="flex items-center gap-4">
-        <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Glycocalyx gene</label>
+        <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Ranked gene</label>
         <select
           value={gene}
           onChange={(e) => onGeneChange(e.target.value)}
-          className="bg-white border border-gray-200 rounded-md px-3 py-2 text-[13px] text-gray-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="bg-white border border-gray-200 rounded-md px-3 py-2 text-[13px] text-gray-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-gray-950"
         >
           {availableGenes.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
@@ -88,47 +88,47 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
         </p>
         {drillQuery.isLoading ? (
           <div className="flex h-[100px] items-center justify-center">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-950 rounded-full animate-spin" />
           </div>
         ) : drill ? (
           <PlotlyFigure figureJson={drill.heatmap_figure_json} />
         ) : null}
       </Card>
 
-      {/* 2. Expected intervention effect */}
+      {/* 2. Mechanistic hypothesis */}
       {effects && (
         <Card>
           <div className="flex items-center gap-2 mb-2">
             <Target size={14} strokeWidth={1.5} className="text-gray-400" />
-            <h3 className="text-[13px] font-semibold text-gray-900">Expected intervention effect</h3>
+            <h3 className="text-[13px] font-semibold text-gray-900">Mechanistic hypothesis</h3>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div className="bg-emerald-50/50 border border-emerald-100 rounded-md p-3">
-              <div className="text-[9px] font-semibold text-emerald-600 uppercase tracking-wider mb-1">Glycocalyx</div>
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+              <div className="text-[9px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Pericellular glycan axis</div>
               <div className="text-[11px] text-gray-600 leading-relaxed">{effects.glyco}</div>
             </div>
-            <div className="bg-blue-50/50 border border-blue-100 rounded-md p-3">
-              <div className="text-[9px] font-semibold text-blue-600 uppercase tracking-wider mb-1">Mechanotransduction</div>
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+              <div className="text-[9px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Mechanophenotype-associated readouts</div>
               <div className="text-[11px] text-gray-600 leading-relaxed">{effects.mechano}</div>
             </div>
           </div>
           <div className="mt-2 text-[9px] text-gray-400">
-            Based on published literature. Experimental evidence indirect.
+            Literature-linked prior. Experimental evidence is indirect until tested in the matched assay.
           </div>
         </Card>
       )}
 
-      {/* 3. Metabolic inhibitor links */}
+      {/* 3. Assay perturbation links */}
       {inhibitors && inhibitors.length > 0 && (
         <Card>
           <div className="flex items-center gap-2 mb-2">
             <FlaskConical size={14} strokeWidth={1.5} className="text-gray-400" />
-            <h3 className="text-[13px] font-semibold text-gray-900">Metabolic inhibitor links</h3>
+            <h3 className="text-[13px] font-semibold text-gray-900">Assay perturbation links</h3>
           </div>
           <div className="space-y-1">
             {inhibitors.map(inh => (
               <div key={inh} className="flex items-center gap-2 text-[11px]">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
                 <span className="text-gray-600">{inh}</span>
               </div>
             ))}
@@ -143,7 +143,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
           <select
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
-            className="ml-auto bg-white border border-gray-200 rounded-md px-2 py-1 text-[11px] text-gray-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="ml-auto bg-white border border-gray-200 rounded-md px-2 py-1 text-[11px] text-gray-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-gray-950"
           >
             {mechanoSignature.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
@@ -238,11 +238,11 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
           >
             <div className="flex items-center gap-2">
               <h3 className="text-[13px] font-semibold text-gray-900">Pathway network</h3>
-              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-50 text-gray-700 border border-gray-200">
                 {gene}
               </span>
               {drillQuery.isFetching && (
-                <span className="w-3 h-3 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+                <span className="w-3 h-3 border-2 border-gray-200 border-t-gray-950 rounded-full animate-spin" />
               )}
             </div>
             <span className="text-[12px] text-gray-300">{showNetwork ? "\u25BE" : "\u25B8"}</span>
@@ -250,7 +250,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
           {showNetwork && (
             <div className="mt-3">
               <p className="text-[10px] text-gray-400 mb-2">
-                All shortest paths from <strong className="text-gray-600">{gene}</strong> to reachable mechanotransduction-signature targets. Edge width proportional to STRING v12 confidence. Regenerated whenever you switch the glycocalyx gene above.
+                All shortest paths from <strong className="text-gray-600">{gene}</strong> to reachable mechanotransduction-associated signature targets. Edge width is proportional to STRING v12 confidence.
               </p>
               <PlotlyFigure figureJson={drill.network_figure_json} />
             </div>

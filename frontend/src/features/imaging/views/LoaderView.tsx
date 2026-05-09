@@ -46,35 +46,14 @@ type FieldCardItem =
   | { kind: "upload"; id: "upload"; file: File; previewUrl: string | null };
 
 type CollectionScope = "all" | "featured";
-type SourceFilter = "all" | "bundled" | "real" | "substitute";
-type ChannelFilter =
-  | "all"
-  | "dapi"
-  | "glycocalyx"
-  | "yap"
-  | "paxillin"
-  | "actin"
-  | "heparan_sulfate"
-  | "substitute";
+type SourceFilter = string;
+type ChannelFilter = string;
 type SortMode = "name" | "source" | "cell_line" | "pixel_size";
 
-const CHANNEL_FILTERS: ReadonlyArray<{ id: ChannelFilter; label: string }> = [
-  { id: "all", label: "All channels" },
-  { id: "dapi", label: "Nuclear stain" },
-  { id: "glycocalyx", label: "WGA lectin" },
-  { id: "yap", label: "YAP/TAZ" },
-  { id: "paxillin", label: "Paxillin" },
-  { id: "actin", label: "Actin" },
-  { id: "heparan_sulfate", label: "anti-HS" },
-  { id: "substitute", label: "Substitute channel" },
-];
+type FilterOptionItem = { id: string; label: string; count: number };
 
-const SOURCE_FILTERS: ReadonlyArray<{ id: SourceFilter; label: string }> = [
-  { id: "all", label: "All sources" },
-  { id: "bundled", label: "Bundled" },
-  { id: "real", label: "Real microscopy" },
-  { id: "substitute", label: "Synthetic/substitute" },
-];
+const ALL_SOURCE_FILTER = "all";
+const ALL_CHANNEL_FILTER = "all";
 
 const CHANNEL_LABELS: Record<string, string> = {
   dapi: "DAPI",
@@ -83,6 +62,24 @@ const CHANNEL_LABELS: Record<string, string> = {
   paxillin: "Paxillin",
   actin: "Actin",
   heparan_sulfate: "anti-HS",
+};
+
+const CHANNEL_FILTER_LABELS: Record<string, string> = {
+  dapi: "Nuclear marker",
+  glycocalyx: "WGA/lectin marker",
+  yap: "YAP/TAZ marker",
+  paxillin: "Adhesion marker",
+  actin: "Actin marker",
+  heparan_sulfate: "anti-HS marker",
+  fibrosis: "Fibrosis marker",
+  substitute: "Placeholder/substitute",
+};
+
+const SOURCE_FILTER_LABELS: Record<string, string> = {
+  bundled: "Bundled",
+  upload: "Upload",
+  real: "Real microscopy",
+  substitute: "Proxy/substitute",
 };
 
 function pickFeaturedDemos(conditions: readonly DemoCondition[]): DemoCondition[] {
@@ -185,6 +182,16 @@ function uploadAssayBadges(assignments: Record<string, string>): string[] {
   return labels;
 }
 
+function titleCaseRole(role: string): string {
+  return role
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+function channelLabel(role: string): string {
+  return CHANNEL_FILTER_LABELS[role] ?? CHANNEL_LABELS[role] ?? titleCaseRole(role);
+}
+
 function searchText(item: FieldCardItem, assignments: Record<string, string>): string {
   if (item.kind === "upload") {
     return [item.file.name, "upload", ...uploadAssayBadges(assignments)]
@@ -207,12 +214,39 @@ function searchText(item: FieldCardItem, assignments: Record<string, string>): s
     .toLowerCase();
 }
 
+function sourceFilterIdsForItem(item: FieldCardItem): Set<string> {
+  const ids = new Set<string>();
+  if (item.kind === "upload") {
+    ids.add("upload");
+    return ids;
+  }
+  ids.add("bundled");
+  if (item.dataset.is_real_microscopy) ids.add("real");
+  if (!item.dataset.is_real_microscopy || hasSubstituteChannel(item.dataset)) ids.add("substitute");
+  return ids;
+}
+
 function matchesSourceFilter(item: FieldCardItem, filter: SourceFilter): boolean {
-  if (filter === "all") return true;
-  if (item.kind === "upload") return false;
-  if (filter === "bundled") return true;
-  if (filter === "real") return item.dataset.is_real_microscopy;
-  return !item.dataset.is_real_microscopy || hasSubstituteChannel(item.dataset);
+  if (filter === ALL_SOURCE_FILTER) return true;
+  return sourceFilterIdsForItem(item).has(filter);
+}
+
+function channelFilterIdsForItem(
+  item: FieldCardItem,
+  assignments: Record<string, string>,
+): Set<string> {
+  const ids = new Set<string>();
+  if (item.kind === "upload") {
+    for (const role of Object.values(assignments)) {
+      if (role && role !== "unknown") ids.add(role);
+    }
+    return ids;
+  }
+  for (const [role, source] of Object.entries(item.dataset.slot_sources ?? {})) {
+    if (source?.matches_labouesse_protocol) ids.add(role);
+    else ids.add("substitute");
+  }
+  return ids;
 }
 
 function matchesChannelFilter(
@@ -220,13 +254,34 @@ function matchesChannelFilter(
   filter: ChannelFilter,
   assignments: Record<string, string>,
 ): boolean {
-  if (filter === "all") return true;
-  if (item.kind === "upload") {
-    if (filter === "substitute") return false;
-    return Object.values(assignments).includes(filter);
+  if (filter === ALL_CHANNEL_FILTER) return true;
+  return channelFilterIdsForItem(item, assignments).has(filter);
+}
+
+function buildFilterOptions(
+  allId: string,
+  allLabel: string,
+  items: FieldCardItem[],
+  getIds: (item: FieldCardItem) => Set<string>,
+  getLabel: (id: string) => string,
+): FilterOptionItem[] {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    for (const id of getIds(item)) {
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
   }
-  if (filter === "substitute") return hasSubstituteChannel(item.dataset);
-  return Boolean(item.dataset.slot_sources?.[filter]?.matches_labouesse_protocol);
+  const ordered = [...counts.entries()].sort(([a], [b]) => {
+    const priority = ["bundled", "upload", "real", "substitute", "dapi", "glycocalyx", "actin", "yap", "paxillin", "heparan_sulfate", "fibrosis"];
+    const ai = priority.indexOf(a);
+    const bi = priority.indexOf(b);
+    if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    return getLabel(a).localeCompare(getLabel(b));
+  });
+  return [
+    { id: allId, label: allLabel, count: items.length },
+    ...ordered.map(([id, count]) => ({ id, label: getLabel(id), count })),
+  ];
 }
 
 function compareFields(sortMode: SortMode, a: FieldCardItem, b: FieldCardItem): number {
@@ -313,18 +368,56 @@ export function LoaderView() {
     ];
   }, [conditions, uploadedFile, uploadPreviewMut.data]);
 
+  const collectionCards = useMemo(
+    () => cards.filter((item) => collectionScope === "all" || item.kind === "upload" || featuredIds.has(item.dataset.name)),
+    [cards, collectionScope, featuredIds],
+  );
+
+  const sourceFilterOptions = useMemo(
+    () =>
+      buildFilterOptions(
+        ALL_SOURCE_FILTER,
+        "All sources",
+        collectionCards,
+        sourceFilterIdsForItem,
+        (id) => SOURCE_FILTER_LABELS[id] ?? titleCaseRole(id),
+      ),
+    [collectionCards],
+  );
+
+  const channelFilterOptions = useMemo(
+    () =>
+      buildFilterOptions(
+        ALL_CHANNEL_FILTER,
+        "All channels",
+        collectionCards,
+        (item) => channelFilterIdsForItem(item, channelAssignments),
+        channelLabel,
+      ),
+    [collectionCards, channelAssignments],
+  );
+
+  useEffect(() => {
+    if (!sourceFilterOptions.some((option) => option.id === sourceFilter)) {
+      setSourceFilter(ALL_SOURCE_FILTER);
+    }
+  }, [sourceFilter, sourceFilterOptions]);
+
+  useEffect(() => {
+    if (!channelFilterOptions.some((option) => option.id === channelFilter)) {
+      setChannelFilter(ALL_CHANNEL_FILTER);
+    }
+  }, [channelFilter, channelFilterOptions]);
+
   const filteredCards = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return cards
-      .filter((item) => collectionScope === "all" || item.kind === "upload" || featuredIds.has(item.dataset.name))
+    return collectionCards
       .filter((item) => matchesSourceFilter(item, sourceFilter))
       .filter((item) => matchesChannelFilter(item, channelFilter, channelAssignments))
       .filter((item) => !q || searchText(item, channelAssignments).includes(q))
       .sort((a, b) => compareFields(sortMode, a, b));
   }, [
-    cards,
-    collectionScope,
-    featuredIds,
+    collectionCards,
     sourceFilter,
     channelFilter,
     channelAssignments,
@@ -423,10 +516,11 @@ export function LoaderView() {
               </button>
 
               <FilterGroup title="Source">
-                {SOURCE_FILTERS.map((option) => (
+                {sourceFilterOptions.map((option) => (
                   <FilterOption
                     key={option.id}
                     label={option.label}
+                    count={option.count}
                     active={sourceFilter === option.id}
                     onClick={() => setSourceFilter(option.id)}
                   />
@@ -434,10 +528,11 @@ export function LoaderView() {
               </FilterGroup>
 
               <FilterGroup title="Channel">
-                {CHANNEL_FILTERS.map((option) => (
+                {channelFilterOptions.map((option) => (
                   <FilterOption
                     key={option.id}
                     label={option.label}
+                    count={option.count}
                     active={channelFilter === option.id}
                     onClick={() => setChannelFilter(option.id)}
                   />
@@ -571,7 +666,7 @@ export function LoaderView() {
 
             <MetadataBlock pending={pending} pixelSizeUm={pixelSizeUm} channelAssignments={channelAssignments} />
 
-            <TargetAssayModeBlock
+            <AssayReadinessBlock
               context={
                 pending?.kind === "demo"
                   ? datasetContextFromDemo(pending.dataset)
@@ -735,10 +830,12 @@ function FilterGroup({ title, children }: { title: string; children: ReactNode }
 
 function FilterOption({
   label,
+  count,
   active,
   onClick,
 }: {
   label: string;
+  count: number;
   active: boolean;
   onClick: () => void;
 }) {
@@ -751,7 +848,10 @@ function FilterOption({
       }`}
     >
       <span className="truncate">{label}</span>
-      {active && <Check size={13} strokeWidth={1.8} className="flex-shrink-0 text-gray-700" />}
+      <span className="ml-2 flex items-center gap-1.5">
+        <span className="text-[10px] text-gray-400 tabular-nums">{count}</span>
+        {active && <Check size={13} strokeWidth={1.8} className="flex-shrink-0 text-gray-700" />}
+      </span>
     </button>
   );
 }
@@ -932,13 +1032,13 @@ function MetadataBlock({
   );
 }
 
-function TargetAssayModeBlock({ context }: { context: DatasetContext | null }) {
+function AssayReadinessBlock({ context }: { context: DatasetContext | null }) {
   const rows = [
-    ["Nuclear channel available", Boolean(context && isRealMarker(context, "nuclear"))],
-    ["WGA/lectin channel available", Boolean(context && isRealMarker(context, "wga_proxy"))],
-    ["YAP/TAZ channel available", Boolean(context && isRealMarker(context, "yap"))],
-    ["FA marker channel available", Boolean(context && isRealMarker(context, "focal_adhesion"))],
-    ["Actin channel available", Boolean(context && isRealMarker(context, "actin"))],
+    ["Nuclear marker", Boolean(context && isRealMarker(context, "nuclear"))],
+    ["WGA/lectin marker", Boolean(context && isRealMarker(context, "wga_proxy"))],
+    ["YAP/TAZ marker", Boolean(context && isRealMarker(context, "yap"))],
+    ["Adhesion marker", Boolean(context && isRealMarker(context, "focal_adhesion"))],
+    ["Actin marker", Boolean(context && isRealMarker(context, "actin"))],
     ["Condition metadata available", Boolean(context?.conditionMetadata.condition)],
     ["Replicate metadata available", Boolean(context?.conditionMetadata.biologicalReplicate && context?.conditionMetadata.technicalReplicate)],
     ["Perturbation metadata available", Boolean(context?.conditionMetadata.perturbation)],
@@ -948,7 +1048,7 @@ function TargetAssayModeBlock({ context }: { context: DatasetContext | null }) {
   return (
     <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <SectionHeader icon={<Check size={13} strokeWidth={1.6} />} label="Target PhD assay mode" />
+        <SectionHeader icon={<Check size={13} strokeWidth={1.6} />} label="Assay readiness" />
         <span className={`rounded border px-1.5 py-0.5 text-[9px] font-medium ${
           readyForInterpretation ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"
         }`}>
@@ -969,7 +1069,7 @@ function TargetAssayModeBlock({ context }: { context: DatasetContext | null }) {
       </div>
       {!readyForInterpretation && (
         <div className="mt-2 text-[10px] leading-relaxed text-gray-500">
-          Full biological interpretation requires real marker channels, condition metadata, replicate metadata, perturbation metadata, and validation controls.
+          Biological interpretation requires real marker channels, condition metadata, replicate metadata, perturbation metadata, and validation controls.
         </div>
       )}
     </div>

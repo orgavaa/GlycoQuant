@@ -31,6 +31,12 @@ export function DatasetProvenancePanel({
       : badge.tone === "emerald"
         ? "border-emerald-200 bg-emerald-50 text-emerald-800"
         : "border-gray-200 bg-gray-50 text-gray-700";
+  const datasetTypeLabel =
+    context.datasetType === "technical_demo"
+      ? "technical demo"
+      : context.datasetType === "uploaded_candidate"
+        ? "uploaded candidate"
+        : "experimental assay";
   return (
     <div
       className={`rounded-lg border shadow-lg backdrop-blur-xl ${
@@ -50,7 +56,7 @@ export function DatasetProvenancePanel({
       </div>
       <div className="grid grid-cols-[82px,1fr] gap-x-2 gap-y-1 text-[10px]">
         <span className="text-gray-400">Type</span>
-        <span className="font-medium text-gray-700">{context.datasetType.replace(/_/g, " ")}</span>
+        <span className="font-medium text-gray-700">{datasetTypeLabel}</span>
         <span className="text-gray-400">Cell type</span>
         <span className="truncate font-medium text-gray-700">{context.cellType}</span>
         <span className="text-gray-400">Source</span>
@@ -358,7 +364,24 @@ function fmtMaybe(value: number | null): string {
 }
 
 export function ValidationControlsPanel({ context }: { context: DatasetContext }) {
-  const controls = Object.entries(context.validationControls);
+  const groups = [
+    {
+      label: "Positive controls",
+      names: ["stiff substrate", "TGF-beta stimulation", "LPA / contractility stimulus"],
+    },
+    {
+      label: "Inhibition controls",
+      names: ["soft substrate", "ROCK inhibitor", "FAK inhibitor", "actin disruption control"],
+    },
+    {
+      label: "Glycan perturbation",
+      names: ["neuraminidase", "heparinase", "hyaluronidase", "glycosylation / proteoglycan perturbation"],
+    },
+    {
+      label: "Rescue",
+      names: ["rescue"],
+    },
+  ];
   return (
     <Card>
       <div className="mb-3 flex items-center gap-2">
@@ -368,11 +391,21 @@ export function ValidationControlsPanel({ context }: { context: DatasetContext }
           <div className="text-[10px] text-gray-500">Required before biological score interpretation</div>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-1.5">
-        {controls.map(([name, status]) => (
-          <div key={name} className="flex items-center justify-between gap-2 rounded-md bg-gray-50 px-2 py-1.5 text-[10px]">
-            <span className="truncate text-gray-700">{name}</span>
-            <span className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-gray-500">{status}</span>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {groups.map((group) => (
+          <div key={group.label} className="rounded-md border border-gray-100 bg-gray-50 p-2.5">
+            <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-gray-400">{group.label}</div>
+            <div className="space-y-1">
+              {group.names.map((name) => {
+                const status = context.validationControls[name] ?? "not provided";
+                return (
+                  <div key={name} className="flex items-center justify-between gap-2 text-[10px]">
+                    <span className="truncate text-gray-700">{name}</span>
+                    <span className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-gray-500">{status}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>
