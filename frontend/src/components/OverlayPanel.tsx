@@ -59,7 +59,7 @@ export function OverlayPanel({
   };
 
   return (
-    <div className="absolute left-4 top-4 z-10 w-[236px] rounded-lg border border-gray-200 bg-white/95 p-3 text-gray-900 shadow-lg backdrop-blur">
+    <div className="w-full rounded-lg border border-white/25 bg-white/78 p-3 text-gray-900 shadow-lg backdrop-blur-xl">
       <div className="mb-3 flex items-center gap-2">
         <SlabIcon icon={<ScanLine size={14} strokeWidth={1.8} />} />
         <div>
@@ -102,8 +102,8 @@ export function OverlayPanel({
                 onClick={() => onToggleChannel(ch.name)}
                 className={`flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1.5 text-left text-[11px] transition ${
                   vis
-                    ? "border-gray-300 bg-gray-50 text-gray-950"
-                    : "border-gray-200 bg-white text-gray-400 hover:bg-gray-50"
+                    ? "border-gray-300 bg-white/70 text-gray-950"
+                    : "border-gray-200 bg-white/45 text-gray-400 hover:bg-white/70"
                 }`}
                   title={`${vis ? "Hide" : "Show"} ${channelLabels[ch.name as keyof typeof channelLabels] ?? ch.label}`}
               >
@@ -133,7 +133,7 @@ export function OverlayPanel({
       </ControlSection>
 
       <ControlSection icon={<Users size={13} strokeWidth={1.8} />} label="Cell visibility">
-        <div className="grid grid-cols-3 gap-1 rounded-md bg-gray-100 p-1">
+        <div className="grid grid-cols-3 gap-1 rounded-md bg-white/45 p-1 ring-1 ring-gray-200/70">
           <SegmentButton
             label="Ready"
             count={readyCellCount}
@@ -240,7 +240,7 @@ function SegmentButton({
       type="button"
       onClick={onClick}
       className={`rounded px-1.5 py-1 text-[10px] font-medium transition ${
-        active ? "bg-white text-gray-950 shadow-sm ring-1 ring-gray-200" : "text-gray-500 hover:text-gray-900"
+        active ? "bg-white/90 text-gray-950 shadow-sm ring-1 ring-gray-200" : "text-gray-500 hover:bg-white/50 hover:text-gray-900"
       }`}
     >
       <span>{label}</span>

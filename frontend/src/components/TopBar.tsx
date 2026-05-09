@@ -75,7 +75,7 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         ? "bg-rose-500"
         : "bg-amber-400 animate-pulse";
   const healthLabel =
-    healthState === "ok" ? "API prototype ready" : healthState === "error" ? "API offline" : "API check";
+    healthState === "ok" ? "Online" : healthState === "error" ? "Offline" : "Checking";
   const healthTint =
     healthState === "ok"
       ? "border-emerald-200 bg-emerald-50 text-emerald-800"
@@ -84,7 +84,7 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
         : "border-amber-200 bg-amber-50 text-amber-800";
   const healthTooltip =
     healthState === "ok"
-      ? `Backend OK / ${healthQuery.data?.device_detail ?? healthQuery.data?.device ?? "device unknown"}`
+      ? `Backend online / ${healthQuery.data?.device_detail ?? healthQuery.data?.device ?? "device unknown"}`
       : healthState === "error"
         ? "Backend unreachable. Check API URL and CORS."
         : "Checking backend liveness...";

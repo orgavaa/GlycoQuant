@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanelRightOpen, PanelRightClose, Image as ImageIcon, SlidersHorizontal, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Image as ImageIcon, SlidersHorizontal, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { MicroscopyCanvas } from "@/components/MicroscopyCanvas";
 import { OverlayPanel } from "@/components/OverlayPanel";
 import { RightRail } from "@/components/RightRail";
@@ -170,7 +170,7 @@ export function AnalysisView({ result }: Props) {
               </div>
 
               {/* Zoom controls for the raw view */}
-              <div className="absolute bottom-12 left-4 z-[5] flex items-center gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 text-gray-700 shadow-lg backdrop-blur">
+              <div className="absolute bottom-12 left-4 z-[5] flex items-center gap-1 rounded-lg border border-white/25 bg-white/78 p-1 text-gray-700 shadow-lg backdrop-blur-xl">
                 <button type="button" onClick={rawPanZoom.zoomOut} className="flex h-7 w-7 items-center justify-center rounded-md text-gray-600 transition hover:bg-gray-100 hover:text-gray-950" title="Zoom out">
                   <ZoomOut size={14} strokeWidth={1.8} />
                 </button>
@@ -203,75 +203,69 @@ export function AnalysisView({ result }: Props) {
         )}
       </div>
 
-      <div
-        className="absolute top-16 z-20 w-[320px] max-w-[calc(100vw-2rem)]"
-        style={{
-          right: railOpen ? railWidth + 64 : 64,
-          transition: dragging ? "none" : "right 300ms ease-in-out",
-        }}
-      >
-        <DatasetProvenancePanel context={datasetContext} compact />
-      </div>
+      <div className="absolute left-4 top-4 z-20 flex max-h-[calc(100vh-7rem)] w-[292px] max-w-[calc(100vw-2rem)] flex-col gap-2 overflow-y-auto pr-1">
+        <div className="rounded-lg border border-white/25 bg-white/78 p-1 shadow-lg backdrop-blur-xl">
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("analysis")}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                viewMode === "analysis"
+                  ? "bg-gray-950 text-white shadow-sm"
+                  : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
+              }`}
+              title="Show segmentation, overlays, and QC filter"
+            >
+              <SlidersHorizontal size={12} strokeWidth={1.8} />
+              Analysis
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("raw")}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                viewMode === "raw"
+                  ? "bg-gray-950 text-white shadow-sm"
+                  : "text-gray-500 hover:bg-white/70 hover:text-gray-950"
+              }`}
+              title="Hide all overlays and show the original channels only"
+            >
+              <ImageIcon size={12} strokeWidth={1.8} />
+              Raw image
+            </button>
+          </div>
+        </div>
 
-      {/* Top-centre view-mode toggle — Raw vs Analysis. Raw hides every analysis artefact. */}
-      <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
-        <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 shadow-lg backdrop-blur">
-          <button
-            type="button"
-            onClick={() => setViewMode("analysis")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-              viewMode === "analysis"
-                ? "bg-gray-950 text-white shadow-sm"
-                : "text-gray-500 hover:bg-gray-100 hover:text-gray-950"
-            }`}
-            title="Show segmentation, overlays, and QC filter"
-          >
-            <SlidersHorizontal size={12} strokeWidth={1.8} />
-            Analysis
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("raw")}
-            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-              viewMode === "raw"
-                ? "bg-gray-950 text-white shadow-sm"
-                : "text-gray-500 hover:bg-gray-100 hover:text-gray-950"
-            }`}
-            title="Hide all overlays and show the original channels only"
-          >
-            <ImageIcon size={12} strokeWidth={1.8} />
-            Raw image
-          </button>
+        <DatasetProvenancePanel context={datasetContext} compact glass />
+
+        <div
+          className={`transition-opacity duration-200 ${
+            isRaw ? "opacity-40 pointer-events-none" : "opacity-100"
+          }`}
+          aria-hidden={isRaw}
+        >
+          <OverlayPanel
+            showSegmentation={showSeg}
+            onToggleSegmentation={() => setShowSeg(v => !v)}
+            activeOverlay={activeOverlay}
+            onSetOverlay={setActiveOverlay}
+            channelVisibility={channelVis}
+            onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
+            cellFilter={cellFilter}
+            onSetCellFilter={setCellFilter}
+            rawCellCount={nRaw}
+            readyCellCount={nReady}
+            qcFlaggedCount={nQc}
+            excludeEdgeCells={excludeEdgeCells}
+            excludeSaturationArtifacts={excludeSaturationArtifacts}
+            onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
+            onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
+            datasetContext={datasetContext}
+          />
         </div>
       </div>
 
+      {/* Top-centre view-mode toggle — Raw vs Analysis. Raw hides every analysis artefact. */}
       {/* Overlay controls (top-left) — dimmed & disabled in Raw mode. */}
-      <div
-        className={`transition-opacity duration-200 ${
-          isRaw ? "opacity-40 pointer-events-none" : "opacity-100"
-        }`}
-        aria-hidden={isRaw}
-      >
-        <OverlayPanel
-          showSegmentation={showSeg}
-          onToggleSegmentation={() => setShowSeg(v => !v)}
-          activeOverlay={activeOverlay}
-          onSetOverlay={setActiveOverlay}
-          channelVisibility={channelVis}
-          onToggleChannel={ch => setChannelVis(p => ({ ...p, [ch]: !p[ch] }))}
-          cellFilter={cellFilter}
-          onSetCellFilter={setCellFilter}
-          rawCellCount={nRaw}
-          readyCellCount={nReady}
-          qcFlaggedCount={nQc}
-          excludeEdgeCells={excludeEdgeCells}
-          excludeSaturationArtifacts={excludeSaturationArtifacts}
-          onToggleExcludeEdge={() => setExcludeEdgeCells(v => !v)}
-          onToggleExcludeSaturation={() => setExcludeSaturationArtifacts(v => !v)}
-          datasetContext={datasetContext}
-        />
-      </div>
-
       {/* Caption bar (bottom) — truthful status */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10">
         <div className="border-t border-white/10 bg-black/72 backdrop-blur-sm">
@@ -302,14 +296,14 @@ export function AnalysisView({ result }: Props) {
       {/* Rail toggle button — follows the rail's current width so it never sits under the panel. */}
       <button
         onClick={() => setRailOpen(v => !v)}
-        className="absolute top-4 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white/95 text-gray-700 shadow-lg backdrop-blur transition hover:bg-gray-50 hover:text-gray-950"
+        className="absolute top-4 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-white/25 bg-white/78 text-gray-700 shadow-lg backdrop-blur-xl transition hover:bg-white/90 hover:text-gray-950"
         style={{
           right: railOpen ? railWidth + 12 : 16,
           transition: dragging ? "none" : "right 300ms ease-in-out",
         }}
-        title={railOpen ? "Close panel" : "Open results"}
+        title={railOpen ? "Close inspector" : "Open inspector"}
       >
-        {railOpen ? <PanelRightClose size={18} strokeWidth={1.5} /> : <PanelRightOpen size={18} strokeWidth={1.5} />}
+        {railOpen ? <ChevronsRight size={18} strokeWidth={1.7} /> : <ChevronsLeft size={18} strokeWidth={1.7} />}
       </button>
 
       {/* Sliding results panel */}

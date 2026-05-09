@@ -18,9 +18,11 @@ import {
 export function DatasetProvenancePanel({
   context,
   compact = false,
+  glass = false,
 }: {
   context: DatasetContext;
   compact?: boolean;
+  glass?: boolean;
 }) {
   const badge = contextBadge(context);
   const tone =
@@ -30,7 +32,11 @@ export function DatasetProvenancePanel({
         ? "border-emerald-200 bg-emerald-50 text-emerald-800"
         : "border-gray-200 bg-gray-50 text-gray-700";
   return (
-    <div className={`rounded-lg border bg-white/95 shadow-lg backdrop-blur ${compact ? "p-3" : "p-4"}`}>
+    <div
+      className={`rounded-lg border shadow-lg backdrop-blur-xl ${
+        glass ? "border-white/25 bg-white/78" : "border-gray-200 bg-white/95"
+      } ${compact ? "p-3" : "p-4"}`}
+    >
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase text-gray-400">Dataset provenance</div>

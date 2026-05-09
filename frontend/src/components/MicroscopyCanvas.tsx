@@ -300,7 +300,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
 
         {/* Cell count indicator (truthful state) — pinned to the viewport, not transformed. */}
         {polygons.length > 0 ? (
-          <div className="absolute bottom-12 right-4 z-[5] rounded-md border border-gray-200 bg-white/95 px-2 py-1 text-[10px] text-gray-700 shadow-lg backdrop-blur">
+          <div className="absolute bottom-12 right-4 z-[5] rounded-md border border-white/25 bg-white/78 px-2 py-1 text-[10px] text-gray-700 shadow-lg backdrop-blur-xl">
             {polygons.length} cells &middot; click to inspect
           </div>
         ) : result.cell_count > 0 && result.cell_overlay?.fallback_reason ? (
@@ -310,7 +310,7 @@ export function MicroscopyCanvas({ result, showSegmentation, activeOverlay, cell
         ) : null}
 
         {/* Zoom controls — pinned to the viewport. */}
-        <div className="absolute bottom-12 left-4 z-[5] flex items-center gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 text-gray-700 shadow-lg backdrop-blur">
+        <div className="absolute bottom-12 left-4 z-[5] flex items-center gap-1 rounded-lg border border-white/25 bg-white/78 p-1 text-gray-700 shadow-lg backdrop-blur-xl">
           <button
             type="button"
             onClick={panZoom.zoomOut}
