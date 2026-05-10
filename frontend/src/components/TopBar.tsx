@@ -135,7 +135,7 @@ export function TopBar({ activeView, onChangeView }: TopBarProps) {
 
       <div className="flex-1" />
 
-      <div className="mr-3 hidden h-10 items-center rounded-lg bg-gray-100 p-1 sm:inline-flex">
+      <div className="mr-3 hidden h-10 items-center gap-1 sm:inline-flex">
         {NAV_ITEMS.map((item) => (
           <NavTab
             key={item.id}
@@ -230,8 +230,8 @@ function NavTab({
       title={tooltip}
       className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors ${
         active
-          ? "bg-white text-gray-950 shadow-sm ring-1 ring-gray-200"
-          : "text-gray-500 hover:bg-white/60 hover:text-gray-800"
+          ? "bg-white text-gray-950 ring-1 ring-gray-200"
+          : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
       }`}
     >
       <Icon size={14} strokeWidth={1.7} />
