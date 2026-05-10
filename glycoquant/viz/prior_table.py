@@ -1,8 +1,8 @@
 """Plotly visualizations for the perturbation ranking tab.
 
 Provides:
-- ``plot_drill_down_heatmap``: 2-row heatmap (Geneformer vs Pathway scores per mechanotransduction-signature target)
-- ``plot_panel_summary``: Dot plot overview of all 22 glycocalyx genes
+- ``plot_drill_down_heatmap``: 2-row heatmap (Geneformer vs STRING scores per mechanosensitive-signature target)
+- ``plot_panel_summary``: Dot plot overview of all 22 glycan/pericellular-matrix genes
 - ``plot_pathway_network``: Force-directed network graph for a gene's shortest paths
 """
 from __future__ import annotations
@@ -42,14 +42,14 @@ def plot_drill_down_heatmap(
     geneformer_row: dict[str, float] | None = None,
     pathway_row: dict[str, float] | None = None,
     mechano_genes: list[str] | None = None,
-    title: str = "Per-mechano-gene proximity",
+    title: str = "Per-target STRING proximity",
 ) -> go.Figure:
     """1×15 or 2×15 heatmap showing per-target pathway proximity.
 
-    Shows how close the selected glycocalyx gene is to each of the 15
-    mechanotransduction targets. Dark blue = close (high score),
-    light = far (low score). When Geneformer data is available, shows
-    two rows for comparison.
+    Shows how close the selected glycan/pericellular-matrix gene is to
+    each adhesion-actomyosin-YAP/TAZ mechanosensitive signature target.
+    Dark blue = close (high score), light = far (low score). When
+    Geneformer data is available, shows two rows for comparison.
     """
     if mechano_genes is None:
         return _placeholder("Select a gene to view proximity heatmap")
@@ -59,14 +59,14 @@ def plot_drill_down_heatmap(
 
     if pathway_row is not None:
         rows.append([pathway_row.get(g, 0.0) for g in mechano_genes])
-        row_labels.append("Pathway (STRING)")
+        row_labels.append("STRING pathway prior")
 
     if geneformer_row is not None:
         rows.append([geneformer_row.get(g, 0.0) for g in mechano_genes])
         row_labels.append("Geneformer")
 
     if not rows:
-        return _placeholder("No pathway data available for this gene")
+        return _placeholder("No STRING proximity data available for this gene")
 
     # Shorten mechano gene names for display
     short_names = [_shorten_gene(g) for g in mechano_genes]
@@ -81,12 +81,12 @@ def plot_drill_down_heatmap(
             zmin=0,
             zmax=1,
             colorbar=dict(
-                title=dict(text="Proximity", font=dict(size=11)),
+                title=dict(text="STRING proximity", font=dict(size=11)),
                 thickness=12,
                 len=0.6,
                 tickfont=dict(size=9),
             ),
-            hovertemplate="Target: %{x}<br>Source: %{y}<br>Score: %{z:.3f}<extra></extra>",
+            hovertemplate="Signature target: %{x}<br>Evidence mode: %{y}<br>STRING proximity: %{z:.3f}<extra></extra>",
             text=[[f"{v:.2f}" for v in row] for row in rows],
             texttemplate="%{text}",
             textfont=dict(size=9, color="white"),
@@ -108,14 +108,16 @@ def plot_panel_summary(
     genes: list[dict],
     mechano_genes: list[str],
 ) -> go.Figure:
-    """Dot plot: x=pathway score, y=gene name, size=reachable targets, color=family.
+    """Dot plot: x=STRING proximity, y=gene name, size=reachable targets, color=score.
 
-    Gives the PI an instant visual overview of the entire 22-gene panel.
+    Dot size uses the actual count of reachable signature targets when
+    available rather than a score-derived proxy.
     """
     if not genes:
         return _placeholder("No gene data available")
 
-    # Sort by pathway score descending
+    # Sort by STRING proximity score descending. Ranking order is unchanged:
+    # the API still exposes this value as pathway_score for compatibility.
     sorted_genes = sorted(genes, key=lambda g: g.get("pathway_score") or 0, reverse=True)
 
     names = []
@@ -130,10 +132,14 @@ def plot_panel_summary(
         names.append(gene)
         scores.append(score)
 
-        # Size encodes reachable-target count; colour encodes pathway proximity
+        # Size encodes reachable-target count; colour encodes STRING proximity
         # via the same Blues scale used by the per-target heatmap for consistency.
-        n_reachable = max(1, int(score * 15)) if score > 0 else 0
-        sizes.append(max(10, n_reachable * 3))
+        raw_reachable = g.get("reachable_signature_targets")
+        if isinstance(raw_reachable, (int, float)) and math.isfinite(float(raw_reachable)):
+            n_reachable = max(0, int(raw_reachable))
+        else:
+            n_reachable = max(1, int(score * len(mechano_genes))) if score > 0 else 0
+        sizes.append(max(10, min(46, 8 + n_reachable * 2.4)))
 
         family = GENE_FAMILIES.get(gene, "Other")
         families.append(family)
@@ -141,7 +147,8 @@ def plot_panel_summary(
         hover_texts.append(
             f"<b>{gene}</b><br>"
             f"Family: {family}<br>"
-            f"Pathway score: {score:.3f}<br>"
+            f"STRING proximity score: {score:.3f}<br>"
+            f"Reachable signature targets: {n_reachable}/{len(mechano_genes)}<br>"
             f"Rank: {g.get('pathway_rank', '—')}"
         )
 
@@ -159,7 +166,7 @@ def plot_panel_summary(
             cmax=1.0,
             line=dict(width=0.5, color="white"),
             colorbar=dict(
-                title=dict(text="Proximity", font=dict(size=10, family="Inter, sans-serif", color="#6b7280")),
+                title=dict(text="STRING proximity", font=dict(size=10, family="Inter, sans-serif", color="#6b7280")),
                 thickness=12,
                 len=0.7,
                 tickfont=dict(size=9, family="Inter, sans-serif", color="#9ca3af"),
@@ -168,14 +175,15 @@ def plot_panel_summary(
             ),
         ),
         customdata=families,
-        hovertemplate="<b>%{y}</b><br>Family: %{customdata}<br>Pathway score: %{x:.3f}<extra></extra>",
+        text=hover_texts,
+        hovertemplate="%{text}<extra></extra>",
         showlegend=False,
     ))
 
     fig.update_layout(
         template="plotly_white",
         font=dict(family="Inter, sans-serif", size=11),
-        xaxis=dict(title="Pathway proximity score", range=[-0.05, 1.05], gridcolor="#f3f4f6"),
+        xaxis=dict(title="STRING proximity score", range=[-0.05, 1.05], gridcolor="#f3f4f6"),
         yaxis=dict(autorange="reversed", tickfont=dict(size=10)),
         margin=dict(l=80, r=20, t=10, b=50),
         height=max(300, 24 * len(names) + 60),
@@ -190,10 +198,12 @@ def plot_pathway_network(
     evidence_per_target: dict[str, dict],
     mechano_genes: list[str],
 ) -> go.Figure:
-    """Network graph showing shortest paths from a glycocalyx gene to all reachable mechanotransduction-signature targets.
+    """Network graph showing shortest functional-association paths.
 
-    Nodes: source gene (left), intermediates (middle), mechanotransduction-signature targets (right).
-    Edges: thickness proportional to STRING confidence.
+    Nodes: query gene (left), intermediate association nodes (middle),
+    adhesion-actomyosin-YAP/TAZ signature nodes (right). Edges are
+    undirected STRING/curated associations; thickness is proportional
+    to confidence and layout must not be read as causal direction.
     """
     # Collect all unique nodes and edges across all reachable targets
     all_nodes: set[str] = {gene}
@@ -214,7 +224,7 @@ def plot_pathway_network(
     if len(all_nodes) <= 1:
         return _placeholder(f"No reachable targets from {gene} in STRING")
 
-    # Assign positions: source left, targets right, intermediates middle
+    # Assign positions: query left, targets right, intermediates middle
     mechano_set = set(mechano_genes)
     source_nodes = [gene]
     target_nodes = [n for n in all_nodes if n in mechano_set and n != gene]
@@ -226,7 +236,7 @@ def plot_pathway_network(
 
     positions: dict[str, tuple[float, float]] = {}
 
-    # Source on left
+    # Query/source on left
     positions[gene] = (0.0, 0.5)
 
     # Targets on right
@@ -261,7 +271,8 @@ def plot_pathway_network(
     for node, (x, y) in positions.items():
         is_source = node == gene
         is_target = node in mechano_set
-        color = "#dc2626" if is_source else "#2563eb" if is_target else "#6b7280"
+        role = "query gene" if is_source else "signature node" if is_target else "intermediate association node"
+        color = "#111827" if is_source else "#2563eb" if is_target else "#6b7280"
         size = 16 if is_source else 12 if is_target else 8
 
         fig.add_trace(go.Scatter(
@@ -271,7 +282,7 @@ def plot_pathway_network(
             text=[node],
             textposition="top center" if is_source else "bottom center" if is_target else "top center",
             textfont=dict(size=9, color=color),
-            hovertemplate=f"<b>{node}</b><extra></extra>",
+            hovertemplate=f"<b>{node}</b><br>{role}<extra></extra>",
             showlegend=False,
         ))
 
@@ -280,7 +291,18 @@ def plot_pathway_network(
         font=dict(family="Inter, sans-serif", size=11),
         xaxis=dict(visible=False, range=[-0.15, 1.15]),
         yaxis=dict(visible=False, range=[-0.1, 1.1]),
-        margin=dict(l=20, r=20, t=10, b=20),
+        annotations=[
+            dict(
+                text="Undirected STRING functional-association map; edge width = confidence; layout is not causal direction.",
+                x=0.5,
+                y=-0.08,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+                font=dict(size=10, color="#6b7280"),
+            )
+        ],
+        margin=dict(l=20, r=20, t=10, b=42),
         height=max(250, 20 * len(all_nodes) + 80),
         plot_bgcolor="#fff",
         paper_bgcolor="#fff",

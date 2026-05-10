@@ -300,6 +300,15 @@ class PriorGeneEntry(BaseModel):
     geneformer_score: float | None = None
     pathway_rank: int | None = None
     pathway_score: float | None = None
+    reachable_signature_targets: int | None = Field(
+        default=None,
+        description=(
+            "Number of adhesion-actomyosin-YAP/TAZ mechanosensitive "
+            "signature genes reachable from this perturbation gene in the "
+            "STRING/curated functional-association graph. Informational only; "
+            "does not change ranking order."
+        ),
+    )
     abs_rank_divergence: int | None = None
     pathway_signed_score: float | None = Field(
         default=None,
@@ -329,6 +338,18 @@ class PathwayEdge(BaseModel):
     from_: str = Field(alias="from")
     to: str
     confidence: float
+    source: str | None = Field(
+        default=None,
+        description="'string' for STRING v12 edges; 'curated' for literature-added edges.",
+    )
+    pubmed_doi: str | None = Field(
+        default=None,
+        description="Primary-literature DOI for curated edges when available.",
+    )
+    reason: str | None = Field(
+        default=None,
+        description="One-line rationale for curated edges when available.",
+    )
 
     model_config = {"populate_by_name": True}
 

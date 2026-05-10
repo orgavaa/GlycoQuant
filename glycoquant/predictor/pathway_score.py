@@ -1,8 +1,8 @@
 """Pathway-based perturbation scoring via STRING shortest paths.
 
-For a glycocalyx gene ``g`` and a list of mechanotransduction target
-genes ``{m_i}`` the score is the **median inverse shortest-path
-length**:
+For a glycan/pericellular-matrix gene ``g`` and a list of
+adhesion-actomyosin-YAP/TAZ mechanosensitive signature genes ``{m_i}``
+the score is the **median inverse shortest-path length**:
 
     score(g) = median_{i} ( 1 / (1 + d(g, m_i)) )
 
@@ -36,9 +36,9 @@ def median_inverse_shortest_path(
         is ``-log(confidence)``. Disconnected components are handled
         gracefully (infinite distance → inverse 0.0).
     source_gene : str
-        The glycocalyx gene to score.
+        The glycan/pericellular-matrix gene to score.
     target_genes : list[str]
-        The mechanotransduction readout gene list.
+        The adhesion-actomyosin-YAP/TAZ signature gene list.
 
     Returns
     -------

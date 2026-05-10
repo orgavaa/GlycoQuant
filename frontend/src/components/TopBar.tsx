@@ -1,11 +1,11 @@
 import { useState, type ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  BookOpen,
+  BookOpenCheck,
+  ChartNetwork,
   Download,
   Flame,
-  Network,
-  SlidersHorizontal,
+  Microscope,
   type LucideProps,
 } from "lucide-react";
 import { exportUrl, fetchHealth, warmupModal } from "@/lib/api";
@@ -30,19 +30,19 @@ const NAV_ITEMS: ReadonlyArray<{
   {
     id: "analysis",
     label: "Analysis",
-    Icon: SlidersHorizontal,
+    Icon: Microscope,
     tooltip: "Configure fields, inspect masks, and review per-cell features.",
   },
   {
     id: "ranking",
     label: "Ranking",
-    Icon: Network,
-    tooltip: "Prioritize glycocalyx genes using pathway priors and optional Geneformer evidence.",
+    Icon: ChartNetwork,
+    tooltip: "Rank glycan and pericellular-matrix genes using STRING priors and optional Geneformer evidence.",
   },
   {
     id: "methods",
     label: "Methods",
-    Icon: BookOpen,
+    Icon: BookOpenCheck,
     tooltip: "Feature definitions, channel requirements, and validation notes.",
   },
 ];

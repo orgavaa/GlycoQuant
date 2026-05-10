@@ -140,10 +140,11 @@ export interface PriorGeneEntry {
   geneformer_score: number | null;
   pathway_rank: number | null;
   pathway_score: number | null;
+  reachable_signature_targets?: number | null;
   abs_rank_divergence: number | null;
-  /** Directionally-aware sidecar on the dynamic pathway score.
-   * Positive = close to over-activated mechano axes (candidate KO to attenuate).
-   * Negative = close to under-activated axes (candidate KO to restore).
+  /** Directionally-aware sidecar on the dynamic STRING score.
+   * Positive = close to over-activated adhesion-actomyosin-YAP/TAZ axes.
+   * Negative = close to under-activated axes.
    * Present only on /priors/contextual responses. */
   pathway_signed_score?: number | null;
 }
@@ -209,11 +210,11 @@ export interface PathwayEdge {
   /** Provenance tag — "string" for STRING v12 edges (default),
    * "curated" for literature-traceable edges added below the STRING
    * cutoff where primary literature is strong. */
-  source?: "string" | "curated";
+  source?: "string" | "curated" | null;
   /** PubMed DOI of the primary reference — present only on curated edges. */
-  pubmed_doi?: string;
+  pubmed_doi?: string | null;
   /** One-line biochemical rationale for the curated edge. */
-  reason?: string;
+  reason?: string | null;
 }
 
 export interface PathwayEvidence {

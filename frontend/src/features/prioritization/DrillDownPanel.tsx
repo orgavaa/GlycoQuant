@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { AlertCircle, ArrowRight, ArrowLeftRight, FlaskConical, Target } from "lucide-react";
+import { AlertCircle, ArrowLeftRight, FlaskConical, Target } from "lucide-react";
 import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import { fetchDrillDown } from "@/lib/api";
@@ -8,7 +8,7 @@ import { fetchDrillDown } from "@/lib/api";
 // Literature-linked hypotheses for key glycan/pericellular matrix genes.
 const INTERVENTION_EFFECTS: Record<string, { glyco: string; mechano: string }> = {
   CD44: {
-    glyco: "CD44 perturbation may alter hyaluronan retention and pericellular HA organization. Direction and magnitude are cell-state dependent.",
+    glyco: "CD44 perturbation may alter hyaluronan retention, HA coat organization, and pericellular matrix anchoring. Direction and magnitude are cell-state dependent.",
     mechano: "May shift adhesion-, actin-, and YAP/TAZ-associated imaging readouts. Mechanophenotype score direction requires matched controls.",
   },
   SDC1: {
@@ -35,10 +35,16 @@ const INTERVENTION_EFFECTS: Record<string, { glyco: string; mechano: string }> =
 
 // Assay perturbation links; most are pathway-level and not gene-specific inhibitors.
 const INHIBITOR_LINKS: Record<string, string[]> = {
-  GFPT1: ["DON (hexosamine pathway inhibitor; pathway-level perturbation)"],
-  OGT: ["PUGNAc / Thiamet-G (OGA inhibition; increases O-GlcNAc and is opposite-direction to OGT inhibition)"],
-  MGAT5: ["tunicamycin (N-glycosylation inhibitor; broad and indirect)"],
-  CD44: ["hyaluronidase or HA-blocking perturbation (closer CD44/HA axis test than benzyl-GalNAc)"],
+  GFPT1: ["DON (glutamine antagonist; affects HBP flux but is not GFPT1-specific)"],
+  OGT: ["PUGNAc / Thiamet-G / GlcNAcstatin (OGA inhibition; increases O-GlcNAc and is opposite-direction to OGT inhibition)"],
+  MGAT5: ["tunicamycin (N-glycosylation block; ER-stress/UPR confound)"],
+  CD44: [
+    "hyaluronidase (enzymatic HA removal)",
+    "CD44-blocking antibody",
+    "HAS2 knockdown / CRISPRi",
+    "4-MU (HA synthesis inhibitor; synthesis and viability caveats)",
+    "defined-molecular-weight HA rescue",
+  ],
 };
 
 interface DrillDownPanelProps {
@@ -82,9 +88,9 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
 
       {/* 1. Per-target proximity heatmap — compact, full width */}
       <Card>
-        <h3 className="text-[13px] font-semibold text-gray-900 mb-0.5">Per-target proximity</h3>
+        <h3 className="text-[13px] font-semibold text-gray-900 mb-0.5">Per-target STRING proximity</h3>
         <p className="text-[10px] text-gray-400 mb-2">
-          Proximity of {gene} to each mechanotransduction target in STRING v12. Dark = close.
+          Proximity of {gene} to each adhesion-actomyosin-YAP/TAZ signature gene in STRING v12. Dark = close.
         </p>
         {drillQuery.isLoading ? (
           <div className="flex h-[100px] items-center justify-center">
@@ -139,7 +145,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
       {/* 4. Shortest path evidence for selected target */}
       <Card>
         <div className="flex items-center gap-3 mb-3">
-          <h3 className="text-[13px] font-semibold text-gray-900">Path evidence</h3>
+          <h3 className="text-[13px] font-semibold text-gray-900">STRING proximity evidence</h3>
           <select
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
@@ -150,11 +156,11 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
         </div>
 
         {!evidence ? (
-          <p className="text-[12px] text-gray-500">No pathway evidence for {gene} → {selectedTarget}</p>
+          <p className="text-[12px] text-gray-500">No STRING proximity evidence for {gene} -- {selectedTarget}</p>
         ) : evidence.path.length === 0 ? (
           <div className="flex items-start gap-2 text-[12px] text-gray-500">
             <AlertCircle size={14} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
-            {gene} → {selectedTarget} unreachable in STRING v12 at the current confidence threshold.
+            {gene} -- {selectedTarget} unreachable in STRING v12 at the current confidence threshold.
           </div>
         ) : (
           <div className="space-y-3">
@@ -162,13 +168,16 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
               {evidence.path.map((node, i) => (
                 <span key={i} className="flex items-center gap-1.5">
                   <span className="px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-[11px] font-medium text-gray-900">{node}</span>
-                  {i < evidence.path.length - 1 && <ArrowRight size={12} strokeWidth={1.5} className="text-gray-300" />}
+                  {i < evidence.path.length - 1 && <span className="text-[11px] font-semibold text-gray-300">--</span>}
                 </span>
               ))}
             </div>
             <div className="text-[11px] text-gray-500">
-              Dijkstra distance: <span className="font-medium text-gray-800" style={{ fontFeatureSettings: "'tnum'" }}>{evidence.distance?.toFixed(3) ?? "\u2014"}</span>
+              Network distance: <span className="font-medium text-gray-800" style={{ fontFeatureSettings: "'tnum'" }}>{evidence.distance?.toFixed(3) ?? "\u2014"}</span>
             </div>
+            <p className="text-[10px] text-gray-400">
+              Sum of -log(STRING confidence) edge costs; computational proximity, not biological order.
+            </p>
             {evidence.path_edges.length > 0 && (
               <div className="space-y-1">
                 {evidence.path_edges.map((e, i) => {
@@ -225,6 +234,9 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
                 })}
               </div>
             )}
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-800">
+              Undirected STRING functional association. Do not read this as {gene} signalling through a linear pathway.
+            </div>
           </div>
         )}
       </Card>
@@ -237,7 +249,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
             onClick={() => setShowNetwork(v => !v)}
           >
             <div className="flex items-center gap-2">
-              <h3 className="text-[13px] font-semibold text-gray-900">Pathway network</h3>
+              <h3 className="text-[13px] font-semibold text-gray-900">STRING proximity map</h3>
               <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-50 text-gray-700 border border-gray-200">
                 {gene}
               </span>
@@ -250,7 +262,7 @@ export function DrillDownPanel({ gene, mechanoSignature, onGeneChange, available
           {showNetwork && (
             <div className="mt-3">
               <p className="text-[10px] text-gray-400 mb-2">
-                All shortest paths from <strong className="text-gray-600">{gene}</strong> to reachable mechanotransduction-associated signature targets. Edge width is proportional to STRING v12 confidence.
+                All shortest functional-association paths from <strong className="text-gray-600">{gene}</strong> to reachable adhesion-actomyosin-YAP/TAZ signature genes. Edge width is proportional to STRING v12 confidence; layout is not causal direction.
               </p>
               <PlotlyFigure figureJson={drill.network_figure_json} />
             </div>

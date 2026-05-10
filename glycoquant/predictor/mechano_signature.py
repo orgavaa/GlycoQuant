@@ -5,9 +5,10 @@ three panels via this module so they can never drift:
 
 - ``glycocalyx_genes``: 22 perturbation targets (SDC1..4, GPC1/3/4/6,
   EXT1/2, NDST1/2, HPSE, GFPT1/2, OGT, MGAT5, B4GALT1, HAS1/2/3, CD44)
-- ``mechano_signature``: 15 mechanotransduction readout genes across
-  the YAP/TAZ, Rho/ROCK, integrin/FA, and mechanosensor axes
-- ``metabolic_inhibitors``: 5 drug → target → pathway mappings
+- ``mechano_signature``: 15 adhesion-actomyosin-YAP/TAZ mechanosensitive
+  signature genes across relay, response, tension, adhesion-clutch, and
+  mechanosensor axes
+- ``metabolic_inhibitors``: 5 broad assay perturbation target/pathway mappings
   (2-DG, DON, tunicamycin, benzyl-GalNAc, PUGNAc)
 """
 from __future__ import annotations
@@ -39,12 +40,12 @@ def get_glycocalyx_genes() -> list[str]:
 
 
 def get_mechano_signature() -> list[str]:
-    """Return the 15-gene mechanotransduction readout signature."""
+    """Return the 15-gene adhesion-actomyosin-YAP/TAZ signature."""
     return list(_load_predictor_config()["mechano_signature"])
 
 
 def get_metabolic_inhibitors() -> dict[str, dict[str, str]]:
-    """Return the 5 metabolic inhibitor → target → pathway mapping."""
+    """Return the 5 broad assay perturbation target/pathway mappings."""
     return {
         name: dict(entry)
         for name, entry in _load_predictor_config()["metabolic_inhibitors"].items()

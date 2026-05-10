@@ -29,12 +29,12 @@ export function RankingTable({ genes, geneformerAvailable, selectedGene, onSelec
                 <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">GF score</th>
               </>
             )}
-            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Path rank</th>
-            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Path score</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">STRING rank</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">STRING score</th>
             {showSigned && (
               <th
                 className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
-                title="Directionally-aware score. Positive = close to over-activated mechanophenotype-associated axes. Negative = close to under-activated axes."
+                title="Field-relative sidecar. Positive = close to over-activated adhesion-actomyosin-YAP/TAZ axes. Negative = close to under-activated axes."
               >
                 Signed
               </th>

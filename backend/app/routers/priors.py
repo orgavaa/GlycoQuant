@@ -80,6 +80,16 @@ def _build_response(
     for _, row in df.iterrows():
         gene_symbol = row["gene"]
         signed_val = signed_scores.get(gene_symbol)
+        reachable_signature_targets: int | None = None
+        pathway_ranking = pathway.rankings.get(gene_symbol)
+        if pathway_ranking is not None:
+            reachable_signature_targets = sum(
+                1
+                for score in pathway_ranking.per_mechano.values()
+                if isinstance(score, (int, float))
+                and math.isfinite(float(score))
+                and float(score) > 0
+            )
         # NaN → None so Pydantic serialises it cleanly
         if isinstance(signed_val, float) and math.isnan(signed_val):
             signed_val = None
@@ -90,45 +100,44 @@ def _build_response(
                 geneformer_score=_nan_to_none(row.get("geneformer_score")),
                 pathway_rank=_nan_to_none(row.get("pathway_rank")),
                 pathway_score=_nan_to_none(row.get("pathway_score")),
+                reachable_signature_targets=reachable_signature_targets,
                 abs_rank_divergence=_nan_to_none(row.get("abs_rank_divergence")),
                 pathway_signed_score=signed_val,
             )
         )
 
-    # Mechanism descriptions for each metabolic inhibitor
+    # Mechanism descriptions for each assay perturbation link. These are
+    # intentionally conservative: most compounds perturb broad metabolic axes
+    # and are not clean gene-specific controls.
     MECHANISMS: dict[str, str] = {
         "2-DG": (
-            "Competitively inhibits hexokinase (HK2), blocking glucose-6-phosphate "
-            "entry into the hexosamine biosynthetic pathway. Reduces UDP-GlcNAc "
-            "availability, limiting glycocalyx biosynthesis and O-GlcNAcylation "
-            "of mechanotransduction effectors."
+            "Broad glycolysis and energy-stress perturbation often annotated through "
+            "hexokinase inhibition. It can reduce carbon flux into UDP-GlcNAc pools, "
+            "but ATP/AMPK, viability, and growth-rate effects are major confounders "
+            "for mechanophenotype interpretation."
         ),
         "DON": (
-            "Glutamine analogue that irreversibly inhibits GFPT1, the rate-limiting "
-            "enzyme of the hexosamine pathway. Directly reduces UDP-GlcNAc flux, "
-            "depleting substrate for both N- and O-linked glycosylation of the "
-            "glycocalyx and intracellular O-GlcNAc signalling."
+            "Glutamine antagonist that can suppress hexosamine-biosynthesis flux "
+            "through GFPT-family chemistry, but is not GFPT1-specific. Treat as a "
+            "pathway-level perturbation with parallel controls for broad glutamine "
+            "metabolism."
         ),
         "tunicamycin": (
-            "Blocks DPAGT1, the first enzyme in dolichol-linked oligosaccharide "
-            "assembly, completely inhibiting N-glycosylation in the ER. Prevents "
-            "glycoprotein maturation of syndecans, glypicans, and integrins — "
-            "disrupting both glycocalyx structure and integrin-mediated mechanosensing."
+            "Blocks DPAGT1-dependent initiation of N-glycosylation. Useful as a "
+            "positive perturbation of glycoprotein maturation, but ER-stress/UPR and "
+            "toxicity are strong confounders for adhesion and YAP/TAZ readouts."
         ),
         "benzyl-GalNAc": (
-            "Competitive inhibitor of GalNAc-transferases (GALNT family), blocking "
-            "mucin-type O-glycosylation. Reduces O-glycan decoration of membrane "
-            "mucins (MUC1) and other surface glycoproteins that contribute to "
-            "glycocalyx thickness and charge."
+            "Broad perturbation of mucin-type O-glycosylation through GALNT-family "
+            "substrate competition. It is not a clean CD44/HA-axis test and should be "
+            "interpreted as a general O-glycan perturbation."
         ),
         "PUGNAc": (
-            "Inhibits O-GlcNAcase (OGA), the enzyme that removes O-GlcNAc from "
-            "intracellular proteins. Causes hyper-O-GlcNAcylation, including of "
-            "YAP (Ser109) and cytoskeletal regulators, altering mechanotransduction "
-            "signalling downstream of the glycocalyx."
+            "OGA inhibitor that increases intracellular O-GlcNAc. It is an older, "
+            "broader tool than Thiamet-G or GlcNAcstatin and is an opposite-direction "
+            "perturbation relative to OGT inhibition."
         ),
     }
-
     inhibitors_raw = get_metabolic_inhibitors()
     df_indexed = df.set_index("gene")
     inhibitors: list[MetabolicInhibitor] = []
@@ -158,7 +167,12 @@ def _build_response(
     from glycoquant.viz.prior_table import plot_panel_summary
     mechano_sig = get_mechano_signature()
     gene_dicts = [
-        {"gene": g.gene, "pathway_score": g.pathway_score, "pathway_rank": g.pathway_rank}
+        {
+            "gene": g.gene,
+            "pathway_score": g.pathway_score,
+            "pathway_rank": g.pathway_rank,
+            "reachable_signature_targets": g.reachable_signature_targets,
+        }
         for g in genes
     ]
     summary_fig = plot_panel_summary(gene_dicts, mechano_sig)
@@ -266,6 +280,9 @@ async def get_gene_drill_down(gene: str) -> DrillDownResponse:
                             "from": e["from"],
                             "to": e["to"],
                             "confidence": float(e["confidence"]),
+                            "source": e.get("source"),
+                            "pubmed_doi": e.get("pubmed_doi"),
+                            "reason": e.get("reason"),
                         }
                     )
                     for e in entry.get("path_edges", [])

@@ -32,7 +32,7 @@ function SectionHeader({ icon, title, rightLabel }: SectionHeaderProps) {
 }
 
 function geneClassLabel(gene: string): string | null {
-  if (gene === "CD44") return "HA receptor";
+  if (gene === "CD44") return "HA receptor / HA coat organizer";
   if (gene.startsWith("SDC") || gene.startsWith("GPC")) return "HSPG core protein";
   if (gene.startsWith("HAS")) return "HA synthase";
   if (gene === "HPSE") return "heparanase";
@@ -40,6 +40,14 @@ function geneClassLabel(gene: string): string | null {
   if (["GFPT1", "GFPT2", "OGT", "MGAT5", "B4GALT1"].includes(gene)) return "glycosylation pathway";
   return null;
 }
+
+const SIGNATURE_LAYERS: ReadonlyArray<{ label: string; genes: string }> = [
+  { label: "YAP/TAZ relay", genes: "YAP1, WWTR1" },
+  { label: "YAP/TAZ response", genes: "CCN2/CTGF, CYR61, ANKRD1" },
+  { label: "actomyosin tension", genes: "RHOA, ROCK1, ROCK2, MYL9" },
+  { label: "adhesion clutch", genes: "ITGB1, PTK2/FAK, VCL, PXN, TLN1" },
+  { label: "mechanosensor", genes: "PIEZO1" },
+];
 
 export function PrioritizationTab() {
   const queryClient = useQueryClient();
@@ -129,7 +137,7 @@ export function PrioritizationTab() {
       <div>
         <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Perturbation prior ranking</h1>
         <p className="text-[13px] text-gray-500 mt-1">
-          Twenty-two glycocalyx-associated genes ranked against a fixed 15-gene mechanotransduction-associated signature.
+          Twenty-two glycan and pericellular-matrix genes ranked against a fixed 15-gene adhesion-actomyosin-YAP/TAZ mechanosensitive signature.
         </p>
       </div>
 
@@ -154,7 +162,10 @@ export function PrioritizationTab() {
             )}
           </div>
           <p className="text-[11px] text-gray-600 leading-relaxed max-w-3xl">
-            Pathway proximity is reweighted by field-relative imaging deviations. This is a descriptive prioritization layer, not treatment-level biological evidence.
+            STRING proximity is reweighted by field-relative imaging deviations. This is a descriptive prioritization layer, not treatment-level biological evidence.
+          </p>
+          <p className="mt-2 text-[11px] text-amber-800 leading-relaxed max-w-3xl">
+            Pathway proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
           </p>
           {topWeights.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3">
@@ -198,7 +209,7 @@ export function PrioritizationTab() {
             className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-gray-700 hover:text-gray-950"
           >
             <ChevronLeft size={12} strokeWidth={1.5} />
-            Show pathway prior only
+            Show STRING prior only
           </button>
         </Card>
       ) : (
@@ -208,11 +219,14 @@ export function PrioritizationTab() {
             <span className="text-[13px] font-semibold text-gray-900">{priorMode}</span>
           </div>
           <p className="text-[12px] text-gray-600 leading-relaxed max-w-3xl">
-            Pre-computed pathway ranking of twenty-two glycocalyx-relevant genes against a fixed
-            15-gene mechanotransduction-associated signature. STRING v12 proximity is always used.
+            STRING-based undirected functional-association prior for glycan/pericellular-matrix perturbation genes.
+            Scores prioritize hypotheses for matched wet-lab testing; they do not infer causal signalling direction.
             {priors.geneformer_available
               ? " A Geneformer transcriptomic prior is available and shown in the ranking table."
               : " No Geneformer transcriptomic prior is currently active."}
+          </p>
+          <p className="mt-2 text-[11px] text-amber-800 leading-relaxed max-w-3xl">
+            Pathway proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
           </p>
           {latestJobResult !== null && forceStatic && (
             <button
@@ -229,6 +243,25 @@ export function PrioritizationTab() {
           )}
         </Card>
       )}
+
+      <Card className="!bg-white">
+        <SectionHeader
+          icon={<Network size={14} strokeWidth={1.5} />}
+          title="Signature layers"
+          rightLabel="15 genes"
+        />
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+          {SIGNATURE_LAYERS.map(layer => (
+            <div key={layer.label} className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+              <div className="text-[10px] font-semibold text-gray-900">{layer.label}</div>
+              <div className="mt-1 text-[10px] leading-relaxed text-gray-500">{layer.genes}</div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-[11px] text-gray-500 leading-relaxed">
+          CCN2/CTGF, CYR61, and ANKRD1 are treated as YAP/TAZ-response genes, not upstream mechanosensors.
+        </p>
+      </Card>
 
       {/* Geneformer bootstrap — after the GF prior lands, refresh BOTH the static priors
           query and (if we're in image-aware mode) the contextual priors mutation, since
@@ -281,7 +314,11 @@ export function PrioritizationTab() {
           {top3.map((g, i) => {
             const badges: string[] = [];
             if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High proximity");
-            if (g.pathway_score !== null && g.pathway_score > 0.5) badges.push("Reachable targets");
+            if (g.reachable_signature_targets !== null && g.reachable_signature_targets !== undefined) {
+              badges.push(`${g.reachable_signature_targets}/15 reachable`);
+            } else if (g.pathway_score !== null && g.pathway_score > 0.5) {
+              badges.push("Reachable targets");
+            }
             if (isDynamic) badges.push("Image-context weighted");
             const classLabel = geneClassLabel(g.gene);
             if (classLabel) badges.push(classLabel);
@@ -364,7 +401,7 @@ export function PrioritizationTab() {
             rightLabel="22 genes"
           />
           <p className="text-[11px] text-gray-500 mb-3">
-            Dot size encodes reachable mechanotransduction-associated signature targets; colour encodes STRING pathway proximity.
+            Dot size encodes reachable mechanosensitive-signature targets; colour encodes STRING proximity.
           </p>
           <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
         </Card>
@@ -407,12 +444,12 @@ export function PrioritizationTab() {
         )}
       </Card>
 
-      {/* Metabolic inhibitors */}
+      {/* Assay perturbation links */}
       <Card noPadding>
         <div className="px-5 py-4 border-b border-gray-100">
           <SectionHeader
             icon={<FlaskConical size={14} strokeWidth={1.5} />}
-            title="Metabolic inhibitors"
+            title="Assay perturbation links"
             rightLabel={`${priors.metabolic_inhibitors.length} compounds`}
           />
         </div>
