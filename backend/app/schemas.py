@@ -309,6 +309,17 @@ class PriorGeneEntry(BaseModel):
             "does not change ranking order."
         ),
     )
+    reachable_signature_target_names: list[str] | None = Field(
+        default=None,
+        description=(
+            "Canonical signature target symbols reachable from this gene in "
+            "the retained STRING functional-association graph."
+        ),
+    )
+    gene_class: str | None = Field(
+        default=None,
+        description="Biological perturbation class used for semantic ranking colors.",
+    )
     abs_rank_divergence: int | None = None
     pathway_signed_score: float | None = Field(
         default=None,
@@ -350,6 +361,22 @@ class PathwayEdge(BaseModel):
         default=None,
         description="One-line rationale for curated edges when available.",
     )
+    edge_cost: float | None = Field(
+        default=None,
+        description="Shortest-path edge cost computed as -log(clamped STRING confidence).",
+    )
+    evidence_channels: list[str] | None = Field(
+        default=None,
+        description="STRING evidence channels when available; absent means combined score only.",
+    )
+    is_curated: bool | None = Field(
+        default=None,
+        description="True for literature-curated edges added outside the STRING graph.",
+    )
+    is_string: bool | None = Field(
+        default=None,
+        description="True for STRING-derived edges.",
+    )
 
     model_config = {"populate_by_name": True}
 
@@ -358,6 +385,10 @@ class PathwayEvidence(BaseModel):
     distance: float | None = None
     path: list[str]
     path_edges: list[PathwayEdge]
+    target_alias: str | None = None
+    signature_layer: str | None = None
+    path_length: int | None = None
+    network_distance: float | None = None
 
 
 class PriorStatusBlock(BaseModel):
@@ -386,6 +417,12 @@ class PriorsResponse(BaseModel):
     pathway_metadata: dict[str, Any]
     geneformer_metadata: dict[str, Any]
     panel_summary_figure_json: str | None = None
+    signature_matrix_figure_json: str | None = None
+    hubness_diagnostic_figure_json: str | None = None
+    hubness_diagnostic_message: str | None = None
+    signature_layers: list[dict[str, Any]] | None = None
+    target_metadata: dict[str, Any] | None = None
+    gene_class_legend: list[dict[str, Any]] | None = None
     # Axis A — dynamic image-aware re-weighting
     dynamic: bool = False
     mechano_weights: dict[str, float] | None = None
@@ -406,7 +443,7 @@ class PriorsResponse(BaseModel):
     pathway_status: PriorStatusBlock | None = Field(
         default=None,
         description=(
-            "Reproducibility status of the pathway prior on disk. UI "
+            "Reproducibility status of the STRING functional-association prior on disk. UI "
             "should display a badge if status != 'ready'."
         ),
     )
@@ -422,7 +459,7 @@ class PriorsResponse(BaseModel):
 
 
 class ContextualPriorsRequest(BaseModel):
-    """POST /priors/contextual — re-weight the pathway prior by observed features.
+    """POST /priors/contextual — re-weight the STRING functional-association prior by observed features.
 
     Sends the serialised per-cell feature table from a completed Tab 1
     job. The backend computes image-specific mechano-gene weights and
@@ -492,6 +529,8 @@ class DrillDownResponse(BaseModel):
     heatmap_figure_json: str
     network_figure_json: str | None = None
     evidence_per_target: dict[str, PathwayEvidence]
+    selected_target: str | None = None
+    network_mode: str | None = None
 
 
 # ---------------------------------------------------------------------------

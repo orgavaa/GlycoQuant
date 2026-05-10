@@ -37,6 +37,15 @@ from glycoquant.predictor import (
     recompute_pathway_ranking,
 )
 from glycoquant.predictor.prior_loader import GeneRanking
+from glycoquant.predictor.ranking_metadata import (
+    GENE_CLASS_LEGEND,
+    SIGNATURE_LAYERS,
+    edge_cost_from_confidence,
+    gene_class_label,
+    target_alias,
+    target_layer_label,
+    target_metadata,
+)
 
 router = APIRouter(prefix="/priors", tags=["priors"])
 
@@ -44,6 +53,12 @@ DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "priors"
 PATHWAY_PRIOR_PATH = DATA_DIR / "pathway_ranks.json"
 GENEFORMER_PRIOR_PATH = DATA_DIR / "geneformer_ranks.json"
 PATHWAY_EVIDENCE_PATH = DATA_DIR / "pathway_evidence.json"
+
+
+def _load_pathway_evidence() -> dict[str, Any]:
+    if not PATHWAY_EVIDENCE_PATH.is_file():
+        return {}
+    return json.loads(PATHWAY_EVIDENCE_PATH.read_text(encoding="utf-8"))
 
 
 def _nan_to_none(val: Any) -> Any:
@@ -76,20 +91,23 @@ def _build_response(
     )
 
     signed_scores = pathway_signed_scores or {}
+    evidence_blob = _load_pathway_evidence()
     genes: list[PriorGeneEntry] = []
     for _, row in df.iterrows():
         gene_symbol = row["gene"]
         signed_val = signed_scores.get(gene_symbol)
         reachable_signature_targets: int | None = None
+        reachable_signature_target_names: list[str] | None = None
         pathway_ranking = pathway.rankings.get(gene_symbol)
         if pathway_ranking is not None:
-            reachable_signature_targets = sum(
-                1
-                for score in pathway_ranking.per_mechano.values()
+            reachable_signature_target_names = [
+                target
+                for target, score in pathway_ranking.per_mechano.items()
                 if isinstance(score, (int, float))
                 and math.isfinite(float(score))
                 and float(score) > 0
-            )
+            ]
+            reachable_signature_targets = len(set(reachable_signature_target_names))
         # NaN → None so Pydantic serialises it cleanly
         if isinstance(signed_val, float) and math.isnan(signed_val):
             signed_val = None
@@ -101,6 +119,8 @@ def _build_response(
                 pathway_rank=_nan_to_none(row.get("pathway_rank")),
                 pathway_score=_nan_to_none(row.get("pathway_score")),
                 reachable_signature_targets=reachable_signature_targets,
+                reachable_signature_target_names=reachable_signature_target_names,
+                gene_class=gene_class_label(gene_symbol),
                 abs_rank_divergence=_nan_to_none(row.get("abs_rank_divergence")),
                 pathway_signed_score=signed_val,
             )
@@ -163,8 +183,8 @@ def _build_response(
             )
         )
 
-    # Panel summary dot plot
-    from glycoquant.viz.prior_table import plot_panel_summary
+    # Panel summary and all-gene target matrix.
+    from glycoquant.viz.prior_table import plot_panel_summary, plot_signature_matrix
     mechano_sig = get_mechano_signature()
     gene_dicts = [
         {
@@ -172,10 +192,18 @@ def _build_response(
             "pathway_score": g.pathway_score,
             "pathway_rank": g.pathway_rank,
             "reachable_signature_targets": g.reachable_signature_targets,
+            "reachable_signature_target_names": g.reachable_signature_target_names,
+            "gene_class": g.gene_class,
+            "per_target_scores": (
+                pathway.rankings[g.gene].per_mechano
+                if g.gene in pathway.rankings
+                else {}
+            ),
         }
         for g in genes
     ]
     summary_fig = plot_panel_summary(gene_dicts, mechano_sig)
+    matrix_fig = plot_signature_matrix(gene_dicts, mechano_sig, evidence_blob)
 
     # H2 — reproducibility hardening. Validate both priors against
     # the schema + freshness rules and surface the status so the UI
@@ -202,6 +230,12 @@ def _build_response(
         pathway_metadata=pathway.metadata,
         geneformer_metadata=geneformer.metadata,
         panel_summary_figure_json=summary_fig.to_json(),
+        signature_matrix_figure_json=matrix_fig.to_json(),
+        hubness_diagnostic_figure_json=None,
+        hubness_diagnostic_message="Hubness diagnostic unavailable: degree metadata not present.",
+        signature_layers=SIGNATURE_LAYERS,
+        target_metadata=target_metadata(),
+        gene_class_legend=GENE_CLASS_LEGEND,
         dynamic=dynamic,
         mechano_weights=mechano_weights,
         mechano_signed_z=mechano_signed_z,
@@ -229,7 +263,7 @@ async def get_priors() -> PriorsResponse:
         raise HTTPException(
             status_code=503,
             detail=(
-                "Pathway prior missing. Run "
+                "STRING functional-association prior missing. Run "
                 "`python scripts/generate_pathway_priors.py` to generate it."
             ),
         )
@@ -238,17 +272,27 @@ async def get_priors() -> PriorsResponse:
 
 
 @router.get("/drill/{gene}", response_model=DrillDownResponse)
-async def get_gene_drill_down(gene: str) -> DrillDownResponse:
+async def get_gene_drill_down(
+    gene: str,
+    target: str | None = None,
+    network_mode: str = "selected",
+) -> DrillDownResponse:
     """Return the drill-down heatmap and STRING evidence for one gene."""
     pathway = load_prior(PATHWAY_PRIOR_PATH, source="pathway")
     geneformer = load_prior(GENEFORMER_PRIOR_PATH, source="geneformer")
     if not pathway.available:
-        raise HTTPException(status_code=503, detail="Pathway prior unavailable")
+        raise HTTPException(status_code=503, detail="STRING functional-association prior unavailable")
 
     # Build the 2-row heatmap figure via the shared library factory
+    mechano_genes = get_mechano_signature()
+    selected_target = target if target in mechano_genes else "YAP1"
+    if selected_target not in mechano_genes and mechano_genes:
+        selected_target = mechano_genes[0]
+
+    evidence_raw: dict[str, Any] = _load_pathway_evidence().get(gene, {})
+
     from glycoquant.viz import plot_drill_down_heatmap
 
-    mechano_genes = get_mechano_signature()
     fig = plot_drill_down_heatmap(
         geneformer_row=(
             {m: geneformer.rankings[gene].per_mechano.get(m, 0.0) for m in mechano_genes}
@@ -261,50 +305,68 @@ async def get_gene_drill_down(gene: str) -> DrillDownResponse:
             else None
         ),
         mechano_genes=mechano_genes,
+        evidence_per_target=evidence_raw,
     )
 
-    # Load the raw evidence blob
     evidence_per_target: dict[str, PathwayEvidence] = {}
-    if PATHWAY_EVIDENCE_PATH.is_file():
-        blob: dict[str, Any] = json.loads(
-            PATHWAY_EVIDENCE_PATH.read_text(encoding="utf-8")
+    for evidence_target, entry in evidence_raw.items():
+        raw_path = list(entry.get("path", []))
+        evidence_per_target[evidence_target] = PathwayEvidence(
+            distance=entry.get("distance"),
+            network_distance=entry.get("distance"),
+            target_alias=target_alias(evidence_target),
+            signature_layer=target_layer_label(evidence_target),
+            path_length=max(0, len(raw_path) - 1) if raw_path else None,
+            path=raw_path,
+            path_edges=[
+                PathwayEdge.model_validate(
+                    {
+                        "from": e["from"],
+                        "to": e["to"],
+                        "confidence": float(e["confidence"]),
+                        "source": e.get("source"),
+                        "pubmed_doi": e.get("pubmed_doi"),
+                        "reason": e.get("reason"),
+                        "edge_cost": edge_cost_from_confidence(float(e["confidence"])),
+                        "evidence_channels": e.get("evidence_channels"),
+                        "is_curated": e.get("source") == "curated",
+                        "is_string": e.get("source", "string") == "string",
+                    }
+                )
+                for e in entry.get("path_edges", [])
+            ],
         )
-        gene_evidence = blob.get(gene, {})
-        for target, entry in gene_evidence.items():
-            evidence_per_target[target] = PathwayEvidence(
-                distance=entry.get("distance"),
-                path=list(entry.get("path", [])),
-                path_edges=[
-                    PathwayEdge.model_validate(
-                        {
-                            "from": e["from"],
-                            "to": e["to"],
-                            "confidence": float(e["confidence"]),
-                            "source": e.get("source"),
-                            "pubmed_doi": e.get("pubmed_doi"),
-                            "reason": e.get("reason"),
-                        }
-                    )
-                    for e in entry.get("path_edges", [])
-                ],
+
+    for mechano_target in mechano_genes:
+        if mechano_target not in evidence_per_target:
+            evidence_per_target[mechano_target] = PathwayEvidence(
+                distance=None,
+                network_distance=None,
+                target_alias=target_alias(mechano_target),
+                signature_layer=target_layer_label(mechano_target),
+                path_length=None,
+                path=[],
+                path_edges=[],
             )
 
-    # Network graph showing shortest paths from gene to all reachable targets
+    # Network graph showing selected or all reachable STRING functional-association paths.
     from glycoquant.viz.prior_table import plot_pathway_network
 
-    # Convert evidence to raw dict format for the network viz
-    evidence_raw = {}
-    if PATHWAY_EVIDENCE_PATH.is_file():
-        blob_raw = json.loads(PATHWAY_EVIDENCE_PATH.read_text(encoding="utf-8"))
-        evidence_raw = blob_raw.get(gene, {})
-
-    network_fig = plot_pathway_network(gene, evidence_raw, mechano_genes)
+    network_fig = plot_pathway_network(
+        gene,
+        evidence_raw,
+        mechano_genes,
+        selected_target=selected_target,
+        network_mode=network_mode,
+    )
 
     return DrillDownResponse(
         gene=gene,
         heatmap_figure_json=fig.to_json(),
         network_figure_json=network_fig.to_json(),
         evidence_per_target=evidence_per_target,
+        selected_target=selected_target,
+        network_mode=network_mode,
     )
 
 
@@ -337,7 +399,7 @@ def _prior_table_from_dynamic(
 
 @router.post("/contextual", response_model=PriorsResponse)
 async def get_contextual_priors(req: ContextualPriorsRequest) -> PriorsResponse:
-    """Re-aggregate the pathway prior with weights derived from a Tab 1 result.
+    """Re-aggregate the STRING functional-association prior with weights derived from a Tab 1 result.
 
     Accepts the serialised per-cell feature table from a completed
     Tab 1 analysis, computes image-specific weights over the 15-gene
@@ -351,7 +413,7 @@ async def get_contextual_priors(req: ContextualPriorsRequest) -> PriorsResponse:
     if not pathway.available:
         raise HTTPException(
             status_code=503,
-            detail="Pathway prior missing on the server.",
+            detail="STRING functional-association prior missing on the server.",
         )
 
     try:

@@ -1,18 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Info, Zap, ChevronLeft, FlaskConical, Network, Table2, BarChart3, Layers, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  BarChart3,
+  ChevronLeft,
+  FlaskConical,
+  Info,
+  Layers,
+  Minus,
+  Network,
+  Table2,
+  Zap,
+} from "lucide-react";
 import { Card } from "@/components/Card";
 import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
   fetchContextualPriors,
   fetchPriors,
-  type PriorsResponse,
   type PriorStatusBlock,
+  type PriorsResponse,
 } from "@/lib/api";
 import { useJobStore } from "@/lib/jobStore";
 import { DrillDownPanel } from "./DrillDownPanel";
 import { GeneformerRunCard } from "./GeneformerRunCard";
-import { MetabolicInhibitorTable } from "./MetabolicInhibitorTable";
 import { RankingTable } from "./RankingTable";
 
 interface SectionHeaderProps {
@@ -31,24 +42,6 @@ function SectionHeader({ icon, title, rightLabel }: SectionHeaderProps) {
   );
 }
 
-function geneClassLabel(gene: string): string | null {
-  if (gene === "CD44") return "HA receptor / HA coat organizer";
-  if (gene.startsWith("SDC") || gene.startsWith("GPC")) return "HSPG core protein";
-  if (gene.startsWith("HAS")) return "HA synthase";
-  if (gene === "HPSE") return "heparanase";
-  if (gene.startsWith("EXT") || gene.startsWith("NDST")) return "HS biosynthesis";
-  if (["GFPT1", "GFPT2", "OGT", "MGAT5", "B4GALT1"].includes(gene)) return "glycosylation pathway";
-  return null;
-}
-
-const SIGNATURE_LAYERS: ReadonlyArray<{ label: string; genes: string }> = [
-  { label: "YAP/TAZ relay", genes: "YAP1, WWTR1" },
-  { label: "YAP/TAZ response", genes: "CCN2/CTGF, CYR61, ANKRD1" },
-  { label: "actomyosin tension", genes: "RHOA, ROCK1, ROCK2, MYL9" },
-  { label: "adhesion clutch", genes: "ITGB1, PTK2/FAK, VCL, PXN, TLN1" },
-  { label: "mechanosensor", genes: "PIEZO1" },
-];
-
 export function PrioritizationTab() {
   const queryClient = useQueryClient();
   const [selectedGene, setSelectedGene] = useState<string | null>(null);
@@ -63,10 +56,7 @@ export function PrioritizationTab() {
   });
 
   const canGoDynamic = !forceStatic && latestJobResult !== null;
-
-  const contextualMutation = useMutation({
-    mutationFn: fetchContextualPriors,
-  });
+  const contextualMutation = useMutation({ mutationFn: fetchContextualPriors });
 
   useEffect(() => {
     if (!canGoDynamic || !latestJobResult) return;
@@ -84,11 +74,9 @@ export function PrioritizationTab() {
   const isError = staticQuery.isError && !dynamicPriors;
 
   const staticRankByGene = useMemo(() => {
-    if (!dynamicPriors) return null;
-    const staticData = staticQuery.data;
-    if (!staticData) return null;
+    if (!dynamicPriors || !staticQuery.data) return null;
     const out: Record<string, number | null> = {};
-    for (const g of staticData.genes) out[g.gene] = g.pathway_rank ?? null;
+    for (const g of staticQuery.data.genes) out[g.gene] = g.pathway_rank ?? null;
     return out;
   }, [dynamicPriors, staticQuery.data]);
 
@@ -124,8 +112,13 @@ export function PrioritizationTab() {
 
   const top3 = priors.genes.slice(0, 3);
   const isDynamic = !!dynamicPriors;
-  const priorMode = priors.geneformer_available ? "STRING + transcriptomic prior" : "STRING pathway prior";
+  const priorMode = priors.geneformer_available
+    ? "STRING + transcriptomic sensitivity prior"
+    : "STRING functional-association prior";
   const evidenceMode = isDynamic ? `Image-context reweighting + ${priorMode}` : priorMode;
+  const signatureLayers = priors.signature_layers ?? [];
+  const targetMetadata = priors.target_metadata ?? {};
+  const geneClassLegend = priors.gene_class_legend ?? [];
 
   const topWeights = isDynamic && priors.mechano_weights
     ? Object.entries(priors.mechano_weights).sort(([, a], [, b]) => b - a).slice(0, 3)
@@ -133,7 +126,6 @@ export function PrioritizationTab() {
 
   return (
     <div className="space-y-8">
-      {/* Page title */}
       <div>
         <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight">Perturbation prior ranking</h1>
         <p className="text-[13px] text-gray-500 mt-1">
@@ -141,10 +133,9 @@ export function PrioritizationTab() {
         </p>
       </div>
 
-      {/* Mode banner — compact */}
       {isDynamic ? (
         <Card className="!bg-white">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <Zap size={14} strokeWidth={1.5} className="text-gray-700" />
             <span className="text-[13px] font-semibold text-gray-900">Image-context reweighting active</span>
             <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-gray-50 border border-gray-200 text-gray-700">
@@ -162,36 +153,23 @@ export function PrioritizationTab() {
             )}
           </div>
           <p className="text-[11px] text-gray-600 leading-relaxed max-w-3xl">
-            STRING proximity is reweighted by field-relative imaging deviations. This is a descriptive prioritization layer, not treatment-level biological evidence.
+            STRING proximity is reweighted by field-relative imaging deviations. Image-context reweighting is field-relative unless a validated reference/control cohort is provided.
           </p>
           <p className="mt-2 text-[11px] text-amber-800 leading-relaxed max-w-3xl">
-            Pathway proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
+            Network proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
           </p>
           {topWeights.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3">
               <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Most weighted:</span>
               {topWeights.map(([gene, weight]) => {
                 const signedZ = priors.mechano_signed_z?.[gene] ?? 0;
-                // |z| < 0.1 treated as neutral — below the biological-null noise floor
                 const direction: "up" | "down" | "neutral" =
                   Math.abs(signedZ) < 0.1 ? "neutral" : signedZ > 0 ? "up" : "down";
                 const DirIcon = direction === "up" ? ArrowUp : direction === "down" ? ArrowDown : Minus;
-                const dirColor =
-                  direction === "up"
-                    ? "text-red-600"
-                    : direction === "down"
-                    ? "text-blue-600"
-                    : "text-gray-400";
-                const dirTitle =
-                  direction === "up"
-                    ? `over-activated in this image (signed z = +${signedZ.toFixed(2)})`
-                    : direction === "down"
-                    ? `under-activated in this image (signed z = ${signedZ.toFixed(2)})`
-                    : `near the reference cohort null (|z| = ${Math.abs(signedZ).toFixed(2)})`;
+                const dirColor = direction === "up" ? "text-red-600" : direction === "down" ? "text-blue-600" : "text-gray-400";
                 return (
                   <span
                     key={gene}
-                    title={dirTitle}
                     className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-800"
                     style={{ fontFeatureSettings: "'tnum'" }}
                   >
@@ -209,7 +187,7 @@ export function PrioritizationTab() {
             className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-gray-700 hover:text-gray-950"
           >
             <ChevronLeft size={12} strokeWidth={1.5} />
-            Show STRING prior only
+            Show STRING functional-association prior only
           </button>
         </Card>
       ) : (
@@ -222,11 +200,14 @@ export function PrioritizationTab() {
             STRING-based undirected functional-association prior for glycan/pericellular-matrix perturbation genes.
             Scores prioritize hypotheses for matched wet-lab testing; they do not infer causal signalling direction.
             {priors.geneformer_available
-              ? " A Geneformer transcriptomic prior is available and shown in the ranking table."
+              ? " Geneformer-derived transcriptomic sensitivity is a model-derived hypothesis prior, not experimental perturbation evidence."
               : " No Geneformer transcriptomic prior is currently active."}
           </p>
           <p className="mt-2 text-[11px] text-amber-800 leading-relaxed max-w-3xl">
-            Pathway proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
+            Network proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
+          </p>
+          <p className="mt-2 text-[11px] text-gray-500 leading-relaxed max-w-3xl">
+            Image-context reweighting is field-relative unless a validated reference/control cohort is provided.
           </p>
           {latestJobResult !== null && forceStatic && (
             <button
@@ -245,27 +226,35 @@ export function PrioritizationTab() {
       )}
 
       <Card className="!bg-white">
-        <SectionHeader
-          icon={<Network size={14} strokeWidth={1.5} />}
-          title="Signature layers"
-          rightLabel="15 genes"
-        />
+        <SectionHeader icon={<Network size={14} strokeWidth={1.5} />} title="Signature and gene-class metadata" rightLabel="15 targets" />
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-          {SIGNATURE_LAYERS.map(layer => (
+          {signatureLayers.map(layer => (
             <div key={layer.label} className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-              <div className="text-[10px] font-semibold text-gray-900">{layer.label}</div>
-              <div className="mt-1 text-[10px] leading-relaxed text-gray-500">{layer.genes}</div>
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-900">
+                <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: layer.color }} />
+                {layer.label}
+              </div>
+              <div className="mt-1 text-[10px] leading-relaxed text-gray-500">
+                {layer.genes.map(g => targetMetadata[g]?.alias ?? g).join(", ")}
+              </div>
             </div>
           ))}
         </div>
         <p className="mt-3 text-[11px] text-gray-500 leading-relaxed">
-          CCN2/CTGF, CYR61, and ANKRD1 are treated as YAP/TAZ-response genes, not upstream mechanosensors.
+          CCN2/CTGF, CYR61/CCN1, and ANKRD1 are treated as YAP/TAZ-response genes, not upstream mechanosensors.
         </p>
+        {geneClassLegend.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {geneClassLegend.map(item => (
+              <span key={item.label} className="inline-flex items-center gap-1.5 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600">
+                <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: item.color }} />
+                {item.label}
+              </span>
+            ))}
+          </div>
+        )}
       </Card>
 
-      {/* Geneformer bootstrap — after the GF prior lands, refresh BOTH the static priors
-          query and (if we're in image-aware mode) the contextual priors mutation, since
-          the current ranking comes from the latter and would otherwise stay GF-less. */}
       {!priors.geneformer_available && priors.can_generate_geneformer && (
         <GeneformerRunCard
           onComplete={() => {
@@ -282,20 +271,15 @@ export function PrioritizationTab() {
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
         <Card className="!bg-amber-50 !border-amber-200">
-          <span className="text-[12px] font-semibold text-gray-900">STRING pathway prior only</span>
+          <span className="text-[12px] font-semibold text-gray-900">STRING functional-association prior only</span>
           <p className="text-[11px] text-gray-600 mt-0.5">
             Transcriptomic prior not yet committed and no Modal GPU provider available.
           </p>
         </Card>
       )}
 
-      {/* H2 — reproducibility hardening: badge any prior whose status
-          is not 'ready'. MISSING → amber (expected when Geneformer
-          hasn't been generated). INVALID / STALE → red (something to
-          fix before citing the ranking). 'ready' renders nothing so
-          the happy path stays clean. */}
       {priors.pathway_status && priors.pathway_status.status !== "ready" && (
-        <PriorStatusBanner label="Pathway prior" status={priors.pathway_status} />
+        <PriorStatusBanner label="STRING functional-association prior" status={priors.pathway_status} />
       )}
       {priors.geneformer_status &&
         priors.geneformer_status.status !== "ready" &&
@@ -303,61 +287,31 @@ export function PrioritizationTab() {
           <PriorStatusBanner label="Geneformer prior" status={priors.geneformer_status} />
         )}
 
-      {/* Top 3 candidates */}
       <Card>
-        <SectionHeader
-          icon={<Layers size={14} strokeWidth={1.5} />}
-          title="Top candidates"
-          rightLabel={isDynamic ? "image-context reweighted" : priorMode}
-        />
+        <SectionHeader icon={<Layers size={14} strokeWidth={1.5} />} title="Top candidates" rightLabel={isDynamic ? "image-context reweighted" : priorMode} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((g, i) => {
             const badges: string[] = [];
-            if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High proximity");
-            if (g.reachable_signature_targets !== null && g.reachable_signature_targets !== undefined) {
-              badges.push(`${g.reachable_signature_targets}/15 reachable`);
-            } else if (g.pathway_score !== null && g.pathway_score > 0.5) {
-              badges.push("Reachable targets");
-            }
-            if (isDynamic) badges.push("Image-context weighted");
-            const classLabel = geneClassLabel(g.gene);
-            if (classLabel) badges.push(classLabel);
-
-            const isFirst = i === 0;
+            if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High STRING proximity");
+            if (g.reachable_signature_targets !== null && g.reachable_signature_targets !== undefined) badges.push(`${g.reachable_signature_targets}/15 reachable`);
+            if (isDynamic) badges.push("Field-relative reweighting");
+            if (g.gene_class) badges.push(g.gene_class);
             return (
               <button
                 key={g.gene}
                 onClick={() => setSelectedGene(g.gene)}
-                className={`text-left p-3 rounded-md border transition-colors ${
-                  isFirst
-                    ? "border-gray-950 bg-gray-50"
-                    : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
-                }`}
+                className={`text-left p-3 rounded-md border transition-colors ${i === 0 ? "border-gray-950 bg-gray-50" : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"}`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-                    Rank {g.pathway_rank}
-                  </span>
-                  {isDynamic && (
-                    <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">
-                      reweighted
-                    </span>
-                  )}
+                  <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Rank {g.pathway_rank}</span>
+                  {isDynamic && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">reweighted</span>}
                 </div>
-                <div className="text-[20px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>
-                  {g.gene}
-                </div>
+                <div className="text-[20px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{g.gene}</div>
                 {g.pathway_score !== null && (
-                  <div className="text-[11px] text-gray-500 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>
-                    score {g.pathway_score.toFixed(3)}
-                  </div>
+                  <div className="text-[11px] text-gray-500 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>STRING score {g.pathway_score.toFixed(3)}</div>
                 )}
                 {isDynamic && g.pathway_signed_score !== null && g.pathway_signed_score !== undefined && (
-                  <div
-                    className="text-[10px] mt-0.5 inline-flex items-center gap-0.5"
-                    style={{ fontFeatureSettings: "'tnum'" }}
-                    title="Positive = close to over-activated mechanophenotype-associated axes. Negative = close to under-activated axes."
-                  >
+                  <div className="text-[10px] mt-0.5 inline-flex items-center gap-0.5" style={{ fontFeatureSettings: "'tnum'" }}>
                     {g.pathway_signed_score > 0 ? (
                       <ArrowUp size={9} strokeWidth={2} className="text-red-600" />
                     ) : g.pathway_signed_score < 0 ? (
@@ -365,25 +319,14 @@ export function PrioritizationTab() {
                     ) : (
                       <Minus size={9} strokeWidth={2} className="text-gray-400" />
                     )}
-                    <span
-                      className={
-                        g.pathway_signed_score > 0
-                          ? "text-red-700"
-                          : g.pathway_signed_score < 0
-                          ? "text-blue-700"
-                          : "text-gray-500"
-                      }
-                    >
-                      signed {g.pathway_signed_score >= 0 ? "+" : ""}
-                      {g.pathway_signed_score.toFixed(2)}
+                    <span className={g.pathway_signed_score > 0 ? "text-red-700" : g.pathway_signed_score < 0 ? "text-blue-700" : "text-gray-500"}>
+                      signed {g.pathway_signed_score >= 0 ? "+" : ""}{g.pathway_signed_score.toFixed(2)}
                     </span>
                   </div>
                 )}
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {badges.slice(0, 2).map(b => (
-                    <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-                      {b}
-                    </span>
+                  {badges.slice(0, 3).map(b => (
+                    <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{b}</span>
                   ))}
                 </div>
               </button>
@@ -392,29 +335,38 @@ export function PrioritizationTab() {
         </div>
       </Card>
 
-      {/* Panel summary dot plot */}
+      {priors.signature_matrix_figure_json && (
+        <Card>
+          <SectionHeader icon={<Table2 size={14} strokeWidth={1.5} />} title="All-gene STRING proximity matrix" rightLabel="22 × 15" />
+          <p className="text-[11px] text-gray-500 mb-3">
+            Rows are ranked glycan/pericellular-matrix genes; columns are signature targets grouped by biological layer. Grey cells are unreachable under the retained STRING graph.
+          </p>
+          <PlotlyFigure figureJson={priors.signature_matrix_figure_json} />
+        </Card>
+      )}
+
       {priors.panel_summary_figure_json && (
         <Card>
-          <SectionHeader
-            icon={<BarChart3 size={14} strokeWidth={1.5} />}
-            title="Panel overview"
-            rightLabel="22 genes"
-          />
-          <p className="text-[11px] text-gray-500 mb-3">
-            Dot size encodes reachable mechanosensitive-signature targets; colour encodes STRING proximity.
-          </p>
+          <SectionHeader icon={<BarChart3 size={14} strokeWidth={1.5} />} title="Ranking overview" rightLabel="22 genes" />
+          <p className="text-[11px] text-gray-500 mb-3">Dot color encodes gene class; dot size encodes actual reachable signature-target count.</p>
           <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
         </Card>
       )}
 
-      {/* Ranking table */}
+      <Card className="!bg-gray-50">
+        <SectionHeader icon={<Info size={14} strokeWidth={1.5} />} title="Hubness diagnostic" />
+        {priors.hubness_diagnostic_figure_json ? (
+          <PlotlyFigure figureJson={priors.hubness_diagnostic_figure_json} />
+        ) : (
+          <p className="text-[11px] text-gray-500">
+            {priors.hubness_diagnostic_message ?? "Hubness diagnostic unavailable: degree metadata not present."}
+          </p>
+        )}
+      </Card>
+
       <Card noPadding>
         <div className="px-5 py-4 border-b border-gray-100">
-          <SectionHeader
-            icon={<Table2 size={14} strokeWidth={1.5} />}
-            title="Ranked perturbations"
-            rightLabel="click row to drill in"
-          />
+          <SectionHeader icon={<Table2 size={14} strokeWidth={1.5} />} title="Ranked perturbations" rightLabel="click row to drill in" />
         </div>
         <RankingTable
           genes={priors.genes}
@@ -425,35 +377,27 @@ export function PrioritizationTab() {
         />
       </Card>
 
-      {/* Drill-down */}
       <Card>
-        <SectionHeader
-          icon={<Network size={14} strokeWidth={1.5} />}
-          title="Per-gene drill-down"
-          rightLabel={activeGene ?? undefined}
-        />
+        <SectionHeader icon={<Network size={14} strokeWidth={1.5} />} title="Per-gene drill-down" rightLabel={activeGene ?? undefined} />
         {activeGene ? (
           <DrillDownPanel
             gene={activeGene}
             mechanoSignature={priors.mechano_signature}
+            targetMetadata={priors.target_metadata ?? {}}
             onGeneChange={setSelectedGene}
             availableGenes={priors.genes.map(g => g.gene)}
+            selectedGeneClass={priors.genes.find(g => g.gene === activeGene)?.gene_class ?? null}
           />
         ) : (
           <p className="text-[12px] text-gray-400">No genes available.</p>
         )}
       </Card>
 
-      {/* Assay perturbation links */}
-      <Card noPadding>
-        <div className="px-5 py-4 border-b border-gray-100">
-          <SectionHeader
-            icon={<FlaskConical size={14} strokeWidth={1.5} />}
-            title="Assay perturbation links"
-            rightLabel={`${priors.metabolic_inhibitors.length} compounds`}
-          />
-        </div>
-        <MetabolicInhibitorTable inhibitors={priors.metabolic_inhibitors} />
+      <Card className="!bg-amber-50 !border-amber-200">
+        <SectionHeader icon={<FlaskConical size={14} strokeWidth={1.5} />} title="Interpretation boundary" />
+        <p className="text-[11px] text-amber-900 leading-relaxed">
+          Undirected STRING functional association. Path layout, edge order, and shortest paths do not imply causal signalling, temporal order, or cell-type-specific mechanism.
+        </p>
       </Card>
     </div>
   );
@@ -466,11 +410,6 @@ function PriorStatusBanner({
   label: string;
   status: PriorStatusBlock;
 }) {
-  // Severity tint:
-  //  - missing → amber (expected when GF hasn't been generated)
-  //  - stale   → amber-orange (consume but flag age)
-  //  - invalid → red (something is wrong with the file)
-  //  - ready   → never reaches here (caller filters)
   const tint =
     status.status === "invalid"
       ? "bg-red-50 border-red-200 text-red-900"
@@ -490,16 +429,9 @@ function PriorStatusBanner({
         <span className="text-[12px] font-semibold">
           {label} status: {status.status}
         </span>
-        {status.n_genes > 0 && (
-          <span className="text-[10px] font-medium opacity-70">
-            ({status.n_genes} genes)
-          </span>
-        )}
+        {status.n_genes > 0 && <span className="text-[10px] font-medium opacity-70">({status.n_genes} genes)</span>}
         {typeof status.age_days === "number" && (
-          <span
-            className="text-[10px] font-medium opacity-70"
-            style={{ fontFeatureSettings: "'tnum'" }}
-          >
+          <span className="text-[10px] font-medium opacity-70" style={{ fontFeatureSettings: "'tnum'" }}>
             generated {status.age_days.toFixed(0)} d ago
           </span>
         )}

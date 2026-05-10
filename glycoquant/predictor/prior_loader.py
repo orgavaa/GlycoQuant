@@ -1,4 +1,4 @@
-"""Load pre-computed Geneformer and STRING pathway priors for Tab 2.
+"""Load pre-computed Geneformer and STRING functional-association priors for Tab 2.
 
 Tab 2 never runs Geneformer inference at runtime. Instead, two
 committed JSON files in ``data/priors/`` hold the precomputed rankings:

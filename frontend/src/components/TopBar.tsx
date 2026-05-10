@@ -37,7 +37,7 @@ const NAV_ITEMS: ReadonlyArray<{
     id: "ranking",
     label: "Ranking",
     Icon: ChartNetwork,
-    tooltip: "Rank glycan and pericellular-matrix genes using STRING priors and optional Geneformer evidence.",
+    tooltip: "Rank glycan and pericellular-matrix genes using STRING functional-association priors and optional Geneformer evidence.",
   },
   {
     id: "methods",

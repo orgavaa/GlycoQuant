@@ -82,7 +82,8 @@ export function GeneformerRunCard({ onComplete }: GeneformerRunCardProps) {
 
       <p className="text-[13px] text-gray-600 leading-relaxed max-w-2xl mb-4">
         The transcriptomic prior runs in-silico perturbation with Geneformer (Theodoris 2023) on a reference
-        fibroblast cohort. Expect roughly twenty to thirty minutes on the Modal L4 GPU.
+        fibroblast cohort. Geneformer-derived transcriptomic sensitivity is a model-derived hypothesis prior,
+        not experimental perturbation evidence. Expect roughly twenty to thirty minutes on the Modal L4 GPU.
       </p>
 
       {!jobId && !spawn.isError && (

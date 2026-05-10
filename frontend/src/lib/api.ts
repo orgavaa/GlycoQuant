@@ -141,6 +141,8 @@ export interface PriorGeneEntry {
   pathway_rank: number | null;
   pathway_score: number | null;
   reachable_signature_targets?: number | null;
+  reachable_signature_target_names?: string[] | null;
+  gene_class?: string | null;
   abs_rank_divergence: number | null;
   /** Directionally-aware sidecar on the dynamic STRING score.
    * Positive = close to over-activated adhesion-actomyosin-YAP/TAZ axes.
@@ -167,6 +169,24 @@ export interface PriorsResponse {
   pathway_metadata: Record<string, unknown>;
   geneformer_metadata: Record<string, unknown>;
   panel_summary_figure_json?: string | null;
+  signature_matrix_figure_json?: string | null;
+  hubness_diagnostic_figure_json?: string | null;
+  hubness_diagnostic_message?: string | null;
+  signature_layers?: Array<{
+    id: string;
+    label: string;
+    short_label: string;
+    genes: string[];
+    color: string;
+  }> | null;
+  target_metadata?: Record<string, {
+    gene: string;
+    alias: string;
+    signature_layer: string;
+    signature_layer_id: string;
+    color: string;
+  }> | null;
+  gene_class_legend?: Array<{ label: string; color: string; genes: string }> | null;
   dynamic?: boolean;
   mechano_weights?: Record<string, number> | null;
   /** Direction-of-deviation sidecar per mechano gene. Positive = axis
@@ -207,6 +227,7 @@ export interface PathwayEdge {
   from: string;
   to: string;
   confidence: number;
+  edge_cost?: number | null;
   /** Provenance tag — "string" for STRING v12 edges (default),
    * "curated" for literature-traceable edges added below the STRING
    * cutoff where primary literature is strong. */
@@ -215,10 +236,17 @@ export interface PathwayEdge {
   pubmed_doi?: string | null;
   /** One-line biochemical rationale for the curated edge. */
   reason?: string | null;
+  evidence_channels?: string[] | null;
+  is_curated?: boolean | null;
+  is_string?: boolean | null;
 }
 
 export interface PathwayEvidence {
   distance: number | null;
+  network_distance?: number | null;
+  target_alias?: string | null;
+  signature_layer?: string | null;
+  path_length?: number | null;
   path: string[];
   path_edges: PathwayEdge[];
 }
@@ -228,6 +256,8 @@ export interface DrillDownResponse {
   heatmap_figure_json: string;
   network_figure_json?: string | null;
   evidence_per_target: Record<string, PathwayEvidence>;
+  selected_target?: string | null;
+  network_mode?: string | null;
 }
 
 export interface EffectSize {
@@ -411,8 +441,14 @@ export async function fetchPriors(): Promise<PriorsResponse> {
   return data;
 }
 
-export async function fetchDrillDown(gene: string): Promise<DrillDownResponse> {
-  const { data } = await api.get<DrillDownResponse>(`/priors/drill/${gene}`);
+export async function fetchDrillDown(
+  gene: string,
+  params?: { target?: string; networkMode?: "selected" | "all" },
+): Promise<DrillDownResponse> {
+  const query: Record<string, string> = {};
+  if (params?.target) query.target = params.target;
+  if (params?.networkMode) query.network_mode = params.networkMode;
+  const { data } = await api.get<DrillDownResponse>(`/priors/drill/${gene}`, { params: query });
   return data;
 }
 

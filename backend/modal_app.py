@@ -302,7 +302,7 @@ def _run_geneformer_perturbation(
     useful error in the returned dict rather than crashing the call.
 
     The per-gene / per-target cosine shifts are aggregated into the
-    same JSON shape as the STRING pathway prior so the downstream
+    same JSON shape as the STRING functional-association prior so the downstream
     ``prior_loader.load_prior`` can consume both without a schema
     branch.
     """
