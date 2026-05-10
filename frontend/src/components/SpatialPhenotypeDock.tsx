@@ -243,33 +243,39 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
       {tab === "spatial" && (
         <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),230px] gap-3 overflow-hidden bg-gray-50/50 p-3">
           <div className="min-h-0 overflow-auto rounded-2xl border border-gray-200/70 bg-white shadow-sm">
-            <table className="w-full text-left text-[11px]">
-              <thead className="sticky top-0 z-10 border-b border-gray-100 bg-white text-[10px] uppercase tracking-wide text-gray-500">
+            <table className="w-full border-separate border-spacing-x-1.5 border-spacing-y-1 px-2 text-left text-[11px]">
+              <thead className="sticky top-0 z-10 bg-white text-[10px] uppercase tracking-wide text-gray-500">
                 <tr>
-                  <th className="px-4 py-2.5 font-semibold">Feature</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">Moran's I</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">Cells</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">Mean</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">SD</th>
+                  <th className="px-3 pb-2 pt-3 font-semibold">Feature</th>
+                  <th className="px-3 pb-2 pt-3 text-right font-semibold">Moran's I</th>
+                  <th className="px-3 pb-2 pt-3 text-right font-semibold">Cells</th>
+                  <th className="px-3 pb-2 pt-3 text-right font-semibold">Mean</th>
+                  <th className="px-3 pb-2 pt-3 text-right font-semibold">SD</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
-                {spatialRows.map((row) => (
-                  <tr
-                    key={row.feature}
-                    onClick={() => onSelectFeature(row.feature)}
-                    className={`cursor-pointer transition ${
-                      selectedFeature === row.feature ? "bg-gray-100" : "bg-white hover:bg-gray-50"
-                    }`}
-                    title="Click to map this feature on the cell masks"
-                  >
-                    <td className="px-4 py-2 font-medium text-gray-950">{displayFeatureName(row.feature)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-900">{fmtSigned(row.moran)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-700">{row.n}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-700">{fmt(row.mean)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-gray-700">{fmt(row.sd)}</td>
-                  </tr>
-                ))}
+              <tbody>
+                {spatialRows.map((row) => {
+                  const isSelected = selectedFeature === row.feature;
+                  const pill = isSelected
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-50 text-gray-800 group-hover:bg-gray-100";
+                  return (
+                    <tr
+                      key={row.feature}
+                      onClick={() => onSelectFeature(row.feature)}
+                      className="group cursor-pointer"
+                      title="Click to map this feature on the cell masks"
+                    >
+                      <td className={`rounded-lg px-3 py-2 font-medium transition ${isSelected ? "text-gray-950" : "text-gray-950"}`}>
+                        {displayFeatureName(row.feature)}
+                      </td>
+                      <td className={`rounded-lg px-3 py-2 text-right tabular-nums transition ${pill}`}>{fmtSigned(row.moran)}</td>
+                      <td className={`rounded-lg px-3 py-2 text-right tabular-nums transition ${pill}`}>{row.n}</td>
+                      <td className={`rounded-lg px-3 py-2 text-right tabular-nums transition ${pill}`}>{fmt(row.mean)}</td>
+                      <td className={`rounded-lg px-3 py-2 text-right tabular-nums transition ${pill}`}>{fmt(row.sd)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
