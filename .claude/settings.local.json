@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile backend/app/schemas.py backend/app/routers/priors.py glycoquant/viz/prior_table.py glycoquant/predictor/mechano_signature.py glycoquant/predictor/ranking_metadata.py glycoquant/predictor/pathway_score.py)",
+      "Bash(python -m pytest tests/test_viz.py tests/test_pathway_score.py tests/test_mechano_signature.py tests/test_dynamic_ranking.py tests/test_prior_loader.py -x --no-header -q)"
+    ]
+  }
+}

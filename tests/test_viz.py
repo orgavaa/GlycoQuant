@@ -14,6 +14,7 @@ import pytest
 from glycoquant.viz import (
     plot_correlation_map,
     plot_drill_down_heatmap,
+    plot_drill_down_lollipop,
     plot_panel_summary,
     plot_pathway_network,
     plot_prior_ranking_table,
@@ -187,6 +188,33 @@ def test_signature_matrix_marks_unreachable() -> None:
     assert "unreachable" in heatmap.text[0]
 
 
+def test_drill_down_lollipop_marks_unreachable_targets() -> None:
+    fig = plot_drill_down_lollipop(
+        pathway_row={"YAP1": 0.55, "WWTR1": 0.0, "CTGF": 0.42},
+        mechano_genes=["YAP1", "WWTR1", "CTGF"],
+        evidence_per_target={
+            "YAP1": {"path": ["CD44", "YAP1"], "distance": 0.5},
+            "WWTR1": {"path": []},
+            "CTGF": {"path": ["CD44", "ITGB1", "CTGF"], "distance": 0.8},
+        },
+    )
+    assert isinstance(fig, go.Figure)
+    text_blob = "".join(
+        item
+        for trace in fig.data
+        for item in (trace.hovertext or [])
+    )
+    # Unreachable targets must surface explicitly, not as 0.00.
+    assert "unreachable" in text_blob.lower()
+    assert "WWTR1/TAZ" in text_blob
+
+
+def test_drill_down_lollipop_handles_missing_pathway_row() -> None:
+    fig = plot_drill_down_lollipop(None, ["YAP1"], evidence_per_target={})
+    assert isinstance(fig, go.Figure)
+    assert any("No STRING proximity" in (ann.text or "") for ann in fig.layout.annotations)
+
+
 def test_pathway_network_uses_no_arrowheads_or_arrow_paths() -> None:
     fig = plot_pathway_network(
         "CD44",
@@ -203,7 +231,8 @@ def test_pathway_network_uses_no_arrowheads_or_arrow_paths() -> None:
         selected_target="YAP1",
     )
     assert all(getattr(trace, "mode", "") != "markers+text" or "->" not in "".join(trace.text or []) for trace in fig.data)
-    assert "not causal direction" in fig.layout.annotations[0].text
+    annotation_texts = [ann.text for ann in fig.layout.annotations]
+    assert any("not causal direction" in text for text in annotation_texts)
 
 
 # ---------------------------------------------------------------------------

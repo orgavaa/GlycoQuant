@@ -183,27 +183,7 @@ def _build_response(
             )
         )
 
-    # Panel summary and all-gene target matrix.
-    from glycoquant.viz.prior_table import plot_panel_summary, plot_signature_matrix
     mechano_sig = get_mechano_signature()
-    gene_dicts = [
-        {
-            "gene": g.gene,
-            "pathway_score": g.pathway_score,
-            "pathway_rank": g.pathway_rank,
-            "reachable_signature_targets": g.reachable_signature_targets,
-            "reachable_signature_target_names": g.reachable_signature_target_names,
-            "gene_class": g.gene_class,
-            "per_target_scores": (
-                pathway.rankings[g.gene].per_mechano
-                if g.gene in pathway.rankings
-                else {}
-            ),
-        }
-        for g in genes
-    ]
-    summary_fig = plot_panel_summary(gene_dicts, mechano_sig)
-    matrix_fig = plot_signature_matrix(gene_dicts, mechano_sig, evidence_blob)
 
     # H2 — reproducibility hardening. Validate both priors against
     # the schema + freshness rules and surface the status so the UI
@@ -229,10 +209,10 @@ def _build_response(
         metabolic_inhibitors=inhibitors,
         pathway_metadata=pathway.metadata,
         geneformer_metadata=geneformer.metadata,
-        panel_summary_figure_json=summary_fig.to_json(),
-        signature_matrix_figure_json=matrix_fig.to_json(),
+        panel_summary_figure_json=None,
+        signature_matrix_figure_json=None,
         hubness_diagnostic_figure_json=None,
-        hubness_diagnostic_message="Hubness diagnostic unavailable: degree metadata not present.",
+        hubness_diagnostic_message=None,
         signature_layers=SIGNATURE_LAYERS,
         target_metadata=target_metadata(),
         gene_class_legend=GENE_CLASS_LEGEND,
@@ -291,14 +271,9 @@ async def get_gene_drill_down(
 
     evidence_raw: dict[str, Any] = _load_pathway_evidence().get(gene, {})
 
-    from glycoquant.viz import plot_drill_down_heatmap
+    from glycoquant.viz import plot_drill_down_lollipop
 
-    fig = plot_drill_down_heatmap(
-        geneformer_row=(
-            {m: geneformer.rankings[gene].per_mechano.get(m, 0.0) for m in mechano_genes}
-            if gene in geneformer.rankings
-            else None
-        ),
+    fig = plot_drill_down_lollipop(
         pathway_row=(
             {m: pathway.rankings[gene].per_mechano.get(m, 0.0) for m in mechano_genes}
             if gene in pathway.rankings

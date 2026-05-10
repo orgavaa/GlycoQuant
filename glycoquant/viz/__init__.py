@@ -24,6 +24,7 @@ from glycoquant.viz.overlay import (
 )
 from glycoquant.viz.prior_table import (
     plot_drill_down_heatmap,
+    plot_drill_down_lollipop,
     plot_panel_summary,
     plot_pathway_network,
     plot_prior_ranking_table,
@@ -45,6 +46,7 @@ __all__ = [
     "nuclear_outline_polygons",
     "plot_correlation_map",
     "plot_drill_down_heatmap",
+    "plot_drill_down_lollipop",
     "plot_glyco_mechano_correlation",
     "plot_mechano_score_distribution",
     "plot_panel_summary",

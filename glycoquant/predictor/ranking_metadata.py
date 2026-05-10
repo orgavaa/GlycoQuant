@@ -12,18 +12,21 @@ from typing import Any
 
 
 SEMANTIC_COLORS: dict[str, str] = {
-    "query": "#e76f51",
-    "HA/CD44 axis": "#f59e0b",
-    "HSPG core proteins": "#14b8a6",
-    "HS biosynthesis/remodeling": "#2563eb",
-    "N/O-glycosylation and HBP/O-GlcNAc": "#8b5cf6",
-    "intermediate": "#64748b",
-    "Mechanosensitive transcriptional effectors": "#4f46e5",
-    "YAP/TAZ-response genes": "#d97706",
-    "Actomyosin tension": "#7c3aed",
-    "Adhesion clutch": "#0ea5e9",
-    "Mechanosensitive ion channel": "#22c55e",
-    "unreachable": "#e5e7eb",
+    # Monochromatic grey + blue palette aligned with the rest of the UI.
+    # Gene classes step through slate; signature layers step through blue;
+    # query is near-black so it always reads as the focal node.
+    "query": "#111827",                                       # gray-900
+    "HA/CD44 axis": "#475569",                                # slate-600
+    "HSPG core proteins": "#64748b",                          # slate-500
+    "HS biosynthesis/remodeling": "#94a3b8",                  # slate-400
+    "N/O-glycosylation and HBP/O-GlcNAc": "#cbd5e1",          # slate-300
+    "intermediate": "#cbd5e1",                                # slate-300
+    "Mechanosensitive transcriptional effectors": "#1e3a8a",  # blue-900
+    "YAP/TAZ-response genes": "#1d4ed8",                      # blue-700
+    "Actomyosin tension": "#3b82f6",                          # blue-500
+    "Adhesion clutch": "#60a5fa",                             # blue-400
+    "Mechanosensitive ion channel": "#93c5fd",                # blue-300
+    "unreachable": "#e5e7eb",                                 # gray-200
 }
 
 SIGNATURE_LAYERS: list[dict[str, Any]] = [

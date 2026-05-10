@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
-  BarChart3,
   ChevronLeft,
   FlaskConical,
   Info,
@@ -14,7 +13,6 @@ import {
   Zap,
 } from "lucide-react";
 import { Card } from "@/components/Card";
-import { PlotlyFigure } from "@/components/PlotlyFigure";
 import {
   fetchContextualPriors,
   fetchPriors,
@@ -119,6 +117,7 @@ export function PrioritizationTab() {
   const signatureLayers = priors.signature_layers ?? [];
   const targetMetadata = priors.target_metadata ?? {};
   const geneClassLegend = priors.gene_class_legend ?? [];
+  const pathwayProvenance = stringProvenanceChips(priors.pathway_metadata);
 
   const topWeights = isDynamic && priors.mechano_weights
     ? Object.entries(priors.mechano_weights).sort(([, a], [, b]) => b - a).slice(0, 3)
@@ -155,7 +154,21 @@ export function PrioritizationTab() {
           <p className="text-[11px] text-gray-600 leading-relaxed max-w-3xl">
             STRING proximity is reweighted by field-relative imaging deviations. Image-context reweighting is field-relative unless a validated reference/control cohort is provided.
           </p>
-          <p className="mt-2 text-[11px] text-amber-800 leading-relaxed max-w-3xl">
+          {pathwayProvenance.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Prior provenance</span>
+              {pathwayProvenance.map(chip => (
+                <span
+                  key={chip}
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-700"
+                  style={{ fontFeatureSettings: "'tnum'" }}
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-[11px] text-gray-600 leading-relaxed max-w-3xl">
             Network proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
           </p>
           {topWeights.length > 0 && (
@@ -203,7 +216,21 @@ export function PrioritizationTab() {
               ? " Geneformer-derived transcriptomic sensitivity is a model-derived hypothesis prior, not experimental perturbation evidence."
               : " No Geneformer transcriptomic prior is currently active."}
           </p>
-          <p className="mt-2 text-[11px] text-amber-800 leading-relaxed max-w-3xl">
+          {pathwayProvenance.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Prior provenance</span>
+              {pathwayProvenance.map(chip => (
+                <span
+                  key={chip}
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-700"
+                  style={{ fontFeatureSettings: "'tnum'" }}
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-[11px] text-gray-600 leading-relaxed max-w-3xl border-l-2 border-gray-200 pl-3">
             Network proximity may favor highly connected genes. Degree-matched null correction is not active in this build.
           </p>
           <p className="mt-2 text-[11px] text-gray-500 leading-relaxed max-w-3xl">
@@ -226,15 +253,16 @@ export function PrioritizationTab() {
       )}
 
       <Card className="!bg-white">
-        <SectionHeader icon={<Network size={14} strokeWidth={1.5} />} title="Signature and gene-class metadata" rightLabel="15 targets" />
+        <SectionHeader icon={<Network size={14} strokeWidth={1.5} />} title="Signature and gene-class metadata" rightLabel="15 signature targets · 22 perturbation genes" />
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
           {signatureLayers.map(layer => (
             <div key={layer.label} className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
               <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-900">
                 <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: layer.color }} />
-                {layer.label}
+                {layer.short_label}
               </div>
-              <div className="mt-1 text-[10px] leading-relaxed text-gray-500">
+              <div className="mt-0.5 text-[9px] uppercase tracking-wider text-gray-400">{layer.label}</div>
+              <div className="mt-1 text-[10px] leading-relaxed text-gray-600">
                 {layer.genes.map(g => targetMetadata[g]?.alias ?? g).join(", ")}
               </div>
             </div>
@@ -245,8 +273,14 @@ export function PrioritizationTab() {
         </p>
         {geneClassLegend.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
+            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mr-1 self-center">Perturbation gene classes</span>
             {geneClassLegend.map(item => (
-              <span key={item.label} className="inline-flex items-center gap-1.5 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600">
+              <span
+                key={item.label}
+                className="inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] text-gray-700"
+                style={{ borderColor: `${item.color}33`, backgroundColor: `${item.color}10` }}
+                title={item.genes}
+              >
                 <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: item.color }} />
                 {item.label}
               </span>
@@ -270,7 +304,7 @@ export function PrioritizationTab() {
         />
       )}
       {!priors.geneformer_available && !priors.can_generate_geneformer && (
-        <Card className="!bg-amber-50 !border-amber-200">
+        <Card className="!bg-gray-50">
           <span className="text-[12px] font-semibold text-gray-900">STRING functional-association prior only</span>
           <p className="text-[11px] text-gray-600 mt-0.5">
             Transcriptomic prior not yet committed and no Modal GPU provider available.
@@ -281,34 +315,37 @@ export function PrioritizationTab() {
       {priors.pathway_status && priors.pathway_status.status !== "ready" && (
         <PriorStatusBanner label="STRING functional-association prior" status={priors.pathway_status} />
       )}
-      {priors.geneformer_status &&
-        priors.geneformer_status.status !== "ready" &&
-        priors.geneformer_status.status !== "missing" && (
-          <PriorStatusBanner label="Geneformer prior" status={priors.geneformer_status} />
-        )}
+      {/* Only surface stale-but-loaded Geneformer priors; "invalid" is hidden
+          because the fallback "STRING functional-association prior only" card
+          already communicates the situation without exposing a stack trace. */}
+      {priors.geneformer_status && priors.geneformer_status.status === "stale" && (
+        <PriorStatusBanner label="Geneformer prior" status={priors.geneformer_status} />
+      )}
 
       <Card>
         <SectionHeader icon={<Layers size={14} strokeWidth={1.5} />} title="Top candidates" rightLabel={isDynamic ? "image-context reweighted" : priorMode} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((g, i) => {
-            const badges: string[] = [];
-            if (g.pathway_score !== null && g.pathway_score > 0.8) badges.push("High STRING proximity");
-            if (g.reachable_signature_targets !== null && g.reachable_signature_targets !== undefined) badges.push(`${g.reachable_signature_targets}/15 reachable`);
-            if (isDynamic) badges.push("Field-relative reweighting");
-            if (g.gene_class) badges.push(g.gene_class);
+            const classColor = geneClassColor(g.gene_class, geneClassLegend);
+            const reachable = g.reachable_signature_targets ?? null;
             return (
               <button
                 key={g.gene}
                 onClick={() => setSelectedGene(g.gene)}
-                className={`text-left p-3 rounded-md border transition-colors ${i === 0 ? "border-gray-950 bg-gray-50" : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"}`}
+                className={`relative text-left p-3 pl-4 rounded-md border transition-colors overflow-hidden ${i === 0 ? "border-gray-950 bg-gray-50" : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"}`}
               >
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{ backgroundColor: classColor ?? "#e5e7eb" }}
+                />
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Rank {g.pathway_rank}</span>
                   {isDynamic && <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">reweighted</span>}
                 </div>
                 <div className="text-[20px] font-semibold text-gray-900" style={{ fontFeatureSettings: "'tnum'" }}>{g.gene}</div>
                 {g.pathway_score !== null && (
-                  <div className="text-[11px] text-gray-500 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>STRING score {g.pathway_score.toFixed(3)}</div>
+                  <div className="text-[11px] text-gray-500 mt-0.5" style={{ fontFeatureSettings: "'tnum'" }}>STRING proximity {g.pathway_score.toFixed(3)}</div>
                 )}
                 {isDynamic && g.pathway_signed_score !== null && g.pathway_signed_score !== undefined && (
                   <div className="text-[10px] mt-0.5 inline-flex items-center gap-0.5" style={{ fontFeatureSettings: "'tnum'" }}>
@@ -325,43 +362,27 @@ export function PrioritizationTab() {
                   </div>
                 )}
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {badges.slice(0, 3).map(b => (
-                    <span key={b} className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{b}</span>
-                  ))}
+                  {g.gene_class && (
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded font-medium border"
+                      style={{ color: classColor ?? "#6b7280", borderColor: classColor ? `${classColor}33` : "#e5e7eb", backgroundColor: classColor ? `${classColor}14` : "#f9fafb" }}
+                    >
+                      {g.gene_class}
+                    </span>
+                  )}
+                  {reachable !== null && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700" style={{ fontFeatureSettings: "'tnum'" }}>
+                      {reachable}/15 reachable
+                    </span>
+                  )}
+                  {g.pathway_score !== null && g.pathway_score > 0.8 && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">High proximity</span>
+                  )}
                 </div>
               </button>
             );
           })}
         </div>
-      </Card>
-
-      {priors.signature_matrix_figure_json && (
-        <Card>
-          <SectionHeader icon={<Table2 size={14} strokeWidth={1.5} />} title="All-gene STRING proximity matrix" rightLabel="22 × 15" />
-          <p className="text-[11px] text-gray-500 mb-3">
-            Rows are ranked glycan/pericellular-matrix genes; columns are signature targets grouped by biological layer. Grey cells are unreachable under the retained STRING graph.
-          </p>
-          <PlotlyFigure figureJson={priors.signature_matrix_figure_json} />
-        </Card>
-      )}
-
-      {priors.panel_summary_figure_json && (
-        <Card>
-          <SectionHeader icon={<BarChart3 size={14} strokeWidth={1.5} />} title="Ranking overview" rightLabel="22 genes" />
-          <p className="text-[11px] text-gray-500 mb-3">Dot color encodes gene class; dot size encodes actual reachable signature-target count.</p>
-          <PlotlyFigure figureJson={priors.panel_summary_figure_json} />
-        </Card>
-      )}
-
-      <Card className="!bg-gray-50">
-        <SectionHeader icon={<Info size={14} strokeWidth={1.5} />} title="Hubness diagnostic" />
-        {priors.hubness_diagnostic_figure_json ? (
-          <PlotlyFigure figureJson={priors.hubness_diagnostic_figure_json} />
-        ) : (
-          <p className="text-[11px] text-gray-500">
-            {priors.hubness_diagnostic_message ?? "Hubness diagnostic unavailable: degree metadata not present."}
-          </p>
-        )}
       </Card>
 
       <Card noPadding>
@@ -393,14 +414,43 @@ export function PrioritizationTab() {
         )}
       </Card>
 
-      <Card className="!bg-amber-50 !border-amber-200">
+      <Card className="!bg-gray-50">
         <SectionHeader icon={<FlaskConical size={14} strokeWidth={1.5} />} title="Interpretation boundary" />
-        <p className="text-[11px] text-amber-900 leading-relaxed">
+        <p className="text-[11px] text-gray-700 leading-relaxed">
           Undirected STRING functional association. Path layout, edge order, and shortest paths do not imply causal signalling, temporal order, or cell-type-specific mechanism.
         </p>
       </Card>
     </div>
   );
+}
+
+function stringProvenanceChips(metadata: Record<string, unknown>): string[] {
+  if (!metadata || typeof metadata !== "object") return [];
+  const chips: string[] = [];
+  const source = typeof metadata.source === "string" ? metadata.source : null;
+  if (source) chips.push(source);
+  const threshold = metadata.string_confidence_threshold ?? metadata.confidence_threshold;
+  if (typeof threshold === "number") chips.push(`confidence ≥ ${threshold.toFixed(2)}`);
+  if (typeof metadata.species === "number" && metadata.species === 9606) chips.push("H. sapiens");
+  if (typeof metadata.n_graph_nodes === "number" && typeof metadata.n_graph_edges === "number") {
+    chips.push(`${metadata.n_graph_nodes} nodes / ${metadata.n_graph_edges} edges retained`);
+  }
+  if (typeof metadata.curated_edges_overlaid === "number" && metadata.curated_edges_overlaid > 0) {
+    chips.push(`${metadata.curated_edges_overlaid} curated edges overlaid`);
+  }
+  if (typeof metadata.aggregation === "string" && metadata.aggregation === "median_inverse_shortest_path") {
+    chips.push("median inverse shortest path");
+  }
+  return chips;
+}
+
+function geneClassColor(
+  geneClass: string | null | undefined,
+  legend: Array<{ label: string; color: string }>,
+): string | null {
+  if (!geneClass) return null;
+  const entry = legend.find(item => item.label === geneClass);
+  return entry?.color ?? null;
 }
 
 function PriorStatusBanner({

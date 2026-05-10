@@ -33,7 +33,10 @@ export function DrillDownPanel({
   selectedGeneClass,
 }: DrillDownPanelProps) {
   const [selectedTarget, setSelectedTarget] = useState<string>("YAP1");
-  const [networkMode, setNetworkMode] = useState<"selected" | "all">("selected");
+  // Always show every reachable target path. Selection only changes
+  // which path is highlighted, so the network always reads as a GRN
+  // overview rather than a single shortest-path browser.
+  const networkMode: "all" = "all";
   const [showNetwork, setShowNetwork] = useState(true);
 
   useEffect(() => {
@@ -80,11 +83,13 @@ export function DrillDownPanel({
 
       <Card>
         <h3 className="text-[13px] font-semibold text-gray-900 mb-0.5">Per-target STRING proximity</h3>
-        <p className="text-[10px] text-gray-500 mb-2">
-          Grouped proximity of {gene} to adhesion-actomyosin-YAP/TAZ signature targets. Grey = unreachable under the retained graph.
+        <p className="text-[10px] text-gray-500 mb-3 leading-relaxed">
+          STRING functional-association proximity from {gene} to each of the 15 mechanosensitive signature targets,
+          grouped on the right by signature layer. Filled lollipops are reachable under the retained confidence-threshold graph;
+          dashed rows tagged "unreachable" have no retained STRING path.
         </p>
         {drillQuery.isLoading ? (
-          <div className="flex h-[100px] items-center justify-center">
+          <div className="flex h-[200px] items-center justify-center">
             <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-950 rounded-full animate-spin" />
           </div>
         ) : drill ? (
@@ -133,7 +138,7 @@ export function DrillDownPanel({
               </div>
             ))}
           </div>
-          <p className="mt-3 text-[10px] text-amber-800">
+          <p className="mt-3 text-[10px] text-gray-600 border-l-2 border-gray-200 pl-2">
             Broad metabolic drugs are assay perturbation links, not clean gene-specific controls.
           </p>
         </Card>
@@ -180,7 +185,7 @@ export function DrillDownPanel({
               Network distance: sum of -log(STRING confidence) edge costs; computational proximity, not biological order.
             </p>
             {evidence.path_edges.length > 0 && <EdgeEvidenceTable edges={evidence.path_edges} />}
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-800">
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-[10px] leading-relaxed text-gray-700">
               Undirected STRING functional association. Path layout, edge order, and shortest paths do not imply causal signalling, temporal order, or cell-type-specific mechanism.
             </div>
           </div>
@@ -189,7 +194,7 @@ export function DrillDownPanel({
 
       {drill?.network_figure_json && (
         <Card>
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               className="flex items-center gap-2"
@@ -202,23 +207,14 @@ export function DrillDownPanel({
               </span>
               {drillQuery.isFetching && <span className="w-3 h-3 border-2 border-gray-200 border-t-gray-950 rounded-full animate-spin" />}
             </button>
-            <div className="inline-flex items-center gap-1 rounded-md bg-gray-100 p-1">
-              {(["selected", "all"] as const).map(mode => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setNetworkMode(mode)}
-                  className={`rounded px-2 py-1 text-[10px] font-semibold ${networkMode === mode ? "bg-gray-950 text-white" : "text-gray-500 hover:text-gray-900"}`}
-                >
-                  {mode === "selected" ? "Selected target path" : "All reachable paths"}
-                </button>
-              ))}
-            </div>
+            <span className="ml-auto text-[10px] text-gray-400">
+              Highlighted: {targetMetadata[selectedTarget]?.alias ?? TARGET_ALIASES[selectedTarget] ?? selectedTarget}
+            </span>
           </div>
           {showNetwork && (
             <div className="mt-3">
-              <p className="text-[10px] text-gray-500 mb-2">
-                No arrows. Edge width and opacity encode STRING confidence; node color encodes biological role/class.
+              <p className="text-[10px] text-gray-500 mb-3 leading-relaxed">
+                Every reachable signature target is drawn at once. The selected target above sets which path renders at full strength; the rest of the candidate's STRING neighbourhood stays visible but dim. No arrows. Edge width encodes STRING confidence; node color encodes biological role.
               </p>
               <PlotlyFigure figureJson={drill.network_figure_json} />
             </div>
@@ -260,7 +256,7 @@ function EdgeEvidenceTable({ edges }: { edges: PathwayEdge[] }) {
                       href={`https://doi.org/${edge.pubmed_doi}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-amber-700 underline"
+                      className="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-blue-700 underline"
                     >
                       DOI
                     </a>
