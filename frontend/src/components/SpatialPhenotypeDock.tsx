@@ -214,8 +214,8 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
   }
 
   return (
-    <div className="pointer-events-auto isolate w-full overflow-hidden rounded-2xl border border-gray-200/80 bg-white text-gray-950 shadow-[0_24px_80px_rgba(15,23,42,0.18)] ring-1 ring-black/[0.02]">
-      <div className="flex items-center gap-2.5 border-b border-gray-100 bg-white px-4 py-3">
+    <div className="pointer-events-auto isolate w-full overflow-hidden rounded-3xl border border-gray-200/70 bg-white text-gray-950 shadow-[0_30px_90px_-12px_rgba(15,23,42,0.25)] ring-1 ring-black/[0.02]">
+      <div className="flex items-center gap-3 border-b border-gray-100 bg-white px-5 py-3.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-gray-800">
           <Table2 size={14} strokeWidth={1.8} />
         </div>
@@ -241,8 +241,8 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
       </div>
 
       {tab === "spatial" && (
-        <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),210px] overflow-hidden bg-white">
-          <div className="min-h-0 overflow-auto">
+        <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),230px] gap-3 overflow-hidden bg-gray-50/50 p-3">
+          <div className="min-h-0 overflow-auto rounded-2xl border border-gray-200/70 bg-white shadow-sm">
             <table className="w-full text-left text-[11px]">
               <thead className="sticky top-0 z-10 border-b border-gray-100 bg-white text-[10px] uppercase tracking-wide text-gray-500">
                 <tr>
@@ -278,7 +278,7 @@ export function SpatialPhenotypeDock({ open, onOpen, onClose, result, cells, qcR
       )}
 
       {tab === "distribution" && (
-        <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),minmax(0,1fr)] gap-0 overflow-hidden">
+        <div className="grid h-[230px] min-h-0 grid-cols-[minmax(0,1fr),minmax(0,1fr)] gap-3 overflow-hidden bg-gray-50/50 p-3">
           <DistributionPanel stats={selectedStats} feature={selectedFeature} />
           <ExtremesPanel stats={selectedStats} />
         </div>
@@ -308,7 +308,7 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: Reac
 
 function SummaryPanel({ row, selectedFeature }: { row: SpatialFeatureRow | null; selectedFeature: string }) {
   return (
-    <div className="min-h-0 overflow-y-auto border-l border-gray-100 bg-gray-50/40 p-4">
+    <div className="min-h-0 overflow-y-auto rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm">
       <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Mapped feature</div>
       <div className="mt-1 text-[13px] font-semibold leading-snug text-gray-950">
         {displayFeatureName(selectedFeature)}
@@ -337,7 +337,7 @@ function MiniMetric({ label, value }: { label: string; value: string }) {
 
 function DistributionPanel({ stats, feature }: { stats: ReturnType<typeof selectedFeatureStats>; feature: string }) {
   return (
-    <div className="border-r border-gray-100 bg-white p-4">
+    <div className="rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm">
       <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Feature distribution</div>
       <div className="mt-1 text-[13px] font-semibold text-gray-950">{displayFeatureName(feature)}</div>
       <div className="mt-4 grid grid-cols-4 gap-2">
@@ -360,7 +360,7 @@ function DistributionPanel({ stats, feature }: { stats: ReturnType<typeof select
 
 function ExtremesPanel({ stats }: { stats: ReturnType<typeof selectedFeatureStats> }) {
   return (
-    <div className="grid grid-cols-2 gap-0">
+    <div className="grid grid-cols-2 gap-3">
       <ExtremeList title="Lowest cells" rows={stats?.low ?? []} />
       <ExtremeList title="Highest cells" rows={stats?.high ?? []} />
     </div>
@@ -369,7 +369,7 @@ function ExtremesPanel({ stats }: { stats: ReturnType<typeof selectedFeatureStat
 
 function ExtremeList({ title, rows }: { title: string; rows: Array<{ id: number; value: number }> }) {
   return (
-      <div className="border-r border-gray-100 bg-white p-4 last:border-r-0">
+      <div className="rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm">
       <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">{title}</div>
       <div className="space-y-1.5">
         {rows.map((row) => (
@@ -398,8 +398,8 @@ function GroupPanel({
   const mid = stats ? stats.rows.filter((row) => row.value > stats.q10 && row.value < stats.q90).length : 0;
   const high = stats ? stats.rows.filter((row) => row.value >= stats.q90).length : 0;
   return (
-    <div className="grid h-[230px] min-h-0 grid-cols-[260px,minmax(0,1fr)] overflow-hidden">
-      <div className="border-r border-gray-100 bg-white p-4">
+    <div className="grid h-[230px] min-h-0 grid-cols-[260px,minmax(0,1fr)] gap-3 overflow-hidden bg-gray-50/50 p-3">
+      <div className="rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm">
         <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Feature-stratified groups</div>
         <div className="mt-1 text-[13px] font-semibold text-gray-950">{displayFeatureName(feature)}</div>
         <div className="mt-3 space-y-2">
@@ -411,7 +411,7 @@ function GroupPanel({
           These groups are thresholded from one selected feature. They are not unsupervised biological clusters.
         </div>
       </div>
-      <div className="min-h-0 overflow-auto bg-white p-4">
+      <div className="min-h-0 overflow-auto rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm">
         <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">Map another spatial feature</div>
         <div className="grid grid-cols-2 gap-2">
           {rows.slice(0, 10).map((row) => (
